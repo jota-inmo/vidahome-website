@@ -275,7 +275,7 @@ export default function VenderPage() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.details || errorData.error || 'Error al enviar los datos a Inmovilla');
+                throw new Error(errorData.message || errorData.error || 'Error desconocido');
             }
 
             alert('¡Solicitud enviada! Un agente se pondrá en contacto contigo pronto para una valoración física profesional.');

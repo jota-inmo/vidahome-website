@@ -54,15 +54,12 @@ export async function POST(request: NextRequest) {
         });
 
         if (error) {
-            console.error('[Resend Error]:', error);
-            // Si el error es por el dominio no verificado en Resend (error común con 'from')
-            if (error.name === 'validation_error' || error.message.includes('not verified')) {
-                return NextResponse.json({
-                    error: 'Error de envío',
-                    message: 'El servidor de correo no reconoce el remitente. Asegúrate de verificar el dominio en Resend.'
-                }, { status: 400 });
-            }
-            throw new Error(error.message);
+            console.error('[Resend Error Details]:', JSON.stringify(error));
+            return NextResponse.json({
+                error: 'Error de Resend',
+                message: error.message,
+                details: error
+            }, { status: 400 });
         }
 
         console.log('[Mail] Solicitud enviada correctamente a Inmovilla via Email:', data?.id);
