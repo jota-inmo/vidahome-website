@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
         // Send Email via Resend
         const { data, error } = await resend.emails.send({
-            from: 'Vidahome Web <web@vidahome.es>',
+            from: 'onboarding@resend.dev',
             to: [toEmail],
             subject: `Tasación: ${contactData.nombre} - ${property.direccion}`,
             html: emailContent,
