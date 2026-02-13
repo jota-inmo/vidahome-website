@@ -16,6 +16,7 @@ interface WebApiConfig {
     idioma: number; // 1 = Spanish, 2 = Valencian, etc.
     addnumagencia?: string; // Optional suffix for multi-agency
     ip?: string; // Client IP
+    domain?: string; // Authorized domain
 }
 
 interface ProcessRequest {
@@ -35,7 +36,8 @@ export class InmovillaWebClient {
         this.config = {
             ...config,
             addnumagencia: config.addnumagencia || '',
-            ip: config.ip || '127.0.0.1'
+            ip: config.ip || '127.0.0.1',
+            domain: config.domain || 'vidahome.es'
         };
     }
 
@@ -132,9 +134,9 @@ export class InmovillaWebClient {
     public async execute<T = any>(json: boolean = true): Promise<T> {
         const paramString = this.buildParamString();
 
-        const domain = typeof window !== 'undefined'
+        const domain = this.config.domain || (typeof window !== 'undefined'
             ? window.location.hostname
-            : 'vidahome.es';
+            : 'vidahome.es');
 
         const bodyParams: Record<string, string> = {
             param: paramString,

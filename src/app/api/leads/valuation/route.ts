@@ -37,13 +37,31 @@ ${contactData.mensaje || 'Sin mensaje adicional.'}
 `.trim();
 
         // Get client IP for Inmovilla security check
-        const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || '127.0.0.1';
+        let clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || '127.0.0.1';
+
+        // Fallback for local development
+        if (clientIp === '127.0.0.1' || clientIp === '::1') {
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                if (ipRes.ok) {
+                    const ipData = await ipRes.json();
+                    clientIp = ipData.ip;
+                }
+            } catch (e) { }
+        }
+
+        const domain = process.env.INMOVILLA_DOMAIN || 'vidahome.es';
 
         // Parámetros para la API de Inmovilla (AddDemanda)
         const params = new URLSearchParams({
             numagencia: numagencia,
             passagentua: password,
             laIP: clientIp,
+            laip: clientIp,
+            ip: clientIp,
+            cli_ip: clientIp,
+            ip_cliente: clientIp,
+            elDominio: domain,
             cli_nom: contactData.nombre,
             cli_tel: contactData.telefono,
             cli_email: contactData.email,

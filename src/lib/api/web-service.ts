@@ -125,12 +125,13 @@ function convertToPropertyDetails(webProp: WebApiPropertyResponse): PropertyDeta
 export class InmovillaWebApiService {
     private client: ReturnType<typeof createInmovillaWebClient>;
 
-    constructor(numagencia: string, password: string, idioma: number = 1, ip: string = '') {
+    constructor(numagencia: string, password: string, idioma: number = 1, ip: string = '', domain: string = '') {
         this.client = createInmovillaWebClient({
             numagencia,
             password,
             idioma,
-            ip
+            ip,
+            domain
         });
     }
 
