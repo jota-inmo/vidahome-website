@@ -139,7 +139,11 @@ export class InmovillaWebClient {
         const bodyParams: Record<string, string> = {
             param: paramString,
             elDominio: domain,
-            laIP: this.config.ip || '127.0.0.1'
+            laIP: this.config.ip || '127.0.0.1',
+            laip: this.config.ip || '127.0.0.1',
+            ip: this.config.ip || '127.0.0.1',
+            cli_ip: this.config.ip || '127.0.0.1',
+            ip_cliente: this.config.ip || '127.0.0.1'
         };
 
         if (json) {
@@ -148,8 +152,11 @@ export class InmovillaWebClient {
 
         const body = new URLSearchParams(bodyParams);
 
+        // Some Inmovilla servers look for IP in the query string even on POST
+        const urlWithIp = `${this.baseUrl}?laIP=${encodeURIComponent(this.config.ip || '127.0.0.1')}`;
+
         try {
-            const response = await fetch(this.baseUrl, {
+            const response = await fetch(urlWithIp, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

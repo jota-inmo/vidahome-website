@@ -18,7 +18,21 @@ export async function fetchPropertiesAction(): Promise<{
 
     // Get client IP for Inmovilla security check
     const headerList = await headers();
-    const clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
+    let clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
+
+    // Fallback for local development: Inmovilla rejects 127.0.0.1
+    if (clientIp === '127.0.0.1' || clientIp === '::1') {
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            if (ipRes.ok) {
+                const ipData = await ipRes.json();
+                clientIp = ipData.ip;
+                console.log(`[Actions] Local IP detected. Using public IP fallback: ${clientIp}`);
+            }
+        } catch (e) {
+            console.warn('[Actions] Failed to fetch public IP fallback', e);
+        }
+    }
 
     // We prioritize Web API as it has no rate limits and is more stable
     const isConfigured = !!(numagencia && password) || (!!token && token !== 'your_token_here');
@@ -87,7 +101,18 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
     // Get client IP for Inmovilla security check
     const headerList = await headers();
-    const clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
+    let clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
+
+    // Fallback for local development: Inmovilla rejects 127.0.0.1
+    if (clientIp === '127.0.0.1' || clientIp === '::1') {
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            if (ipRes.ok) {
+                const ipData = await ipRes.json();
+                clientIp = ipData.ip;
+            }
+        } catch (e) { }
+    }
 
     try {
         const { InmovillaWebApiService } = await import('@/lib/api/web-service');
