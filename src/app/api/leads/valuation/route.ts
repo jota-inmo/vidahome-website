@@ -71,29 +71,50 @@ ${contactData.mensaje || 'Sin mensaje adicional.'}
             dem_pob: municipio
         });
 
-        const inmovillaUrl = `https://srv.inmovilla.com/WebAPI/AddDemanda?${params.toString()}`;
-        console.log(`[Inmovilla] Enviando lead a: https://srv.inmovilla.com/WebAPI/AddDemanda (parámetros ocultos)`);
+        const inmovillaUrl = 'https://srv.inmovilla.com/WebAPI/AddDemanda';
 
-        const response = await fetch(inmovillaUrl, {
-            method: 'GET', // La API de Inmovilla para AddDemanda suele funcionar por GET para compatibilidad con formularios antiguos
+        // Some Inmovilla servers look for IP in the query string even on POST
+        const urlWithIp = `${inmovillaUrl}?laIP=${encodeURIComponent(clientIp)}`;
+
+        console.log(`[Inmovilla] Enviando lead a: ${inmovillaUrl} (Domain: ${domain}, IP: ${clientIp})`);
+
+        const response = await fetch(urlWithIp, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params.toString()
         });
-
-        if (!response.ok) {
-            throw new Error(`Inmovilla API error: ${response.status} ${response.statusText}`);
-        }
 
         const resultText = await response.text();
         console.log('[Inmovilla] Respuesta API:', resultText);
+
+        if (!response.ok) {
+            return NextResponse.json({
+                error: 'Error en la API de Inmovilla',
+                status: response.status,
+                details: resultText
+            }, { status: response.status });
+        }
+
+        // La API de Inmovilla a veces devuelve 200 pero el texto contiene error
+        if (resultText.includes('ERROR') || resultText.includes('NECESITAMOS RECIBIR LA IP')) {
+            return NextResponse.json({
+                error: 'Inmovilla rechazó la solicitud',
+                details: resultText
+            }, { status: 400 });
+        }
 
         return NextResponse.json({
             success: true,
             message: 'Lead enviado correctamente a Inmovilla'
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('[Inmovilla] Error enviando lead:', error);
         return NextResponse.json({
-            error: 'Ocurrió un error al procesar tu solicitud. Por favor, inténtalo de nuevo.'
+            error: 'Error interno del servidor',
+            message: error.message || 'Error desconocido'
         }, { status: 500 });
     }
 }

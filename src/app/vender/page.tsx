@@ -274,7 +274,8 @@ export default function VenderPage() {
             });
 
             if (!response.ok) {
-                throw new Error('Error al enviar los datos a Inmovilla');
+                const errorData = await response.json();
+                throw new Error(errorData.details || errorData.error || 'Error al enviar los datos a Inmovilla');
             }
 
             alert('¡Solicitud enviada! Un agente se pondrá en contacto contigo pronto para una valoración física profesional.');
@@ -288,9 +289,9 @@ export default function VenderPage() {
             setReferenciaCatastral('');
             setMunicipioQuery('Gandia');
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error enviando lead:', error);
-            alert('Hubo un problema al enviar tu solicitud. Por favor, inténtalo de nuevo o llámanos directamente.');
+            alert(`Hubo un problema al enviar tu solicitud: ${error.message}\n\nPor favor, inténtalo de nuevo o llámanos directamente.`);
         } finally {
             setLoading(false);
         }
