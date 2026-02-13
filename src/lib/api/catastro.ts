@@ -40,14 +40,15 @@ export interface CatastroSearchResult {
  * Este cliente debe usarse SOLO desde el servidor (API Routes)
  */
 export class CatastroClient {
-    private baseUrl = 'https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json';
+    private callejeroUrl = 'https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json';
+    private infoRefUrl = 'https://ovc.catastro.meh.es/OVCServWeb/OVCWcfInformacionReferencia/COVCInformacionReferencia.svc/json';
 
     /**
      * Obtener listado de todas las provincias
      */
     async getProvincias(): Promise<string[]> {
         try {
-            const url = `${this.baseUrl}/ObtenerProvincias`;
+            const url = `${this.callejeroUrl}/ObtenerProvincias`;
             const response = await fetch(url);
             const text = await response.text();
             const data = JSON.parse(text);
@@ -73,7 +74,7 @@ export class CatastroClient {
                 Provincia: provincia.toUpperCase(),
                 Municipio: ''
             });
-            const url = `${this.baseUrl}/ObtenerMunicipios?${params}`;
+            const url = `${this.callejeroUrl}/ObtenerMunicipios?${params}`;
             const response = await fetch(url);
             const text = await response.text();
             const data = JSON.parse(text);
@@ -101,7 +102,7 @@ export class CatastroClient {
                 TipoVia: '',
                 NomVia: query.toUpperCase() // NomVia es el parámetro correcto
             });
-            const url = `${this.baseUrl}/ObtenerCallejero?${params}`;
+            const url = `${this.callejeroUrl}/ObtenerCallejero?${params}`;
             const response = await fetch(url);
             const text = await response.text();
             const data = JSON.parse(text);
@@ -134,7 +135,7 @@ export class CatastroClient {
                 NomVia: nomVia.toUpperCase(),
                 Numero: numero.toUpperCase()
             });
-            const url = `${this.baseUrl}/ObtenerNumerero?${params}`;
+            const url = `${this.callejeroUrl}/ObtenerNumerero?${params}`;
             const response = await fetch(url);
             if (!response.ok) return [];
             const data = await response.json();
@@ -192,7 +193,7 @@ export class CatastroClient {
                 Numero: num
             });
 
-            const url = `${this.baseUrl}/Consulta_DNPLOC?${params}`;
+            const url = `${this.infoRefUrl}/Consulta_DNPLOC?${params}`;
             console.log(`[Catastro] Buscando dirección: ${url}`);
 
             const response = await fetch(url);
@@ -241,6 +242,31 @@ export class CatastroClient {
                 if (err) {
                     const msg = err.des || 'Error desconocido';
                     console.warn(`[Catastro] API devolvió error: ${err.cod} - ${msg}`);
+
+
+                    // Si el error es "43 - EL NUMERO NO EXISTE", intentamos recuperar la RC a través del callejero
+                    // Esto maneja casos donde DNPLOC falla pero el número sí está registrado en la parcela.
+                    if (err.cod === '43') {
+                        console.log(`[Catastro] Error 43 para ${tipoVia} ${nomVia} ${num}. Intentando fallback con ObtenerNumerero...`);
+
+                        try {
+                            // Usamos parámetros limpios (tipoVia, nomVia ya procesados)
+                            const numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, num);
+
+                            // Buscamos coincidencia
+                            if (numeros.length > 0) {
+                                // Preferir coincidencia exacta si hay, sino el primero
+                                const exactMatch = numeros.find(n => n.numero === num) || numeros[0];
+
+                                if (exactMatch && exactMatch.rc) {
+                                    console.log(`[Catastro] Fallback exitoso. RC recuperada: ${exactMatch.rc}. Buscando inmuebles...`);
+                                    return await this.searchPropertiesByRC(exactMatch.rc);
+                                }
+                            }
+                        } catch (fbError) {
+                            console.warn('[Catastro] Falló recuperación por callejero:', fbError);
+                        }
+                    }
 
                     if (err.cod === '43') {
                         return {
@@ -307,6 +333,68 @@ export class CatastroClient {
     }
 
     /**
+     * Buscar inmuebles por Referencia Catastral (exacta o de parcela)
+     * Retorna lista completa (útil para recuperar todos los pisos de una finca)
+     */
+    async searchPropertiesByRC(rc: string): Promise<CatastroSearchResult> {
+        try {
+            // Limpieza básica
+            const cleanRc = rc.replace(/\s/g, '').toUpperCase();
+
+            const params = new URLSearchParams({ RefCat: cleanRc });
+            const url = `${this.infoRefUrl}/Consulta_DNPRC?${params}`;
+            console.log(`[Catastro] Buscando por RC (searchPropertiesByRC): ${url}`);
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`API Error ${response.status}`);
+
+            // Texto a JSON
+            const text = await response.text();
+            let data;
+            try { data = JSON.parse(text); } catch { return { found: false, properties: [] }; }
+
+            const root = data.consulta_dnprcResult || data.consulta_dnp || data;
+
+            // Errores
+            if (root.lerr) {
+                const err = root.lerr[0] || (root.lerr.err ? root.lerr.err[0] : null);
+                if (err) {
+                    return { found: false, properties: [], error: err.des };
+                }
+            }
+
+            let properties: CatastroProperty[] = [];
+
+            // Caso 1: Un solo inmueble (bico)
+            if (root.bico) {
+                const bicoData = root.bico.bi || root.bico;
+                properties.push(this.mapJsonToProperty(bicoData));
+            }
+            // Caso 2: Lista de inmuebles (lrcdnp) - Típico si pasamos RC de parcela (14 chars)
+            else if (root.lrcdnp) {
+                const results = Array.isArray(root.lrcdnp.rcdnp)
+                    ? root.lrcdnp.rcdnp
+                    : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
+
+                properties = results.map((item: any) => this.mapJsonToProperty(item));
+            }
+
+            return {
+                found: properties.length > 0,
+                properties
+            };
+
+        } catch (error) {
+            console.error('[Catastro] Error searchPropertiesByRC:', error);
+            return {
+                found: false,
+                properties: [],
+                error: error instanceof Error ? error.message : 'Error desconocido'
+            };
+        }
+    }
+
+    /**
      * Obtener detalles de un inmueble por referencia catastral
      * Usa el servicio Consulta_DNPRC en formato JSON
      */
@@ -322,7 +410,7 @@ export class CatastroClient {
                 RefCat: rc
             });
 
-            const url = `${this.baseUrl}/Consulta_DNPRC?${params}`;
+            const url = `${this.infoRefUrl}/Consulta_DNPRC?${params}`;
             console.log(`[Catastro] Obteniendo detalles por RC: ${url}`);
 
             const response = await fetch(url);
