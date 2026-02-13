@@ -13,154 +13,66 @@ export async function fetchPropertiesAction(): Promise<{
     meta?: { populations: string[] };
 }> {
     const token = process.env.INMOVILLA_TOKEN;
-    const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
-    const isConfigured = !!token && token !== 'your_token_here';
+    const numagencia = process.env.INMOVILLA_AGENCIA;
+    const password = process.env.INMOVILLA_PASSWORD;
+
+    // We prioritize Web API as it has no rate limits and is more stable
+    const isConfigured = !!(numagencia && password) || (!!token && token !== 'your_token_here');
 
     if (!isConfigured) {
         return {
             success: false,
             isConfigured: false,
-            error: 'Token no configurado. Por favor, añade INMOVILLA_TOKEN a tu archivo .env'
+            error: 'Credenciales de Inmovilla no configuradas.'
         };
     }
 
-    const cacheKey = 'property_list_main';
-    let basicProperties = apiCache.get<PropertyListEntry[]>(cacheKey);
+    const cacheKey = 'property_list_v2';
+    let properties = apiCache.get<PropertyListEntry[]>(cacheKey);
 
     try {
-        const api = createInmovillaApi(token!, authType);
+        if (!properties) {
+            console.log('[Actions] Cache miss: Fetching from Web API...');
 
-        if (!basicProperties) {
-            console.log('Cache miss: Fetching property list from API...');
-            basicProperties = await api.getProperties({ page: 1 });
+            const { InmovillaWebApiService } = await import('@/lib/api/web-service');
+            const api = new InmovillaWebApiService(numagencia!, password!);
 
-            if (basicProperties && basicProperties.length > 0) {
-                apiCache.set(cacheKey, basicProperties, 600); // Cache for 10 minutes
+            // Get properties (100 at a time)
+            properties = await api.getProperties({ page: 1 });
+
+            if (properties && properties.length > 0) {
+                // Filter: only active, available, and non-prospect
+                properties = properties.filter(p => !p.nodisponible && !p.prospecto);
+                apiCache.set(cacheKey, properties, 1200); // 20 min cache
             }
         } else {
-            console.log('Cache hit: Returning property list from cache.');
-        }
-
-        // Filter: only active, available, and non-prospect properties
-        const filteredProperties = (basicProperties || []).filter(p => !p.nodisponible && !p.prospecto);
-
-        // Build list with existing cache
-        // We map over properties to inject any details we might already have in cache
-        const allProperties = filteredProperties.map((prop) => {
-            const detailCacheKey = `prop_detail_${prop.cod_ofer}`;
-            const cachedDetails = apiCache.get<PropertyDetails>(detailCacheKey);
-
-            if (cachedDetails) {
-                let mainImage = '';
-                if (cachedDetails.numagencia && cachedDetails.fotoletra && parseInt(cachedDetails.numfotos || '0') > 0) {
-                    mainImage = `https://fotos15.inmovilla.com/${cachedDetails.numagencia}/${prop.cod_ofer}/${cachedDetails.fotoletra}-1.jpg`;
-                }
-
-                return {
-                    ...prop,
-                    numagencia: cachedDetails.numagencia,
-                    numfotos: cachedDetails.numfotos,
-                    fotoletra: cachedDetails.fotoletra,
-                    precioinmo: cachedDetails.precioinmo,
-                    calle: cachedDetails.calle,
-                    descripciones: cachedDetails.descripciones,
-                    poblacion: cachedDetails.poblacion || '',
-                    keyacci: cachedDetails.keyacci,
-                    tipo_nombre: cachedDetails.tipo_nombre || '',
-                    habitaciones: (Number(cachedDetails.habitaciones) || 0) + (Number((cachedDetails as any).habdobles) || 0),
-                    banyos: cachedDetails.banyos,
-                    m_cons: cachedDetails.m_cons,
-                    mainImage
-                } as PropertyListEntry;
-            }
-            return prop;
-        });
-
-        // Enrich some new ones (limited to strictly 2 items per request to stay under 10/min safely)
-        const toEnrich = allProperties.filter(p => !p.mainImage || !p.tipo_nombre || p.habitaciones === undefined).slice(0, 2);
-
-        if (toEnrich.length > 0) {
-            await Promise.all(toEnrich.map(async (prop) => {
-                try {
-                    const details = await api.getPropertyDetails(prop.cod_ofer);
-
-                    // Resolve population name
-                    if (details.key_loca) {
-                        try {
-                            const localidadMap = require('@/lib/api/localidades_map.json');
-                            details.poblacion = localidadMap[details.key_loca] || '';
-                        } catch (e) { }
-                    }
-
-                    // Resolve type name
-                    if (details.key_tipo) {
-                        try {
-                            const tiposMap = require('@/lib/api/tipos_map.json');
-                            const typeKey = String(details.key_tipo);
-                            details.tipo_nombre = tiposMap[typeKey] || '';
-                        } catch (e) { }
-                    }
-
-                    // Generate all photo URLs
-                    const photos: string[] = [];
-                    const numFotos = parseInt(details.numfotos || '0');
-                    if (numFotos > 0 && details.numagencia && details.fotoletra) {
-                        for (let i = 1; i <= numFotos; i++) {
-                            photos.push(`https://fotos15.inmovilla.com/${details.numagencia}/${prop.cod_ofer}/${details.fotoletra}-${i}.jpg`);
-                        }
-                    }
-                    details.fotos_lista = photos;
-
-                    apiCache.set(`prop_detail_${prop.cod_ofer}`, details);
-
-                    // Update in list in-memory for this response
-                    const idx = allProperties.findIndex(p => p.cod_ofer === prop.cod_ofer);
-                    if (idx !== -1) {
-                        let mainImage = '';
-                        if (details.numagencia && details.fotoletra && parseInt(details.numfotos || '0') > 0) {
-                            mainImage = `https://fotos15.inmovilla.com/${details.numagencia}/${prop.cod_ofer}/${details.fotoletra}-1.jpg`;
-                        }
-                        const totalHabitaciones = (Number(details.habitaciones) || 0) + (Number((details as any).habdobles) || 0);
-
-                        allProperties[idx] = {
-                            ...allProperties[idx],
-                            ...details,
-                            habitaciones: totalHabitaciones,
-                            nodisponible: !!details.nodisponible,
-                            mainImage
-                        } as PropertyListEntry;
-                    }
-                } catch (e) { }
-            }));
-
-            // Save updated enriched list to cache
-            apiCache.set(cacheKey, allProperties, 600);
+            console.log('[Actions] Cache hit: Returning from cache.');
         }
 
         // Extract unique populations for filters
-        const populations = [...new Set(allProperties.map(p => p.poblacion).filter(Boolean))].sort() as string[];
+        const populations = [...new Set((properties || []).map(p => p.poblacion).filter(Boolean))].sort() as string[];
 
         return {
             success: true,
-            data: allProperties,
+            data: properties || [],
             isConfigured: true,
             meta: { populations }
         };
     } catch (error: any) {
-        console.error('Action Error:', error);
+        console.error('[Actions] fetchProperties Error:', error);
         return {
             success: false,
             isConfigured: true,
-            error: error.message || 'Error desconocido al conectar con la API'
+            error: error.message || 'Error al conectar con Inmovilla'
         };
     }
 }
 
 export async function getPropertyDetailAction(id: number): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
-    const token = process.env.INMOVILLA_TOKEN;
-    const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
+    const numagencia = process.env.INMOVILLA_AGENCIA;
+    const password = process.env.INMOVILLA_PASSWORD;
 
-    if (!token) return { success: false, error: 'Token no configurado' };
+    if (!numagencia || !password) return { success: false, error: 'Credenciales no configuradas' };
 
     // Check individual cache
     const cacheKey = `prop_detail_${id}`;
@@ -170,28 +82,16 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
     }
 
     try {
-        const api = createInmovillaApi(token, authType);
+        const { InmovillaWebApiService } = await import('@/lib/api/web-service');
+        const api = new InmovillaWebApiService(numagencia, password);
         const details = await api.getPropertyDetails(id);
 
-        // Generate all photo URLs
-        const photos: string[] = [];
-        const numFotos = parseInt(details.numfotos || '0');
-        if (numFotos > 0 && details.numagencia && details.fotoletra) {
-            for (let i = 1; i <= numFotos; i++) {
-                photos.push(`https://fotos15.inmovilla.com/${details.numagencia}/${id}/${details.fotoletra}-${i}.jpg`);
-            }
-        }
-
-        details.fotos_lista = photos;
-
-        // Resolve population name using the key_loca map
-        if (details.key_loca) {
+        // Resolve population name (adapter already does basic, but let's ensure)
+        if (details.key_loca && !details.poblacion) {
             try {
                 const localidadMap = require('@/lib/api/localidades_map.json');
                 details.poblacion = localidadMap[details.key_loca] || '';
-            } catch (e) {
-                console.error('Error resolving population', e);
-            }
+            } catch (e) { }
         }
 
         // Save to cache
