@@ -605,7 +605,23 @@ export default function VenderPage() {
                                                         {i + 1}
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-medium text-slate-700 dark:text-slate-200">{prop.direccion.split(',')[0]}</div>
+                                                        <div className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                                            {(() => {
+                                                                const parts = prop.direccion.split(',');
+                                                                const calle = parts[0];
+                                                                const detalles = parts.slice(1).join(',').trim();
+                                                                return (
+                                                                    <>
+                                                                        {calle}
+                                                                        {detalles && (
+                                                                            <span className="text-teal-600 dark:text-teal-400 font-bold ml-1">
+                                                                                — {detalles}
+                                                                            </span>
+                                                                        )}
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </div>
                                                         <div className="text-[10px] font-mono text-slate-400 uppercase">{prop.referenciaCatastral}</div>
                                                     </div>
                                                 </div>

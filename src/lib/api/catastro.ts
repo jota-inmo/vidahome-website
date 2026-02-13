@@ -422,11 +422,21 @@ export class CatastroClient {
                 const dp = this.xmlVal(block, 'dp');
 
                 let direccion = `${tv} ${nv} ${pnp}`;
-                if (plp && plp !== ' ') direccion += ` ${plp}`;
-                if (bq) direccion += `, Bl ${bq}`;
-                if (es) direccion += `, Esc ${es}`;
-                if (pt && pt !== '00' && pt !== '-1') direccion += `, Pl ${pt}`;
-                if (pu) direccion += `, Pta ${pu}`;
+                if (plp && plp !== ' ' && plp !== '0') direccion += ` ${plp}`;
+
+                // Construir detalle de ubicación dentro del edificio
+                const ubicacion: string[] = [];
+                if (bq) ubicacion.push(`Bloque ${bq}`);
+                if (es && es !== '1') ubicacion.push(`Esc. ${es}`);
+                if (pt) {
+                    const ptNum = parseInt(pt);
+                    if (ptNum < 0) ubicacion.push(`Sótano ${pt}`);
+                    else if (ptNum > 0) ubicacion.push(`Planta ${ptNum}`);
+                    else if (pt === '00') ubicacion.push(`Planta Baja`);
+                }
+                if (pu) ubicacion.push(`Puerta ${pu}`);
+
+                if (ubicacion.length > 0) direccion += `, ${ubicacion.join(', ')}`;
                 if (dp) direccion += ` ${dp}`;
                 if (nm) direccion += ` (${nm})`;
 
