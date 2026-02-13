@@ -3,7 +3,7 @@
 import { createInmovillaApi } from '@/lib/api/properties';
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
 import { apiCache } from '@/lib/api/cache';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 export async function fetchPropertiesAction(): Promise<{
     success: boolean;
@@ -15,6 +15,10 @@ export async function fetchPropertiesAction(): Promise<{
     const token = process.env.INMOVILLA_TOKEN;
     const numagencia = process.env.INMOVILLA_AGENCIA;
     const password = process.env.INMOVILLA_PASSWORD;
+
+    // Get client IP for Inmovilla security check
+    const headerList = await headers();
+    const clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
 
     // We prioritize Web API as it has no rate limits and is more stable
     const isConfigured = !!(numagencia && password) || (!!token && token !== 'your_token_here');
@@ -32,10 +36,10 @@ export async function fetchPropertiesAction(): Promise<{
 
     try {
         if (!properties) {
-            console.log('[Actions] Cache miss: Fetching from Web API...');
+            console.log(`[Actions] Cache miss: Fetching from Web API (IP: ${clientIp})...`);
 
             const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-            const api = new InmovillaWebApiService(numagencia!, password!);
+            const api = new InmovillaWebApiService(numagencia!, password!, 1, clientIp);
 
             // Get properties (100 at a time)
             properties = await api.getProperties({ page: 1 });
@@ -81,9 +85,13 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         return { success: true, data: cachedDetail };
     }
 
+    // Get client IP for Inmovilla security check
+    const headerList = await headers();
+    const clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
+
     try {
         const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-        const api = new InmovillaWebApiService(numagencia, password);
+        const api = new InmovillaWebApiService(numagencia, password, 1, clientIp);
         const details = await api.getPropertyDetails(id);
 
         // Resolve population name (adapter already does basic, but let's ensure)

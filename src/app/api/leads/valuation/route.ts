@@ -36,10 +36,14 @@ MENSAJE ADICIONAL:
 ${contactData.mensaje || 'Sin mensaje adicional.'}
 `.trim();
 
+        // Get client IP for Inmovilla security check
+        const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || '127.0.0.1';
+
         // Parámetros para la API de Inmovilla (AddDemanda)
         const params = new URLSearchParams({
             numagencia: numagencia,
             passagentua: password,
+            laIP: clientIp,
             cli_nom: contactData.nombre,
             cli_tel: contactData.telefono,
             cli_email: contactData.email,

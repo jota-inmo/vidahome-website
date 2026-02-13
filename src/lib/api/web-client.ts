@@ -15,6 +15,7 @@ interface WebApiConfig {
     password: string;
     idioma: number; // 1 = Spanish, 2 = Valencian, etc.
     addnumagencia?: string; // Optional suffix for multi-agency
+    ip?: string; // Client IP
 }
 
 interface ProcessRequest {
@@ -33,7 +34,8 @@ export class InmovillaWebClient {
     constructor(config: WebApiConfig) {
         this.config = {
             ...config,
-            addnumagencia: config.addnumagencia || ''
+            addnumagencia: config.addnumagencia || '',
+            ip: config.ip || '127.0.0.1'
         };
     }
 
@@ -129,17 +131,22 @@ export class InmovillaWebClient {
      */
     public async execute<T = any>(json: boolean = true): Promise<T> {
         const paramString = this.buildParamString();
-        const encodedParam = encodeURIComponent(paramString);
 
         const domain = typeof window !== 'undefined'
             ? window.location.hostname
             : 'vidahome.es';
 
-        const body = new URLSearchParams({
-            param: encodedParam,
+        const bodyParams: Record<string, string> = {
+            param: paramString,
             elDominio: domain,
-            ...(json && { json: '1' })
-        });
+            laIP: this.config.ip || '127.0.0.1'
+        };
+
+        if (json) {
+            bodyParams.json = '1';
+        }
+
+        const body = new URLSearchParams(bodyParams);
 
         try {
             const response = await fetch(this.baseUrl, {
@@ -154,12 +161,26 @@ export class InmovillaWebClient {
                 throw new Error(`API request failed: ${response.status} ${response.statusText}`);
             }
 
-            const data = json ? await response.json() : await response.text();
+            const text = await response.text();
+
+            if (json) {
+                try {
+                    const data = JSON.parse(text);
+                    // Clear requests after successful execution
+                    this.requests = [];
+                    return data;
+                } catch (e) {
+                    console.error('[InmovillaWebClient] JSON Parse error. Raw response:', text);
+                    if (text.includes('NECESITAMO') || text.includes('ERROR')) {
+                        throw new Error(`Inmovilla API Error: ${text}`);
+                    }
+                    throw new Error(`Invalid JSON response from API: ${text.substring(0, 100)}...`);
+                }
+            }
 
             // Clear requests after execution
             this.requests = [];
-
-            return data;
+            return text as unknown as T;
         } catch (error) {
             // Clear requests on error too
             this.requests = [];
