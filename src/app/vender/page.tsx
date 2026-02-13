@@ -177,8 +177,11 @@ export default function VenderPage() {
         setProperty({ ...property, ...updates });
     };
 
+    const [multipleProperties, setMultipleProperties] = useState<CatastroProperty[]>([]);
+
     const handleSearchCatastro = async () => {
         setLoading(true);
+        setMultipleProperties([]);
         try {
             let details: CatastroProperty | null = null;
             let est: { min: number; max: number } | null = null;
@@ -220,6 +223,13 @@ export default function VenderPage() {
                 const searchResult = await searchResponse.json();
 
                 if (searchResult.found && searchResult.properties.length > 0) {
+                    // Si hay varios inmuebles (pisos/puertas) en ese número
+                    if (searchResult.properties.length > 1) {
+                        setMultipleProperties(searchResult.properties);
+                        setLoading(false);
+                        return; // Se queda en el paso 1 esperando selección
+                    }
+
                     const firstProperty = searchResult.properties[0];
 
                     // Obtener detalles completos
@@ -243,13 +253,35 @@ export default function VenderPage() {
             }
 
             // Si llegamos aquí, tenemos los detalles
-            setProperty(details);
-            setEstimation(est);
-            setStep(2);
+            if (details) {
+                setProperty(details);
+                setEstimation(est);
+                setStep(2);
+            }
 
         } catch (error) {
             console.error('Error:', error);
             alert('Error al consultar el Catastro. Inténtalo de nuevo.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSelectProperty = async (prop: CatastroProperty) => {
+        setLoading(true);
+        try {
+            const detailsResponse = await fetch(`/api/catastro/details?ref=${encodeURIComponent(prop.referenciaCatastral)}`);
+            if (!detailsResponse.ok) {
+                alert('No se pudieron obtener los detalles de la propiedad seleccionada.');
+                return;
+            }
+            const detailsData = await detailsResponse.json();
+            setProperty(detailsData.property);
+            setEstimation(detailsData.estimation);
+            setMultipleProperties([]);
+            setStep(2);
+        } catch (error) {
+            console.error('Error selecting property:', error);
         } finally {
             setLoading(false);
         }
@@ -523,6 +555,38 @@ export default function VenderPage() {
                                 </div>
                             )}
 
+                            {multipleProperties.length > 0 && (
+                                <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                                        <ChevronDown size={14} />
+                                        Selecciona tu piso / puerta
+                                    </h3>
+                                    <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                                        {multipleProperties.map((prop, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => handleSelectProperty(prop)}
+                                                className="w-full text-left p-4 rounded-sm border border-slate-100 dark:border-slate-800 hover:border-teal-500 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-all flex items-center justify-between group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-400 group-hover:bg-teal-500 group-hover:text-white transition-all">
+                                                        {i + 1}
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm font-medium text-slate-700 dark:text-slate-200">{prop.direccion.split(',')[0]}</div>
+                                                        <div className="text-[10px] font-mono text-slate-400 uppercase">{prop.referenciaCatastral}</div>
+                                                    </div>
+                                                </div>
+                                                <ArrowRight size={14} className="text-slate-300 group-hover:text-teal-500 transition-all" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p className="mt-4 text-[10px] text-slate-400 italic text-center">
+                                        Se han encontrado {multipleProperties.length} inmuebles en esta dirección.
+                                    </p>
+                                </div>
+                            )}
+
                             <button
                                 onClick={handleSearchCatastro}
                                 disabled={loading || (searchMode === 'address' ? (!address.via || !address.numero) : !referenciaCatastral)}
@@ -532,8 +596,17 @@ export default function VenderPage() {
                                     'Buscando...'
                                 ) : (
                                     <>
-                                        <Search size={18} />
-                                        Buscar en Catastro
+                                        {multipleProperties.length > 0 ? (
+                                            <>
+                                                <Search size={18} />
+                                                Nueva búsqueda
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Search size={18} />
+                                                Buscar en Catastro
+                                            </>
+                                        )}
                                     </>
                                 )}
                             </button>
