@@ -1,9 +1,8 @@
-'use client';
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { CatastroProperty } from '@/lib/api/catastro';
 import { Home, MapPin, Calendar, Ruler, Euro, ArrowRight, Search, CheckCircle, ChevronDown } from 'lucide-react';
 import localidadesData from '@/lib/api/localidades_map.json';
+import { getCatastroProvinciasAction, getCatastroMunicipiosAction } from '@/app/actions';
 
 export default function VenderPage() {
     const [step, setStep] = useState(1);
@@ -12,8 +11,12 @@ export default function VenderPage() {
     const [estimation, setEstimation] = useState<{ min: number; max: number } | null>(null);
     const [searchMode, setSearchMode] = useState<'address' | 'reference'>('address');
 
+    // Dropdown lists
+    const [provincias, setProvincias] = useState<string[]>([]);
+    const [municipios, setMunicipios] = useState<string[]>([]);
+
     // Autocomplete state
-    const [municipioQuery, setMunicipioQuery] = useState('Gandia');
+    const [municipioQuery, setMunicipioQuery] = useState('GANDIA');
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [viaSuggestions, setViaSuggestions] = useState<any[]>([]);
@@ -27,11 +30,41 @@ export default function VenderPage() {
     const numRef = useRef<HTMLDivElement>(null);
 
     const [address, setAddress] = useState({
-        provincia: 'Valencia',
-        municipio: 'Gandia',
+        provincia: 'VALENCIA',
+        municipio: 'GANDIA',
         via: '',
         numero: ''
     });
+
+    // Fetch initial data
+    useEffect(() => {
+        const loadProvincias = async () => {
+            const data = await getCatastroProvinciasAction();
+            setProvincias(data);
+        };
+        loadProvincias();
+    }, []);
+
+    // Fetch municipios when provincia changes
+    useEffect(() => {
+        const loadMunicipios = async () => {
+            if (!address.provincia) return;
+            const data = await getCatastroMunicipiosAction(address.provincia);
+            setMunicipios(data);
+
+            // Si la provincia cambia, reseteamos el municipio al primero de la lista o vacío
+            if (data.length > 0 && !data.includes(address.municipio)) {
+                // No forzamos cambio automático para no molestar al usuario si Gandia existe
+                if (address.provincia === 'VALENCIA' && data.includes('GANDIA')) {
+                    // Mantener Gandia
+                } else {
+                    // Dejar que el usuario elija o poner el primero
+                    // setAddress(prev => ({ ...prev, municipio: data[0] }));
+                }
+            }
+        };
+        loadMunicipios();
+    }, [address.provincia]);
 
     const [referenciaCatastral, setReferenciaCatastral] = useState('');
 
@@ -413,55 +446,51 @@ export default function VenderPage() {
                         <div className="space-y-6">
                             {searchMode === 'address' ? (
                                 <>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                                 Provincia
                                             </label>
-                                            <input
-                                                type="text"
-                                                value={address.provincia}
-                                                onChange={(e) => setAddress({ ...address, provincia: e.target.value })}
-                                                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                                            />
-                                        </div>
-                                        <div className="relative" ref={suggestionsRef}>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                                Municipio
-                                            </label>
                                             <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    value={municipioQuery}
-                                                    onChange={(e) => {
-                                                        setMunicipioQuery(e.target.value);
-                                                        setAddress({ ...address, municipio: e.target.value });
-                                                        setShowSuggestions(true);
-                                                    }}
-                                                    onFocus={() => setShowSuggestions(true)}
-                                                    autoComplete="off"
-                                                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-                                                    placeholder="Ej: Gandia"
-                                                />
+                                                <select
+                                                    value={address.provincia}
+                                                    onChange={(e) => setAddress({ ...address, provincia: e.target.value.toUpperCase(), municipio: '', via: '', numero: '' })}
+                                                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent appearance-none cursor-pointer"
+                                                >
+                                                    <option value="">Selecciona provincia</option>
+                                                    {provincias.map((p, i) => (
+                                                        <option key={i} value={p}>{p}</option>
+                                                    ))}
+                                                </select>
                                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                                                     <ChevronDown size={16} />
                                                 </div>
                                             </div>
-
-                                            {showSuggestions && suggestions.length > 0 && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-sm shadow-2xl max-h-60 overflow-y-auto overflow-x-hidden backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 animate-in fade-in slide-in-from-top-2 duration-200">
-                                                    {suggestions.map((m, i) => (
-                                                        <button
-                                                            key={i}
-                                                            onClick={() => handleSelectMunicipio(m)}
-                                                            className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-50 last:border-0 dark:border-slate-800 flex items-center gap-2 group"
-                                                        >
-                                                            <MapPin size={14} className="text-slate-400 group-hover:text-teal-500 transition-colors" />
-                                                            <span className="truncate">{m}</span>
-                                                        </button>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                                Municipio
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    value={address.municipio}
+                                                    onChange={(e) => {
+                                                        const m = e.target.value.toUpperCase();
+                                                        setAddress({ ...address, municipio: m, via: '', numero: '' });
+                                                        setMunicipioQuery(m);
+                                                    }}
+                                                    disabled={!address.provincia || municipios.length === 0}
+                                                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    <option value="">Selecciona municipio</option>
+                                                    {municipios.map((m, i) => (
+                                                        <option key={i} value={m}>{m}</option>
                                                     ))}
+                                                </select>
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                                    <ChevronDown size={16} />
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
                                     </div>
 
