@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
             to: [toEmail],
             subject: `Tasación: ${contactData.nombre} - ${property.direccion}`,
             html: emailContent,
-            reply_to: contactData.email
+            replyTo: contactData.email
         });
 
         if (error) {
