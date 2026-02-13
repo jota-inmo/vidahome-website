@@ -140,8 +140,22 @@ export class CatastroClient {
             if (!response.ok) return [];
             const data = await response.json();
             const root = data.consulta_numereroResult || data;
-            if (root.numerero && root.numerero.nump) {
-                const results = Array.isArray(root.numerero.nump) ? root.numerero.nump : [root.numerero.nump];
+
+            // Comprobar errores
+            if (root.lerr) {
+                const err = root.lerr?.err?.[0] || root.lerr?.[0];
+                if (err) {
+                    console.warn(`[Catastro] ObtenerNumerero error: ${err.cod} - ${err.des}`);
+                    return [];
+                }
+            }
+
+            // La respuesta puede tener nump directamente en root O dentro de root.numerero
+            const numpData = root.nump || (root.numerero && root.numerero.nump);
+
+            if (numpData) {
+                const results = Array.isArray(numpData) ? numpData : [numpData];
+                console.log(`[Catastro] ObtenerNumerero: ${results.length} números encontrados`);
                 return results.map((n: any) => ({
                     numero: n.num.pnp,
                     duplicado: n.num.plp || '',
@@ -251,14 +265,14 @@ export class CatastroClient {
                         console.log(`[Catastro] Error 43 para ${tipoVia} ${nomVia} ${num}. Intentando fallback con ObtenerNumerero...`);
 
                         try {
-                            // Paso 1: Buscar TODOS los números de esa calle (sin filtrar por número)
-                            let numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, '');
-                            console.log(`[Catastro] Fallback: encontrados ${numeros.length} números en ${tipoVia} ${nomVia}`);
+                            // Paso 1: Buscar con el número exacto (ObtenerNumerero requiere número)
+                            let numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, num);
+                            console.log(`[Catastro] Fallback (número ${num}): encontrados ${numeros.length} resultados`);
 
-                            // Paso 2: Si no hay resultados con todos, intentar con el número exacto
-                            if (numeros.length === 0) {
-                                numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, num);
-                                console.log(`[Catastro] Fallback (búsqueda exacta): ${numeros.length} resultados`);
+                            // Paso 2: Si no hay resultados, probar con número 1 para obtener al menos la parcela
+                            if (numeros.length === 0 && num !== '1') {
+                                numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, '1');
+                                console.log(`[Catastro] Fallback (número 1): ${numeros.length} resultados`);
                             }
 
                             if (numeros.length > 0) {
@@ -342,64 +356,102 @@ export class CatastroClient {
 
     /**
      * Buscar inmuebles por Referencia Catastral (exacta o de parcela)
-     * Retorna lista completa (útil para recuperar todos los pisos de una finca)
+     * Para RCs de parcela (14 chars) usa el endpoint SOAP XML porque el JSON no las soporta.
+     * Devuelve todos los pisos/puertas con sus RCs de 20 chars para que el usuario elija.
      */
     async searchPropertiesByRC(rc: string): Promise<CatastroSearchResult> {
         try {
-            // Limpieza básica
             const cleanRc = rc.replace(/\s/g, '').toUpperCase();
 
-            const params = new URLSearchParams({ RefCat: cleanRc });
-            const url = `${this.infoRefUrl}/Consulta_DNPRC?${params}`;
-            console.log(`[Catastro] Buscando por RC (searchPropertiesByRC): ${url}`);
+            // Si la RC tiene 20 chars, usar el endpoint JSON normal
+            if (cleanRc.length === 20) {
+                const params = new URLSearchParams({ RefCat: cleanRc });
+                const url = `${this.infoRefUrl}/Consulta_DNPRC?${params}`;
+                console.log(`[Catastro] searchPropertiesByRC (JSON, RC completa): ${url}`);
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`API Error ${response.status}`);
+                const text = await response.text();
+                let data;
+                try { data = JSON.parse(text); } catch { return { found: false, properties: [] }; }
+                const root = data.consulta_dnprcResult || data.consulta_dnp || data;
+                if (root.lerr) {
+                    const err = root.lerr[0] || (root.lerr.err ? root.lerr.err[0] : null);
+                    if (err) return { found: false, properties: [], error: err.des };
+                }
+                const properties: CatastroProperty[] = [];
+                if (root.bico) {
+                    properties.push(this.mapJsonToProperty(root.bico.bi || root.bico));
+                } else if (root.lrcdnp) {
+                    const results = Array.isArray(root.lrcdnp.rcdnp) ? root.lrcdnp.rcdnp : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
+                    properties.push(...results.map((item: any) => this.mapJsonToProperty(item)));
+                }
+                return { found: properties.length > 0, properties };
+            }
 
-            const response = await fetch(url);
+            // Para RCs de parcela (14 chars), usar el endpoint SOAP XML
+            const xmlUrl = `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RC=${cleanRc}`;
+            console.log(`[Catastro] searchPropertiesByRC (XML, parcela ${cleanRc.length} chars): ${xmlUrl}`);
+
+            const response = await fetch(xmlUrl);
             if (!response.ok) throw new Error(`API Error ${response.status}`);
 
-            // Texto a JSON
-            const text = await response.text();
-            let data;
-            try { data = JSON.parse(text); } catch { return { found: false, properties: [] }; }
+            const xmlText = await response.text();
+            const properties: CatastroProperty[] = [];
 
-            const root = data.consulta_dnprcResult || data.consulta_dnp || data;
+            // Extraer todos los bloques <rcdnp>...</rcdnp> del XML
+            const rcdnpBlocks = xmlText.match(/<rcdnp>([\s\S]*?)<\/rcdnp>/g) || [];
+            console.log(`[Catastro] XML: encontrados ${rcdnpBlocks.length} inmuebles en parcela`);
 
-            // Errores
-            if (root.lerr) {
-                const err = root.lerr[0] || (root.lerr.err ? root.lerr.err[0] : null);
-                if (err) {
-                    return { found: false, properties: [], error: err.des };
-                }
+            for (const block of rcdnpBlocks) {
+                const pc1 = this.xmlVal(block, 'pc1');
+                const pc2 = this.xmlVal(block, 'pc2');
+                const car = this.xmlVal(block, 'car');
+                const cc1 = this.xmlVal(block, 'cc1');
+                const cc2 = this.xmlVal(block, 'cc2');
+                const fullRc = `${pc1}${pc2}${car}${cc1}${cc2}`;
+
+                const tv = this.xmlVal(block, 'tv');
+                const nv = this.xmlVal(block, 'nv');
+                const pnp = this.xmlVal(block, 'pnp');
+                const plp = this.xmlVal(block, 'plp')?.trim();
+                const bq = this.xmlVal(block, 'bq');
+                const es = this.xmlVal(block, 'es');
+                const pt = this.xmlVal(block, 'pt');
+                const pu = this.xmlVal(block, 'pu');
+                const nm = this.xmlVal(block, 'nm');
+                const dp = this.xmlVal(block, 'dp');
+
+                let direccion = `${tv} ${nv} ${pnp}`;
+                if (plp && plp !== ' ') direccion += ` ${plp}`;
+                if (bq) direccion += `, Bl ${bq}`;
+                if (es) direccion += `, Esc ${es}`;
+                if (pt && pt !== '00' && pt !== '-1') direccion += `, Pl ${pt}`;
+                if (pu) direccion += `, Pta ${pu}`;
+                if (dp) direccion += ` ${dp}`;
+                if (nm) direccion += ` (${nm})`;
+
+                properties.push({
+                    referenciaCatastral: fullRc,
+                    direccion: direccion.trim(),
+                    superficie: 0,
+                    uso: 'Residencial',
+                    clase: 'Urbano'
+                });
             }
 
-            let properties: CatastroProperty[] = [];
-
-            // Caso 1: Un solo inmueble (bico)
-            if (root.bico) {
-                const bicoData = root.bico.bi || root.bico;
-                properties.push(this.mapJsonToProperty(bicoData));
-            }
-            // Caso 2: Lista de inmuebles (lrcdnp) - Típico si pasamos RC de parcela (14 chars)
-            else if (root.lrcdnp) {
-                const results = Array.isArray(root.lrcdnp.rcdnp)
-                    ? root.lrcdnp.rcdnp
-                    : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
-
-                properties = results.map((item: any) => this.mapJsonToProperty(item));
-            }
-
-            return {
-                found: properties.length > 0,
-                properties
-            };
+            console.log(`[Catastro] searchPropertiesByRC: ${properties.length} inmuebles para parcela ${cleanRc}`);
+            return { found: properties.length > 0, properties };
 
         } catch (error) {
             console.error('[Catastro] Error searchPropertiesByRC:', error);
-            return {
-                found: false,
-                properties: [],
-                error: error instanceof Error ? error.message : 'Error desconocido'
-            };
+            return { found: false, properties: [], error: error instanceof Error ? error.message : 'Error desconocido' };
         }
+    }
+
+    /** Extraer valor de una etiqueta XML simple */
+    private xmlVal(xml: string, tag: string): string {
+        const match = xml.match(new RegExp(`<${tag}>([^<]*)</${tag}>`));
+        return match ? match[1] : '';
     }
 
     /**
