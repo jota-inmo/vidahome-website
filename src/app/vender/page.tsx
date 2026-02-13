@@ -281,7 +281,8 @@ export default function VenderPage() {
                     est = detailsData.estimation;
 
                 } else {
-                    alert('No se encontró la propiedad en el Catastro. Por favor, verifica la dirección.');
+                    const errorMsg = searchResult.error || 'No se encontró la propiedad en el Catastro. Por favor, verifica la dirección.';
+                    alert(errorMsg);
                     setLoading(false);
                     return;
                 }

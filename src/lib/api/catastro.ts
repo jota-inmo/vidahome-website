@@ -193,7 +193,8 @@ export class CatastroClient {
                 Numero: num
             });
 
-            const url = `${this.infoRefUrl}/Consulta_DNPLOC?${params}`;
+            // IMPORTANTE: Consulta_DNPLOC pertenece al servicio Callejero, NO al de InformacionReferencia
+            const url = `${this.callejeroUrl}/Consulta_DNPLOC?${params}`;
             console.log(`[Catastro] Buscando dirección: ${url}`);
 
             const response = await fetch(url);
@@ -250,17 +251,24 @@ export class CatastroClient {
                         console.log(`[Catastro] Error 43 para ${tipoVia} ${nomVia} ${num}. Intentando fallback con ObtenerNumerero...`);
 
                         try {
-                            // Usamos parámetros limpios (tipoVia, nomVia ya procesados)
-                            const numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, num);
+                            // Paso 1: Buscar TODOS los números de esa calle (sin filtrar por número)
+                            let numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, '');
+                            console.log(`[Catastro] Fallback: encontrados ${numeros.length} números en ${tipoVia} ${nomVia}`);
 
-                            // Buscamos coincidencia
+                            // Paso 2: Si no hay resultados con todos, intentar con el número exacto
+                            if (numeros.length === 0) {
+                                numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, num);
+                                console.log(`[Catastro] Fallback (búsqueda exacta): ${numeros.length} resultados`);
+                            }
+
                             if (numeros.length > 0) {
-                                // Preferir coincidencia exacta si hay, sino el primero
-                                const exactMatch = numeros.find(n => n.numero === num) || numeros[0];
+                                // Buscar coincidencia exacta con el número solicitado
+                                const exactMatch = numeros.find(n => String(n.numero).trim() === String(num).trim());
+                                const matchToUse = exactMatch || numeros[0];
 
-                                if (exactMatch && exactMatch.rc) {
-                                    console.log(`[Catastro] Fallback exitoso. RC recuperada: ${exactMatch.rc}. Buscando inmuebles...`);
-                                    return await this.searchPropertiesByRC(exactMatch.rc);
+                                if (matchToUse && matchToUse.rc) {
+                                    console.log(`[Catastro] Fallback exitoso. RC recuperada: ${matchToUse.rc} (match: ${exactMatch ? 'exacto' : 'primer resultado'}). Buscando inmuebles...`);
+                                    return await this.searchPropertiesByRC(matchToUse.rc);
                                 }
                             }
                         } catch (fbError) {

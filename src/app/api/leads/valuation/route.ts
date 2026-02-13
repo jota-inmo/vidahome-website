@@ -64,40 +64,6 @@ export async function POST(request: NextRequest) {
 
         console.log('[Mail] Solicitud enviada correctamente a Inmovilla via Email:', data?.id);
 
-        // Guardar en Supabase (Backup)
-        try {
-            const { supabase } = await import('@/lib/supabase');
-
-            // Formatear mensaje con detalles de la propiedad
-            const fullMessage = `SOLICITUD DE TASACIÓN\n---------------------\nMensaje del cliente: ${contactData.mensaje || 'Sin mensaje'}\n\nDETALLES PROPIEDAD:\nDirección: ${property.direccion}\nReferencia Catastral: ${property.referenciaCatastral}\nSuperficie: ${property.superficie} m²\nAño: ${property.anoConstruccion || 'N/D'}\nUso: ${property.uso}\n\nESTIMACIÓN AUTOMÁTICA:\nRango: ${estimation ? `${estimation.min.toLocaleString()}€ - ${estimation.max.toLocaleString()}€` : 'N/D'}`;
-
-            // Intentar separar nombre y apellidos
-            const nameParts = contactData.nombre.trim().split(' ');
-            const firstName = nameParts[0];
-            const lastName = nameParts.slice(1).join(' ') || '';
-
-            const { error: dbError } = await supabase.from('leads').insert([
-                {
-                    nombre: firstName,
-                    apellidos: lastName, // Asumimos que la tabla tiene esta columna como en actions.ts
-                    email: contactData.email,
-                    telefono: contactData.telefono,
-                    mensaje: fullMessage,
-                    created_at: new Date().toISOString()
-                    // cod_ofer no aplica aquí
-                }
-            ]);
-
-            if (dbError) {
-                console.error('[Supabase] Error guardando lead de tasación:', dbError);
-            } else {
-                console.log('[Supabase] Lead de tasación guardado correctamente');
-            }
-
-        } catch (err) {
-            console.error('[Supabase] Error inesperado:', err);
-        }
-
         return NextResponse.json({
             success: true,
             message: 'Solicitud enviada correctamente por email.'
