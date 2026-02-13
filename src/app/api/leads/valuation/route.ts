@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { property, contactData, estimation } = body;
+        const { property, contactData, estimation, address } = body;
+        const municipio = address?.municipio || property.direccion.split(',').pop()?.trim() || '';
 
         // Inmovilla Credentials from .env
         const numagencia = process.env.INMOVILLA_AGENCIA;
@@ -67,7 +68,7 @@ ${contactData.mensaje || 'Sin mensaje adicional.'}
             cli_email: contactData.email,
             dem_tipo: '1', // Tipo 1 = Compra (usado generalmente para leads de contacto)
             dem_obs: mensaje,
-            dem_pob: property.direccion.split(',').pop()?.trim() || '' // Intentar extraer ciudad
+            dem_pob: municipio
         });
 
         const inmovillaUrl = `https://srv.inmovilla.com/WebAPI/AddDemanda?${params.toString()}`;

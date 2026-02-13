@@ -12,6 +12,7 @@ export interface CatastroAddress {
     municipio: string;
     via: string;
     numero: string;
+    tipoVia?: string;
 }
 
 export interface CatastroProperty {
@@ -48,8 +49,9 @@ export class CatastroClient {
         try {
             const url = `${this.baseUrl}/ObtenerProvincias`;
             const response = await fetch(url);
-            if (!response.ok) return [];
-            const data = await response.json();
+            const text = await response.text();
+            const data = JSON.parse(text);
+
             const root = data.consulta_provincieroResult || data;
             if (root.provinciero && root.provinciero.prov) {
                 const results = Array.isArray(root.provinciero.prov) ? root.provinciero.prov : [root.provinciero.prov];
@@ -57,7 +59,7 @@ export class CatastroClient {
             }
             return [];
         } catch (error) {
-            console.error('[Catastro] Error en getProvincias:', error);
+            console.error('[Catastro] Error provincias:', error);
             return [];
         }
     }
@@ -65,16 +67,17 @@ export class CatastroClient {
     /**
      * Obtener municipios de una provincia
      */
-    async getMunicipios(provincia: string, query: string = ''): Promise<string[]> {
+    async getMunicipios(provincia: string): Promise<string[]> {
         try {
             const params = new URLSearchParams({
                 Provincia: provincia.toUpperCase(),
-                Municipio: query.toUpperCase()
+                Municipio: ''
             });
             const url = `${this.baseUrl}/ObtenerMunicipios?${params}`;
             const response = await fetch(url);
-            if (!response.ok) return [];
-            const data = await response.json();
+            const text = await response.text();
+            const data = JSON.parse(text);
+
             const root = data.consulta_municipieroResult || data;
             if (root.municipiero && root.municipiero.muni) {
                 const results = Array.isArray(root.municipiero.muni) ? root.municipiero.muni : [root.municipiero.muni];
@@ -82,7 +85,7 @@ export class CatastroClient {
             }
             return [];
         } catch (error) {
-            console.error('[Catastro] Error en getMunicipios:', error);
+            console.error('[Catastro] Error municipios:', error);
             return [];
         }
     }
@@ -90,17 +93,19 @@ export class CatastroClient {
     /**
      * Obtener vías de un municipio
      */
-    async getVias(provincia: string, municipio: string, query: string): Promise<any[]> {
+    async getVias(provincia: string, municipio: string, query: string = ''): Promise<any[]> {
         try {
             const params = new URLSearchParams({
                 Provincia: provincia.toUpperCase(),
                 Municipio: municipio.toUpperCase(),
-                NomVia: query.toUpperCase()
+                TipoVia: '',
+                NomVia: query.toUpperCase() // NomVia es el parámetro correcto
             });
             const url = `${this.baseUrl}/ObtenerCallejero?${params}`;
             const response = await fetch(url);
-            if (!response.ok) return [];
-            const data = await response.json();
+            const text = await response.text();
+            const data = JSON.parse(text);
+
             const root = data.consulta_callejeroResult || data;
             if (root.callejero && root.callejero.calle) {
                 const results = Array.isArray(root.callejero.calle) ? root.callejero.calle : [root.callejero.calle];
@@ -112,7 +117,7 @@ export class CatastroClient {
             }
             return [];
         } catch (error) {
-            console.error('[Catastro] Error en getVias:', error);
+            console.error('[Catastro] Error vías:', error);
             return [];
         }
     }
@@ -158,14 +163,32 @@ export class CatastroClient {
             // Normalizar a mayúsculas como prefiere el Catastro
             const prov = address.provincia.toUpperCase();
             const mun = address.municipio.toUpperCase();
-            const via = address.via.toUpperCase();
             const num = address.numero.toUpperCase();
+
+            // Si tenemos el tipo de vía por separado, lo usamos.
+            // Si no, intentamos extraerlo de la cadena 'via' o usamos 'CL' por defecto.
+            let tipoVia = (address.tipoVia || 'CL').toUpperCase();
+            let nomVia = address.via.toUpperCase();
+
+            // Limpiar prefijos comunes si ya están en el nombre
+            // Ejemplo: "CL SAN FRANCISCO" -> "SAN FRANCISCO" si tipoVia es "CL"
+            const prefixes = [tipoVia + ' ', 'CL ', 'AV ', 'PS ', 'C/ ', 'C ', 'AVDA '];
+            for (const prefix of prefixes) {
+                if (nomVia.startsWith(prefix)) {
+                    nomVia = nomVia.substring(prefix.length).trim();
+                    // Si no teníamos tipoVia, intentamos deducirlo del prefijo (excepto C/ o C)
+                    if (!address.tipoVia && !prefix.includes('/')) {
+                        tipoVia = prefix.trim();
+                    }
+                    break;
+                }
+            }
 
             const params = new URLSearchParams({
                 Provincia: prov,
                 Municipio: mun,
-                TipoVia: 'CL', // Por defecto Calle
-                NomVia: via,
+                TipoVia: tipoVia,
+                NomVia: nomVia,
                 Numero: num
             });
 
@@ -214,28 +237,40 @@ export class CatastroClient {
 
             // Verificar errores
             if (root.lerr) {
-                const err = root.lerr[0];
-                const msg = err.des || 'Error desconocido';
-                console.warn(`[Catastro] API devolvió error: ${err.cod} - ${msg}`);
+                const err = root.lerr[0] || (root.lerr.err ? root.lerr.err[0] : null);
+                if (err) {
+                    const msg = err.des || 'Error desconocido';
+                    console.warn(`[Catastro] API devolvió error: ${err.cod} - ${msg}`);
 
-                if (err.cod === '43') {
+                    if (err.cod === '43') {
+                        return {
+                            found: false,
+                            properties: [],
+                            error: 'No se encontró el número exacto en esa calle.'
+                        };
+                    }
+
                     return {
                         found: false,
                         properties: [],
-                        error: 'No se encontró el número exacto en esa calle.'
+                        error: `Catastro: ${msg}`
                     };
                 }
-
-                return {
-                    found: false,
-                    properties: [],
-                    error: `Catastro: ${msg}`
-                };
             }
 
             // Si hay lista de inmuebles (lrcdnp)
             if (root.lrcdnp) {
-                const results = Array.isArray(root.lrcdnp) ? root.lrcdnp : [root.lrcdnp];
+                const results = Array.isArray(root.lrcdnp.rcdnp)
+                    ? root.lrcdnp.rcdnp
+                    : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
+
+                if (results.length === 0 && root.lrcdnp) {
+                    // Fallback si la estructura es diferente
+                    const possibleList = Array.isArray(root.lrcdnp) ? root.lrcdnp : [root.lrcdnp];
+                    const properties = possibleList.map((item: any) => this.mapJsonToProperty(item));
+                    return { found: properties.length > 0, properties };
+                }
+
                 const properties = results.map((item: any) => this.mapJsonToProperty(item));
                 console.log(`[Catastro] Encontradas ${properties.length} propiedades`);
                 return {
@@ -319,22 +354,27 @@ export class CatastroClient {
             const root = data.consulta_dnprcResult || data.consulta_dnp || data;
 
             if (root.lerr) {
-                const msg = root.lerr[0]?.des || 'Error desconocido';
-                console.warn(`[Catastro] API detalle devolvió error: ${msg}`);
-                return null;
+                const err = root.lerr[0] || (root.lerr.err ? root.lerr.err[0] : null);
+                if (err) {
+                    const msg = err.des || 'Error desconocido';
+                    console.warn(`[Catastro] API detalle devolvió error: ${err.cod} - ${msg}`);
+                    return null;
+                }
             }
 
             if (root.bico) {
-                const bico = root.bico;
-                const item = bico.bi || (Array.isArray(bico) ? bico[0] : bico);
-                return this.mapJsonToProperty(item);
+                const bicoData = root.bico.bi || root.bico;
+                return this.mapJsonToProperty(bicoData);
             }
 
             if (root.lrcdnp) {
-                const results = Array.isArray(root.lrcdnp) ? (root.lrcdnp.rcdnp || root.lrcdnp) : [root.lrcdnp];
-                const list = Array.isArray(results) ? results : [results];
-                if (list.length > 0) {
-                    return this.mapJsonToProperty(list[0]);
+                // Si por alguna razón devuelve una lista en lugar de bico (común en búsquedas parciales)
+                const results = Array.isArray(root.lrcdnp.rcdnp)
+                    ? root.lrcdnp.rcdnp
+                    : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
+
+                if (results.length > 0) {
+                    return this.mapJsonToProperty(results[0]);
                 }
             }
 
@@ -396,13 +436,19 @@ export class CatastroClient {
         let anoConstruccion = undefined;
         let uso = 'Desconocido';
         let valorCatastral = undefined;
-        let clase = 'Urbano';
+        let clase = item.debi?.cl || 'Urbano';
 
         // En detalle 'bico', datos están en 'debi'
         if (item.debi) {
             superficie = parseInt(item.debi.sfc) || 0;
             anoConstruccion = parseInt(item.debi.ant) || undefined;
             uso = item.debi.luso || 'Desconocido';
+
+            // Valor catastral: vcat puede venir como string "12345,67"
+            if (item.debi.vcat) {
+                const vStr = String(item.debi.vcat).replace(',', '.');
+                valorCatastral = parseFloat(vStr) || undefined;
+            }
         }
 
         // Limpiar undefined string en RC

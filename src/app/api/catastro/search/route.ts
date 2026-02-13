@@ -8,7 +8,7 @@ import { createCatastroClient } from '@/lib/api/catastro';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { provincia, municipio, via, numero } = body;
+        const { provincia, municipio, via, numero, tipoVia } = body;
 
         // Validar parámetros requeridos
         if (!provincia || !municipio || !via || !numero) {
@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
             provincia,
             municipio,
             via,
-            numero
+            numero,
+            tipoVia
         });
 
         return NextResponse.json(result);

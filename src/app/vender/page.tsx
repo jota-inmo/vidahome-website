@@ -205,7 +205,10 @@ export default function VenderPage() {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(address)
+                    body: JSON.stringify({
+                        ...address,
+                        tipoVia: selectedVia?.tipo
+                    })
                 });
 
                 if (!searchResponse.ok) {
@@ -265,7 +268,8 @@ export default function VenderPage() {
                 body: JSON.stringify({
                     property,
                     contactData,
-                    estimation
+                    estimation,
+                    address
                 })
             });
 
