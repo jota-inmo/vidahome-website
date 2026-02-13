@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
     try {
+        const apiKey = process.env.RESEND_API_KEY;
+        const resend = new Resend(apiKey);
+
         const body = await request.json();
         const { property, contactData, estimation, address } = body;
         const municipio = address?.municipio || property.direccion.split(',').pop()?.trim() || '';
 
         // Check for Resend API Key
-        if (!process.env.RESEND_API_KEY) {
-            console.error('[Mail] RESEND_API_KEY no configurada');
+        if (!apiKey) {
+            console.error('[Mail] RESEND_API_KEY no configurada en Vercel');
             return NextResponse.json({
                 error: 'Error de configuración del correo',
                 message: 'Falta la clave API de Resend en el servidor.'
