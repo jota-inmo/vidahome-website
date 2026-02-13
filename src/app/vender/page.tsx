@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { CatastroProperty } from '@/lib/api/catastro';
 import { Home, MapPin, Calendar, Ruler, Euro, ArrowRight, Search, CheckCircle, ChevronDown } from 'lucide-react';
