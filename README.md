@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+**Nota de Desarrollo**: Para ver los cambios y mejoras realizados en la integración con la **API del Catastro**, consulta el archivo [CHANGELOG.md](./CHANGELOG.md).
+
 ## Getting Started
 
 First, run the development server:
