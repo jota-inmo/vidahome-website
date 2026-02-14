@@ -22,7 +22,7 @@ export const Navbar = () => {
                     <Link href="/vender" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
                         Vender
                     </Link>
-                    <Link href="#" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
+                    <Link href="/nosotros" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
                         Nosotros
                     </Link>
                     <Link
