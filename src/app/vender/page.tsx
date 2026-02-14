@@ -87,6 +87,8 @@ export default function VenderPage() {
         setAddress(prev => ({ ...prev, numero: n.numero }));
         setReferenciaCatastral(n.rc);
         setShowNumeroSuggestions(false);
+        // Disparar la búsqueda automáticamente al elegir número
+        setTimeout(() => handleSearchCatastro(n.rc), 0);
     };
 
     // Fetch via suggestions
@@ -214,16 +216,19 @@ export default function VenderPage() {
 
     const [multipleProperties, setMultipleProperties] = useState<CatastroProperty[]>([]);
 
-    const handleSearchCatastro = async () => {
+    const handleSearchCatastro = async (overrideRc?: string) => {
         setLoading(true);
         setMultipleProperties([]);
         try {
             let details: CatastroProperty | null = null;
             let est: { min: number; max: number } | null = null;
 
-            if (searchMode === 'reference' || referenciaCatastral) {
-                // Búsqueda directa por referencia catastral usando API Route
-                const response = await fetch(`/api/catastro/details?ref=${encodeURIComponent(referenciaCatastral)}`);
+            const rcToUse = overrideRc || referenciaCatastral;
+            const cleanRc = rcToUse.replace(/\s/g, '').toUpperCase();
+
+            // Si tenemos una RC COMPLETA (18-20 caracteres), pedir detalles directamente
+            if (cleanRc && cleanRc.length >= 18) {
+                const response = await fetch(`/api/catastro/details?ref=${encodeURIComponent(cleanRc)}`);
 
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -235,22 +240,28 @@ export default function VenderPage() {
                 const data = await response.json();
                 details = data.property;
                 est = data.estimation;
-
-            } else {
-                // Búsqueda por dirección usando API Route
-                const searchResponse = await fetch('/api/catastro/search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
+            }
+            // Si es búsqueda por dirección O RC de parcela (14 caracteres)
+            else {
+                const isRcParcela = cleanRc.length === 14;
+                const searchBody = isRcParcela
+                    ? { rc: cleanRc }
+                    : {
                         ...address,
                         tipoVia: selectedVia?.tipo
-                    })
+                    };
+
+                console.log('[Frontend] Buscando:', isRcParcela ? `Parcela ${cleanRc}` : `Dirección ${address.via}`);
+
+                const searchResponse = await fetch('/api/catastro/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(searchBody)
                 });
 
                 if (!searchResponse.ok) {
-                    alert('Error al buscar en el Catastro. Por favor, verifica la dirección.');
+                    const err = await searchResponse.json();
+                    alert(err.message || err.error || 'Error al buscar en el Catastro.');
                     setLoading(false);
                     return;
                 }
@@ -258,37 +269,30 @@ export default function VenderPage() {
                 const searchResult = await searchResponse.json();
 
                 if (searchResult.found && searchResult.properties.length > 0) {
-                    // Si hay varios inmuebles (pisos/puertas) en ese número
+                    // Si hay varios inmuebles (pisos/puertas)
                     if (searchResult.properties.length > 1) {
                         setMultipleProperties(searchResult.properties);
                         setLoading(false);
-                        return; // Se queda en el paso 1 esperando selección
+                        return; // Se queda esperando selección
                     }
 
-                    const firstProperty = searchResult.properties[0];
+                    // Si solo hay uno, obtener sus detalles completos
+                    const singleProp = searchResult.properties[0];
+                    const detailsResponse = await fetch(`/api/catastro/details?ref=${encodeURIComponent(singleProp.referenciaCatastral)}`);
 
-                    // Obtener detalles completos
-                    const detailsResponse = await fetch(`/api/catastro/details?ref=${encodeURIComponent(firstProperty.referenciaCatastral)}`);
-
-                    if (!detailsResponse.ok) {
-                        alert('No se pudieron obtener los detalles de la propiedad.');
-                        setLoading(false);
-                        return;
+                    if (detailsResponse.ok) {
+                        const detailsData = await detailsResponse.json();
+                        details = detailsData.property;
+                        est = detailsData.estimation;
                     }
-
-                    const detailsData = await detailsResponse.json();
-                    details = detailsData.property;
-                    est = detailsData.estimation;
-
                 } else {
-                    const errorMsg = searchResult.error || 'No se encontró la propiedad en el Catastro. Por favor, verifica la dirección.';
-                    alert(errorMsg);
+                    alert(searchResult.error || 'No se encontraron resultados para esa búsqueda.');
                     setLoading(false);
                     return;
                 }
             }
 
-            // Si llegamos aquí, tenemos los detalles
+            // Si llegamos aquí con detalles, pasar al siguiente paso
             if (details) {
                 setProperty(details);
                 setEstimation(est);
@@ -297,7 +301,7 @@ export default function VenderPage() {
 
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al consultar el Catastro. Inténtalo de nuevo.');
+            alert('Error al consultar el Catastro. Revisa la conexión e inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
@@ -636,7 +640,7 @@ export default function VenderPage() {
                             )}
 
                             <button
-                                onClick={handleSearchCatastro}
+                                onClick={() => handleSearchCatastro()}
                                 disabled={loading || (searchMode === 'address' ? (!address.via || !address.numero) : !referenciaCatastral)}
                                 className="w-full py-4 bg-gradient-to-r from-lime-400 to-teal-500 text-[#0a192f] font-bold text-sm uppercase tracking-widest rounded-sm hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >

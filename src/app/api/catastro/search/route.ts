@@ -8,18 +8,24 @@ import { createCatastroClient } from '@/lib/api/catastro';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { provincia, municipio, via, numero, tipoVia } = body;
+        const { provincia, municipio, via, numero, tipoVia, rc } = body;
 
-        // Validar parámetros requeridos
+        const client = createCatastroClient();
+
+        if (rc) {
+            console.log(`[API Search] Buscando por RC: ${rc}`);
+            const result = await client.searchPropertiesByRC(rc);
+            return NextResponse.json(result);
+        }
+
+        // Validar parámetros requeridos para búsqueda por dirección
         if (!provincia || !municipio || !via || !numero) {
             return NextResponse.json(
-                { error: 'Faltan parámetros requeridos: provincia, municipio, via, numero' },
+                { error: 'Faltan parámetros requeridos: provincia, municipio, via, numero o rc' },
                 { status: 400 }
             );
         }
 
-        // Crear cliente y buscar
-        const client = createCatastroClient();
         const result = await client.searchByAddress({
             provincia,
             municipio,
