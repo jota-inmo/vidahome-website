@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { CatastroProperty } from '@/lib/api/catastro';
-import { Home, MapPin, Calendar, Ruler, Euro, ArrowRight, Search, CheckCircle, ChevronDown } from 'lucide-react';
+import { Home, MapPin, Calendar, Ruler, Euro, ArrowRight, Search, CheckCircle, ChevronDown, Bed, Bath, Droplets, ArrowUpSquare, Waves, Palmtree, Sun, Hammer } from 'lucide-react';
 import localidadesData from '@/lib/api/localidades_map.json';
 import { getCatastroProvinciasAction, getCatastroMunicipiosAction } from '@/app/actions';
 
@@ -185,7 +185,13 @@ export default function VenderPage() {
             anoConstruccion: 1985,
             uso: 'Residencial',
             clase: 'Urbano',
-            valorCatastral: 85400
+            valorCatastral: 85400,
+            habitaciones: 3,
+            banos: 2,
+            aseos: 0,
+            terraza: true,
+            terrazaM2: 12,
+            ascensor: true
         };
 
         const demoEstimation = {
@@ -204,7 +210,15 @@ export default function VenderPage() {
             direccion: address.via ? `${address.via} ${address.numero}, ${address.municipio}` : '',
             superficie: 0,
             uso: 'Residencial',
-            clase: 'Urbano'
+            clase: 'Urbano',
+            habitaciones: 1,
+            banos: 1,
+            aseos: 0,
+            terraza: false,
+            reformado: false,
+            ascensor: false,
+            piscina: false,
+            jardin: false
         });
         setStep(2);
     };
@@ -749,6 +763,152 @@ export default function VenderPage() {
                                     <div className="text-[10px] text-slate-400 mt-1 italic">(Informativo Catastro)</div>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Extra Details Grid */}
+                        <div className="mb-12">
+                            <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
+                                <span className="w-8 h-1 bg-teal-500 rounded-full"></span>
+                                Detalles de la vivienda
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="p-4 border border-slate-100 dark:border-slate-800 rounded-sm flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-teal-500">
+                                        <Bed size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-[10px] uppercase tracking-wider text-slate-400">Habitaciones</div>
+                                        <input
+                                            type="number"
+                                            value={property.habitaciones || 0}
+                                            onChange={(e) => handleUpdateProperty({ habitaciones: parseInt(e.target.value) || 0 })}
+                                            className="w-full bg-transparent font-bold text-lg outline-none focus:text-teal-500 transition-colors"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="p-4 border border-slate-100 dark:border-slate-800 rounded-sm flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-teal-500">
+                                        <Bath size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-[10px] uppercase tracking-wider text-slate-400">Baños</div>
+                                        <input
+                                            type="number"
+                                            value={property.banos || 0}
+                                            onChange={(e) => handleUpdateProperty({ banos: parseInt(e.target.value) || 0 })}
+                                            className="w-full bg-transparent font-bold text-lg outline-none focus:text-teal-500 transition-colors"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="p-4 border border-slate-100 dark:border-slate-800 rounded-sm flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-teal-500">
+                                        <Droplets size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-[10px] uppercase tracking-wider text-slate-400">Aseos</div>
+                                        <input
+                                            type="number"
+                                            value={property.aseos || 0}
+                                            onChange={(e) => handleUpdateProperty({ aseos: parseInt(e.target.value) || 0 })}
+                                            className="w-full bg-transparent font-bold text-lg outline-none focus:text-teal-500 transition-colors"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-800 rounded-sm">
+                                        <div className="flex items-center gap-3">
+                                            <Sun size={20} className="text-teal-500" />
+                                            <span className="text-sm font-medium">¿Tiene Terraza?</span>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={property.terraza || false}
+                                            onChange={(e) => handleUpdateProperty({ terraza: e.target.checked })}
+                                            className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                        />
+                                    </div>
+                                    {property.terraza && (
+                                        <div className="pl-12 flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-200">
+                                            <div className="text-xs text-slate-400">Superficie Ter. (m²)</div>
+                                            <input
+                                                type="number"
+                                                value={property.terrazaM2 || 0}
+                                                onChange={(e) => handleUpdateProperty({ terrazaM2: parseInt(e.target.value) || 0 })}
+                                                className="w-20 px-2 py-1 border-b border-slate-200 focus:border-teal-500 outline-none transition-all font-bold"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-800 rounded-sm">
+                                        <div className="flex items-center gap-3">
+                                            <Hammer size={20} className="text-teal-500" />
+                                            <span className="text-sm font-medium">¿Está Reformado?</span>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={property.reformado || false}
+                                            onChange={(e) => handleUpdateProperty({ reformado: e.target.checked })}
+                                            className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                        />
+                                    </div>
+                                    {property.reformado && (
+                                        <div className="pl-12 flex items-center gap-4 animate-in fade-in slide-in-from-left-2 duration-200">
+                                            <div className="text-xs text-slate-400">Año de Reforma</div>
+                                            <input
+                                                type="number"
+                                                value={property.anoReforma || ''}
+                                                onChange={(e) => handleUpdateProperty({ anoReforma: parseInt(e.target.value) || undefined })}
+                                                className="w-20 px-2 py-1 border-b border-slate-200 focus:border-teal-500 outline-none transition-all font-bold"
+                                                placeholder="2020"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-800 rounded-sm">
+                                        <div className="flex items-center gap-3">
+                                            <ArrowUpSquare size={20} className="text-teal-500" />
+                                            <span className="text-sm font-medium">Tiene Ascensor</span>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={property.ascensor || false}
+                                            onChange={(e) => handleUpdateProperty({ ascensor: e.target.checked })}
+                                            className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-800 rounded-sm">
+                                        <div className="flex items-center gap-3">
+                                            <Waves size={20} className="text-teal-500" />
+                                            <span className="text-sm font-medium">Tiene Piscina</span>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={property.piscina || false}
+                                            onChange={(e) => handleUpdateProperty({ piscina: e.target.checked })}
+                                            className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-800 rounded-sm">
+                                        <div className="flex items-center gap-3">
+                                            <Palmtree size={20} className="text-teal-500" />
+                                            <span className="text-sm font-medium">Tiene Jardín</span>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={property.jardin || false}
+                                            onChange={(e) => handleUpdateProperty({ jardin: e.target.checked })}
+                                            className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Market Estimation */}

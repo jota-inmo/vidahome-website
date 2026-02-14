@@ -24,24 +24,48 @@ export async function POST(request: NextRequest) {
 
         // Construir contenido del correo
         const emailContent = `
-            <h2>Nueva Solicitud de Tasación Web</h2>
-            <p><strong>Cliente:</strong> ${contactData.nombre}</p>
-            <p><strong>Email:</strong> ${contactData.email}</p>
-            <p><strong>Teléfono:</strong> ${contactData.telefono}</p>
-            <br/>
-            <h3>Datos de la Propiedad:</h3>
-            <p><strong>Dirección:</strong> ${property.direccion}</p>
-            <p><strong>Población:</strong> ${municipio}</p>
-            <p><strong>Referencia Catastral:</strong> ${property.referenciaCatastral}</p>
-            <p><strong>Superficie:</strong> ${property.superficie} m²</p>
-            <p><strong>Año Construcción:</strong> ${property.anoConstruccion || 'N/D'}</p>
-            <p><strong>Uso:</strong> ${property.uso}</p>
-            <br/>
-            <h3>Valoración Automática:</h3>
-            <p><strong>Rango Estimado:</strong> ${estimation ? `${estimation.min.toLocaleString()}€ - ${estimation.max.toLocaleString()}€` : 'No disponible'}</p>
-            <br/>
-            <p><strong>Mensaje del cliente:</strong></p>
-            <p>${contactData.mensaje || 'Sin mensaje adicional.'}</p>
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #0f172a; border-bottom: 2px solid #2dd4bf; padding-bottom: 10px;">Nueva Solicitud de Tasación Web</h2>
+                
+                <div style="background: #f8fafc; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <p><strong>Cliente:</strong> ${contactData.nombre}</p>
+                    <p><strong>Email:</strong> ${contactData.email}</p>
+                    <p><strong>Teléfono:</strong> ${contactData.telefono}</p>
+                </div>
+
+                <h3 style="color: #0d9488;">📍 Datos de la Propiedad:</h3>
+                <p><strong>Dirección:</strong> ${property.direccion}</p>
+                <p><strong>Población:</strong> ${municipio}</p>
+                <p><strong>Referencia Catastral:</strong> ${property.referenciaCatastral}</p>
+                <p><strong>Superficie:</strong> ${property.superficie} m²</p>
+                <p><strong>Año Construcción:</strong> ${property.anoConstruccion || 'N/D'}</p>
+                <p><strong>Uso:</strong> ${property.uso}</p>
+
+                <h3 style="color: #0d9488;">🏠 Características adicionales:</h3>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><strong>Habitaciones:</strong> ${property.habitaciones || '0'}</li>
+                    <li><strong>Baños:</strong> ${property.banos || '0'}</li>
+                    <li><strong>Aseos:</strong> ${property.aseos || '0'}</li>
+                    <li><strong>Terraza:</strong> ${property.terraza ? `Sí (${property.terrazaM2 || 0} m²)` : 'No'}</li>
+                    <li><strong>Reformado:</strong> ${property.reformado ? `Sí (Año: ${property.anoReforma || 'N/A'})` : 'No'}</li>
+                    <li><strong>Ascensor:</strong> ${property.ascensor ? 'Sí' : 'No'}</li>
+                    <li><strong>Piscina:</strong> ${property.piscina ? 'Sí' : 'No'}</li>
+                    <li><strong>Jardín:</strong> ${property.jardin ? 'Sí' : 'No'}</li>
+                </ul>
+
+                <h3 style="color: #0d9488;">💰 Valoración Automática:</h3>
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 4px; text-align: center;">
+                    <p style="font-size: 20px; font-weight: bold; color: #166534; margin: 0;">
+                        ${estimation ? `${estimation.min.toLocaleString('es-ES')}€ - ${estimation.max.toLocaleString('es-ES')}€` : 'No disponible'}
+                    </p>
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">*Estimación informativa basada en Catastro</p>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <p><strong>Mensaje del cliente:</strong></p>
+                    <p style="background: #fdfcfb; padding: 10px; border-left: 4px solid #f97316;">${contactData.mensaje || 'Sin mensaje adicional.'}</p>
+                </div>
+            </div>
         `;
 
         // Send Email via Resend

@@ -27,6 +27,16 @@ export interface CatastroProperty {
         lat: number;
         lon: number;
     };
+    habitaciones?: number;
+    banos?: number;
+    aseos?: number;
+    terraza?: boolean;
+    terrazaM2?: number;
+    reformado?: boolean;
+    anoReforma?: number;
+    ascensor?: boolean;
+    piscina?: boolean;
+    jardin?: boolean;
 }
 
 export interface CatastroSearchResult {
@@ -460,7 +470,15 @@ export class CatastroClient {
                     direccion: direccion.trim(),
                     superficie,
                     uso,
-                    clase: 'Urbano'
+                    clase: 'Urbano',
+                    habitaciones: 1,
+                    banos: 1,
+                    aseos: 0,
+                    terraza: false,
+                    reformado: false,
+                    ascensor: false,
+                    piscina: false,
+                    jardin: false
                 });
             }
 
@@ -536,7 +554,15 @@ export class CatastroClient {
                 anoConstruccion,
                 uso,
                 clase: 'Urbano',
-                valorCatastral
+                valorCatastral,
+                habitaciones: 1,
+                banos: 1,
+                aseos: 0,
+                terraza: false,
+                reformado: false,
+                ascensor: false,
+                piscina: false,
+                jardin: false
             };
 
         } catch (error) {
@@ -620,7 +646,15 @@ export class CatastroClient {
             anoConstruccion,
             uso,
             clase,
-            valorCatastral
+            valorCatastral,
+            habitaciones: 1,
+            banos: 1,
+            aseos: 0,
+            terraza: false,
+            reformado: false,
+            ascensor: false,
+            piscina: false,
+            jardin: false
         };
     }
 
