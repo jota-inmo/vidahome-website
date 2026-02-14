@@ -82,29 +82,28 @@ export default function Home() {
         </div>
       </section >
 
-      {/* Intro Section */}
-      < section className="py-32 bg-white dark:bg-slate-950 px-8" >
+      <section className="py-32 bg-white dark:bg-slate-950 px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-serif text-[#0a192f] dark:text-white mb-10">Más que una inmobiliaria</h2>
           <p className="text-lg text-slate-500 font-light leading-relaxed mb-16">
-            En <strong className="text-[#0a192f] dark:text-blue-400">Vidahome</strong>, entendemos que una casa no es solo ladrillo y cemento, sino el escenario donde transcurre tu vida. Con más de 125 reseñas de 5 estrellas, nuestro equipo en el Grau de Gandia se dedica a transformar la compraventa en una experiencia transparente y sin estrés.
+            En <strong className="text-[#0a192f] dark:text-blue-400">Vidahome</strong>, entendemos que una casa no es solo ladrillo y cemento, sino el escenario donde transcurre tu vida. Nuestro equipo en el Grau de Gandia se dedica a transformar la compraventa en una experiencia transparente, profesional y sin estrés.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="p-8 border border-slate-50 dark:border-slate-900">
+            <div className="p-8 border border-slate-50 dark:border-slate-900 shadow-sm">
               <span className="text-5xl font-serif text-[#0a192f] dark:text-white block mb-4">5.0</span>
               <span className="text-[10px] tracking-widest uppercase text-slate-400">Puntuación Google</span>
             </div>
-            <div className="p-8 border border-slate-50 dark:border-slate-900">
-              <span className="text-5xl font-serif text-[#0a192f] dark:text-white block mb-4">+1k</span>
-              <span className="text-[10px] tracking-widest uppercase text-slate-400">Clientes Satisfechos</span>
+            <div className="p-8 border border-slate-50 dark:border-slate-900 shadow-sm">
+              <span className="text-5xl font-serif text-[#0a192f] dark:text-white block mb-4">+25</span>
+              <span className="text-[10px] tracking-widest uppercase text-slate-400">Años de Experiencia</span>
             </div>
-            <div className="p-8 border border-slate-50 dark:border-slate-900">
-              <span className="text-5xl font-serif text-[#0a192f] dark:text-white block mb-4">#1</span>
-              <span className="text-[10px] tracking-widest uppercase text-slate-400">Expertos en Gandia Playa</span>
+            <div className="p-8 border border-slate-50 dark:border-slate-900 shadow-sm">
+              <span className="text-5xl font-serif text-[#0a192f] dark:text-white block mb-4">100%</span>
+              <span className="text-[10px] tracking-widest uppercase text-slate-400">Compromiso Ético</span>
             </div>
           </div>
         </div>
-      </section >
+      </section>
 
       {/* Location Footer / Info */}
       < footer className="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-900 px-8" >
