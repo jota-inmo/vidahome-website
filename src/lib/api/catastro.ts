@@ -180,22 +180,26 @@ export class CatastroClient {
             const mun = address.municipio.toUpperCase();
             const num = address.numero.toUpperCase();
 
-            // Si tenemos el tipo de vía por separado, lo usamos.
-            // Si no, intentamos extraerlo de la cadena 'via' o usamos 'CL' por defecto.
-            let tipoVia = (address.tipoVia || 'CL').toUpperCase();
-            let nomVia = address.via.toUpperCase();
+            let nomVia = address.via.toUpperCase().trim();
+            let tipoVia = (address.tipoVia || '').toUpperCase().trim();
 
-            // Limpiar prefijos comunes si ya están en el nombre
-            // Ejemplo: "CL SAN FRANCISCO" -> "SAN FRANCISCO" si tipoVia es "CL"
-            const prefixes = [tipoVia + ' ', 'CL ', 'AV ', 'PS ', 'C/ ', 'C ', 'AVDA '];
-            for (const prefix of prefixes) {
+            // Si no tenemos tipoVia, intentamos extraerlo del nombre
+            if (!tipoVia) {
+                const commonTypes = ['CL', 'AV', 'PS', 'C/', 'AVDA', 'CTRA', 'PL'];
+                for (const type of commonTypes) {
+                    if (nomVia.startsWith(type + ' ')) {
+                        tipoVia = type;
+                        nomVia = nomVia.substring(type.length).trim();
+                        break;
+                    }
+                }
+                if (!tipoVia) tipoVia = 'CL'; // Default
+            } else {
+                // Si YA tenemos tipoVia, nos aseguramos de que no esté repetido en el nombre
+                // Ejemplo: tipoVia="CL", nomVia="CL MAJOR" -> nomVia="MAJOR"
+                const prefix = tipoVia + ' ';
                 if (nomVia.startsWith(prefix)) {
                     nomVia = nomVia.substring(prefix.length).trim();
-                    // Si no teníamos tipoVia, intentamos deducirlo del prefijo (excepto C/ o C)
-                    if (!address.tipoVia && !prefix.includes('/')) {
-                        tipoVia = prefix.trim();
-                    }
-                    break;
                 }
             }
 
@@ -261,27 +265,35 @@ export class CatastroClient {
 
                     // Si el error es "43 - EL NUMERO NO EXISTE", intentamos recuperar la RC a través del callejero
                     // Esto maneja casos donde DNPLOC falla pero el número sí está registrado en la parcela.
-                    if (err.cod === '43') {
-                        console.log(`[Catastro] Error 43 para ${tipoVia} ${nomVia} ${num}. Intentando fallback con ObtenerNumerero...`);
+                    if (err.cod === '43') { // Error 43: EL NUMERO NO EXISTE
+                        console.log(`[Catastro] Error 43 para ${tipoVia} ${nomVia} ${num}. Intentando fallback agresivo...`);
 
                         try {
-                            // Paso 1: Buscar con el número exacto (ObtenerNumerero requiere número)
+                            // Intento A: Número exacto con TipoVia
                             let numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, num);
-                            console.log(`[Catastro] Fallback (número ${num}): encontrados ${numeros.length} resultados`);
 
-                            // Paso 2: Si no hay resultados, probar con número 1 para obtener al menos la parcela
+                            // Intento B: Número exacto SIN TipoVia (muy común que el tipo cause fallos)
+                            if (numeros.length === 0 && tipoVia) {
+                                console.log(`[Catastro] Fallback: Reintentando sin TipoVia...`);
+                                numeros = await this.getNumeros(prov, mun, '', nomVia, num);
+                            }
+
+                            // Intento C: Número '1' como wildcard para pillar la parcela si el número exacto no está mapeado
                             if (numeros.length === 0 && num !== '1') {
+                                console.log(`[Catastro] Fallback: Probando con número 1...`);
                                 numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, '1');
-                                console.log(`[Catastro] Fallback (número 1): ${numeros.length} resultados`);
+                                if (numeros.length === 0 && tipoVia) {
+                                    numeros = await this.getNumeros(prov, mun, '', nomVia, '1');
+                                }
                             }
 
                             if (numeros.length > 0) {
-                                // Buscar coincidencia exacta con el número solicitado
+                                // Priorizar el que coincida en número si hemos traído varios
                                 const exactMatch = numeros.find(n => String(n.numero).trim() === String(num).trim());
                                 const matchToUse = exactMatch || numeros[0];
 
                                 if (matchToUse && matchToUse.rc) {
-                                    console.log(`[Catastro] Fallback exitoso. RC recuperada: ${matchToUse.rc} (match: ${exactMatch ? 'exacto' : 'primer resultado'}). Buscando inmuebles...`);
+                                    console.log(`[Catastro] Fallback exitoso. RC: ${matchToUse.rc}. Buscando inmuebles...`);
                                     return await this.searchPropertiesByRC(matchToUse.rc);
                                 }
                             }
@@ -440,11 +452,14 @@ export class CatastroClient {
                 if (dp) direccion += ` ${dp}`;
                 if (nm) direccion += ` (${nm})`;
 
+                const superficie = parseInt(this.xmlVal(block, 'sfc')) || 0;
+                const uso = this.xmlVal(block, 'luso') || 'Residencial';
+
                 properties.push({
                     referenciaCatastral: fullRc,
                     direccion: direccion.trim(),
-                    superficie: 0,
-                    uso: 'Residencial',
+                    superficie,
+                    uso,
                     clase: 'Urbano'
                 });
             }

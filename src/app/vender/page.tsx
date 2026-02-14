@@ -78,7 +78,7 @@ export default function VenderPage() {
     });
 
     const handleSelectVia = (v: any) => {
-        setAddress(prev => ({ ...prev, via: v.label }));
+        setAddress(prev => ({ ...prev, via: v.nombre }));
         setSelectedVia({ tipo: v.tipo, nombre: v.nombre });
         setShowViaSuggestions(false);
     };
