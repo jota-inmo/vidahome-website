@@ -8,19 +8,30 @@ export default function NosotrosPage() {
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-teal-100 selection:text-teal-900">
             {/* Hero Section */}
             <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-slate-50 to-transparent dark:from-slate-900/50 -z-10" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[700px] bg-gradient-to-b from-slate-50 to-transparent dark:from-slate-900/50 -z-10" />
 
-                <div className="max-w-4xl mx-auto text-center">
-                    <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-800 text-teal-600 dark:text-teal-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-8 animate-fade-in">
-                        Más que una inmobiliaria
-                    </span>
-                    <h1 className="text-5xl md:text-7xl font-serif mb-8 leading-[1.1] animate-slide-up">
-                        Construyendo relaciones <br />
-                        <span className="italic font-normal text-teal-600 dark:text-teal-400">más allá de la venta.</span>
-                    </h1>
-                    <p className="text-xl text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl mx-auto animate-slide-up delay-100">
-                        En Vidahome, no vendemos metros cuadrados. Gestionamos la tranquilidad de las personas a través de la confianza y el compromiso.
-                    </p>
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-16">
+                    <div className="flex-1 text-center md:text-left">
+                        <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-800 text-teal-600 dark:text-teal-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-8 animate-fade-in">
+                            Más que una inmobiliaria
+                        </span>
+                        <h1 className="text-5xl md:text-7xl font-serif mb-8 leading-[1.1] animate-slide-up">
+                            Construyendo relaciones <br />
+                            <span className="italic font-normal text-teal-600 dark:text-teal-400">más allá de la venta.</span>
+                        </h1>
+                        <p className="text-xl text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl mx-auto md:mx-0 animate-slide-up delay-100">
+                            En Vidahome, no vendemos metros cuadrados. Gestionamos la tranquilidad de las personas a través de la confianza y el compromiso.
+                        </p>
+                    </div>
+                    <div className="flex-1 w-full max-w-md animate-fade-in delay-200">
+                        <div className="aspect-[4/5] rounded-sm overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
+                            <img
+                                src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800"
+                                alt="Mediterranean Architecture"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -28,7 +39,7 @@ export default function NosotrosPage() {
             <section className="py-24 px-6 bg-slate-50 dark:bg-slate-900/30">
                 <div className="max-w-6xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                        <div className="space-y-8">
+                        <div className="space-y-8 order-2 lg:order-1">
                             <h2 className="text-4xl font-serif leading-snug">
                                 El concepto de <br />
                                 <span className="text-teal-600 dark:text-teal-400 text-5xl">Ecosistema Virtuoso</span>
@@ -46,35 +57,44 @@ export default function NosotrosPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {[
-                                {
-                                    icon: <ShieldCheck size={28} />,
-                                    title: "Legalidad Blindada",
-                                    desc: "Abogados que no solo revisan papeles, cuidan tus intereses."
-                                },
-                                {
-                                    icon: <Award size={28} />,
-                                    title: "Arquitectura Real",
-                                    desc: "Técnicos que dan soluciones, no problemas administrativos."
-                                },
-                                {
-                                    icon: <Users size={28} />,
-                                    title: "Gente de Palabra",
-                                    desc: "Profesionales de reformas que cumplen plazos y presupuestos."
-                                },
-                                {
-                                    icon: <Handshake size={28} />,
-                                    title: "Cercanía Total",
-                                    desc: "Siempre a un café de distancia para resolver cualquier duda."
-                                }
-                            ].map((item, i) => (
-                                <div key={i} className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-sm shadow-sm hover:shadow-md transition-all group">
-                                    <div className="text-teal-500 mb-6 group-hover:scale-110 transition-transform origin-left">{item.icon}</div>
-                                    <h3 className="text-lg font-serif mb-3 italic">{item.title}</h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{item.desc}</p>
-                                </div>
-                            ))}
+                        <div className="order-1 lg:order-2 space-y-8">
+                            <div className="aspect-video rounded-sm overflow-hidden shadow-lg">
+                                <img
+                                    src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800"
+                                    alt="Professional meeting"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {[
+                                    {
+                                        icon: <ShieldCheck size={28} />,
+                                        title: "Legalidad Blindada",
+                                        desc: "Abogados que no solo revisan papeles, cuidan tus intereses."
+                                    },
+                                    {
+                                        icon: <Award size={28} />,
+                                        title: "Arquitectura Real",
+                                        desc: "Técnicos que dan soluciones, no problemas administrativos."
+                                    },
+                                    {
+                                        icon: <Users size={28} />,
+                                        title: "Gente de Palabra",
+                                        desc: "Profesionales de reformas que cumplen plazos y presupuestos."
+                                    },
+                                    {
+                                        icon: <Handshake size={28} />,
+                                        title: "Cercanía Total",
+                                        desc: "Siempre a un café de distancia para resolver cualquier duda."
+                                    }
+                                ].map((item, i) => (
+                                    <div key={i} className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-sm shadow-sm hover:shadow-md transition-all group">
+                                        <div className="text-teal-500 mb-6 group-hover:scale-110 transition-transform origin-left">{item.icon}</div>
+                                        <h3 className="text-lg font-serif mb-3 italic">{item.title}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{item.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -157,14 +177,16 @@ export default function NosotrosPage() {
 
             {/* Soft CTA or Closing Quote */}
             <section className="py-24 px-6 bg-slate-900 text-white relative overflow-hidden">
-                {/* Abstract Gandia-inspired background pattern (CSS only) */}
-                <div className="absolute inset-0 opacity-10 pointer-events-none">
-                    <div className="absolute top-10 right-10 w-64 h-64 border-2 border-teal-500/30 rounded-full" />
-                    <div className="absolute -bottom-20 -left-20 w-96 h-96 border-2 border-teal-500/20 rounded-full" />
+                <div className="absolute inset-0 opacity-20 pointer-events-none">
+                    <img
+                        src="https://images.unsplash.com/photo-1521791136364-798a7bc0d267?auto=format&fit=crop&q=80&w=1200"
+                        alt="Handshake"
+                        className="w-full h-full object-cover grayscale"
+                    />
+                    <div className="absolute inset-0 bg-slate-900/80" />
                 </div>
 
                 <div className="max-w-3xl mx-auto text-center relative z-10">
-                    <Coffee className="mx-auto mb-8 text-teal-400" size={32} />
                     <h2 className="text-3xl font-serif italic mb-8">¿Quieres conocernos de verdad? <br /> El café corre de nuestra cuenta.</h2>
                     <p className="text-slate-400 font-light text-lg mb-12">
                         Si buscas una gestión honesta en Gandía o alrededores, hablemos. Sin presiones, solo compartiendo visión.
@@ -195,6 +217,7 @@ export default function NosotrosPage() {
                     animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
                 .delay-100 { animation-delay: 0.1s; }
+                .delay-200 { animation-delay: 0.2s; }
                 .animate-fade-in {
                     animation: fade-in 1s ease-out forwards;
                 }
