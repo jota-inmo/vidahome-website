@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Users, Handshake, HeartHandshake, Coffee, Award, Star, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Users, Handshake, HeartHandshake, Coffee, Award, Star, ArrowRight, Zap, FileText, BadgeCheck, Link } from 'lucide-react';
 
 export default function NosotrosPage() {
     return (
@@ -104,6 +104,53 @@ export default function NosotrosPage() {
                                 Pregúntale a cualquiera de nuestros clientes qué pasa seis meses después de la compra. Seguimos ahí para lo que necesites: desde el cambio de suministros hasta la búsqueda del mejor técnico para una pequeña mejora.
                             </p>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Grid Section: Más allá de la venta */}
+            <section className="py-24 px-6 bg-slate-50 dark:bg-slate-900/30">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl font-serif mb-4 italic">Más allá de la venta</h2>
+                        <p className="text-slate-500 dark:text-slate-400 font-light max-w-2xl mx-auto">
+                            Un servicio diseñado para que tu única preocupación sea disfrutar del cambio.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {[
+                            {
+                                icon: <Zap size={32} />,
+                                title: "Gremios Verificados",
+                                desc: "Conexión directa con profesionales de confianza que nosotros mismos hemos puesto a prueba."
+                            },
+                            {
+                                icon: <FileText size={32} />,
+                                title: "Asesoramiento Continuo",
+                                desc: "Nuestro acompañamiento no termina en la notaría; resolvemos cualquier trámite o duda posterior."
+                            },
+                            {
+                                icon: <BadgeCheck size={32} />,
+                                title: "Confianza Comprobada",
+                                desc: "Gestión basada en resultados que hemos verificado personalmente en nuestras propias viviendas."
+                            },
+                            {
+                                icon: <Link size={32} />,
+                                title: "Red donde Todos Ganan",
+                                desc: "Un ecosistema que aporta seguridad total al cliente y tranquilidad al profesional serio."
+                            }
+                        ].map((item, i) => (
+                            <div key={i} className="flex flex-col items-center text-center p-6 transition-all hover:-translate-y-1">
+                                <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-teal-500 shadow-sm mb-6">
+                                    {item.icon}
+                                </div>
+                                <h3 className="text-lg font-serif mb-3 italic">{item.title}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-light leading-relaxed">
+                                    {item.desc}
+                                </p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
