@@ -472,78 +472,64 @@ export class CatastroClient {
         try {
             const rc = referenciaCatastral.replace(/\s/g, '').toUpperCase();
 
-            if (rc.length !== 14 && rc.length !== 18 && rc.length !== 20) {
-                console.error(`[Catastro] RC con longitud inusual: ${rc} (longitud ${rc.length})`);
-            }
+            // Usar el endpoint XML que es más robusto para detalles
+            const xmlUrl = `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RC=${rc}`;
+            console.log(`[Catastro] getPropertyDetails (XML): ${xmlUrl}`);
 
-            const params = new URLSearchParams({
-                RefCat: rc
-            });
-
-            const url = `${this.infoRefUrl}/Consulta_DNPRC?${params}`;
-            console.log(`[Catastro] Obteniendo detalles por RC: ${url}`);
-
-            const response = await fetch(url);
+            const response = await fetch(xmlUrl);
 
             if (!response.ok) {
                 console.error(`[Catastro] Error HTTP detalle ${response.status}: ${response.statusText}`);
-                if (response.status === 503) {
-                    throw new Error('El servicio del Catastro no está disponible temporalmente.');
-                }
-                throw new Error(`Catastro API error: ${response.status} ${response.statusText}`);
+                throw new Error(`Catastro API error: ${response.status}`);
             }
 
-            const text = await response.text();
-            console.log(`[Catastro] Respuesta detalle raw: ${text.substring(0, 500)}...`);
+            const xmlText = await response.text();
 
-            if (text.includes('Sistema no disponible')) {
-                throw new Error('El servicio del Catastro no está disponible temporalmente.');
-            }
-
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                console.error('[Catastro] Error parseando JSON de detalle:', text.substring(0, 100));
+            // Si el XML indica error
+            if (xmlText.includes('<lerr>')) {
+                const cod = this.xmlVal(xmlText, 'cod');
+                const des = this.xmlVal(xmlText, 'des');
+                console.warn(`[Catastro] API detalle devolvió error XML: ${cod} - ${des}`);
                 return null;
             }
 
-            // Desempaquetar respuesta
-            const root = data.consulta_dnprcResult || data.consulta_dnp || data;
+            // Extraer bloque bico
+            const bicoMatch = xmlText.match(/<bico>([\s\S]*?)<\/bico>/);
+            if (!bicoMatch) {
+                console.warn('[Catastro] No se encontró bloque <bico> en la respuesta XML');
+                return null;
+            }
+            const bico = bicoMatch[1];
 
-            if (root.lerr) {
-                const err = root.lerr[0] || (root.lerr.err ? root.lerr.err[0] : null);
-                if (err) {
-                    const msg = err.des || 'Error desconocido';
-                    console.warn(`[Catastro] API detalle devolvió error: ${err.cod} - ${msg}`);
-                    return null;
-                }
+            // Extraer datos básicos
+            const direccion = this.xmlVal(bico, 'ldt') || 'Dirección no disponible';
+            const superficie = parseInt(this.xmlVal(bico, 'sfc')) || 0;
+            const anoConstruccion = parseInt(this.xmlVal(bico, 'ant')) || undefined;
+            const uso = this.xmlVal(bico, 'luso') || 'Residencial';
+
+            // Valor catastral (difícil de obtener por API pública, pero lo intentamos por si acaso)
+            let valorCatastral = undefined;
+            const vcat = this.xmlVal(bico, 'vcat');
+            if (vcat) {
+                valorCatastral = parseFloat(vcat.replace(',', '.')) || undefined;
             }
 
-            if (root.bico) {
-                const bicoData = root.bico.bi || root.bico;
-                return this.mapJsonToProperty(bicoData);
-            }
-
-            if (root.lrcdnp) {
-                // Si por alguna razón devuelve una lista en lugar de bico (común en búsquedas parciales)
-                const results = Array.isArray(root.lrcdnp.rcdnp)
-                    ? root.lrcdnp.rcdnp
-                    : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
-
-                if (results.length > 0) {
-                    return this.mapJsonToProperty(results[0]);
-                }
-            }
-
-            console.log('[Catastro] No se encontró información de propiedad en la respuesta (bico/lrcdnp)');
-            return null;
+            return {
+                referenciaCatastral: rc,
+                direccion: direccion.trim(),
+                superficie,
+                anoConstruccion,
+                uso,
+                clase: 'Urbano',
+                valorCatastral
+            };
 
         } catch (error) {
-            console.error('[Catastro] Fallo obteniendo detalles por RC:', error);
+            console.error('[Catastro] Error en getPropertyDetails:', error);
             throw error;
         }
     }
+
 
     /**
      * Mapea la respuesta JSON compleja del Catastro a nuestra interfaz simplificada
