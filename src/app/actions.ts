@@ -14,6 +14,7 @@ export async function fetchPropertiesAction(): Promise<{
 }> {
     const token = process.env.INMOVILLA_TOKEN;
     const numagencia = process.env.INMOVILLA_AGENCIA;
+    const addnumagencia = process.env.INMOVILLA_ADDAGENCIA || '';
     const password = process.env.INMOVILLA_PASSWORD;
     const domain = process.env.INMOVILLA_DOMAIN || 'vidahome.es';
 
@@ -54,7 +55,7 @@ export async function fetchPropertiesAction(): Promise<{
             console.log(`[Actions] Cache miss: Fetching from Web API (IP: ${clientIp})...`);
 
             const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-            const api = new InmovillaWebApiService(numagencia!, password!, 1, clientIp, domain);
+            const api = new InmovillaWebApiService(numagencia!, password!, addnumagencia, 1, clientIp, domain);
 
             // Get properties (100 at a time)
             properties = await api.getProperties({ page: 1 });
@@ -89,6 +90,7 @@ export async function fetchPropertiesAction(): Promise<{
 
 export async function getPropertyDetailAction(id: number): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
     const numagencia = process.env.INMOVILLA_AGENCIA;
+    const addnumagencia = process.env.INMOVILLA_ADDAGENCIA || '';
     const password = process.env.INMOVILLA_PASSWORD;
     const domain = process.env.INMOVILLA_DOMAIN || 'vidahome.es';
 
@@ -118,7 +120,7 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
     try {
         const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-        const api = new InmovillaWebApiService(numagencia, password, 1, clientIp, domain);
+        const api = new InmovillaWebApiService(numagencia, password, addnumagencia, 1, clientIp, domain);
         const details = await api.getPropertyDetails(id);
 
         // Resolve population name (adapter already does basic, but let's ensure)

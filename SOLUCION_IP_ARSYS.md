@@ -45,7 +45,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 Hola,
 
 Necesito autorizar esta IP para la API Web:
-IP: [LA_IP_DE_ARSYS]
+IP: 217.76.132.196
 Agencia: [TU_NUMERO]
 Dominio: vidahome.es
 

@@ -46,9 +46,22 @@ export class InmovillaWebClient {
     }
 
     /**
-     * Security: Validate that a value is numeric or a list of numeric values
-     * As recommended: "valores numéricos separados por comas"
+     * Security: Validate that an Agency ID or Branch is valid (alphanumeric + underscore)
      */
+    private validateAgencyId(value: any, fieldName: string): string {
+        const strValue = String(value).trim();
+        if (!strValue) return '';
+
+        // Allow numbers, letters and underscores (needed for some special Inmovilla accounts)
+        const isValid = /^[0-9a-zA-Z_]+$/.test(strValue);
+
+        if (!isValid) {
+            console.error(`[InmovillaWebClient] Security Block: Invalid agency ID format for ${fieldName}: ${value}`);
+            throw new Error(`Security Validation Error: Invalid agency ID format for ${fieldName}`);
+        }
+        return strValue;
+    }
+
     private validateNumeric(value: any, fieldName: string): string {
         const strValue = String(value).trim();
         if (!strValue) return '0';
@@ -140,7 +153,11 @@ export class InmovillaWebClient {
     private buildParamString(): string {
         const { numagencia, addnumagencia, password, idioma } = this.config;
 
-        let texto = `${numagencia}${addnumagencia};${password};${idioma};lostipos`;
+        // Security: Validate agency IDs before building the string
+        const vAgencia = this.validateAgencyId(numagencia, 'numagencia');
+        const vAddAgencia = this.validateAgencyId(addnumagencia, 'addnumagencia');
+
+        let texto = `${vAgencia}${vAddAgencia};${password};${idioma};lostipos`;
 
         for (const req of this.requests) {
             // Semicolon separated values for each process

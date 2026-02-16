@@ -125,9 +125,10 @@ function convertToPropertyDetails(webProp: WebApiPropertyResponse): PropertyDeta
 export class InmovillaWebApiService {
     private client: ReturnType<typeof createInmovillaWebClient>;
 
-    constructor(numagencia: string, password: string, idioma: number = 1, ip: string = '', domain: string = '') {
+    constructor(numagencia: string, password: string, addnumagencia: string = '', idioma: number = 1, ip: string = '', domain: string = '') {
         this.client = createInmovillaWebClient({
             numagencia,
+            addnumagencia,
             password,
             idioma,
             ip,
@@ -252,6 +253,7 @@ export function createInmovillaApiService(config: {
     useWebApi?: boolean;
     // Web API credentials
     numagencia?: string;
+    addnumagencia?: string;
     webPassword?: string;
     idioma?: number;
     // REST API credentials (fallback)
@@ -262,6 +264,7 @@ export function createInmovillaApiService(config: {
         return new InmovillaWebApiService(
             config.numagencia,
             config.webPassword,
+            config.addnumagencia || '',
             config.idioma || 1
         );
     }

@@ -18,7 +18,7 @@ IP NO VALIDADA - IP_RECIVED: 3.208.86.127
 Usar tu servidor Arsys (que tiene IP estática) como intermediario:
 
 ```
-Usuario → Vercel → Arsys (IP fija) → Inmovilla
+Usuario → Vercel → Arsys (IP fija: 217.76.132.196) → Inmovilla
 ```
 
 **Ventajas:**
@@ -104,7 +104,7 @@ Vercel (IP dinámica: 3.208.86.127) → ❌ Inmovilla (rechaza)
 
 ### Con Proxy de Arsys (Solución)
 ```
-Vercel → Arsys (IP fija: X.X.X.X) → ✅ Inmovilla (acepta)
+Vercel → Arsys (IP fija: 217.76.132.196) → ✅ Inmovilla (acepta)
 ```
 
 El código detecta automáticamente si las variables `ARSYS_PROXY_URL` y `ARSYS_PROXY_SECRET` están configuradas y enruta las peticiones a través del proxy.
