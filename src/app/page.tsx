@@ -85,10 +85,11 @@ export default function Home() {
             </div>
           </div>
           <div>
-            <h4 className="font-serif text-xl mb-6">Horario Boutique</h4>
+            <h4 className="font-serif text-xl mb-6">Horario de Agencia</h4>
             <p className="text-sm text-slate-500 leading-relaxed font-light">
-              Lunes - Viernes: 09:30 - 19:30<br />
-              Cita previa disponible.
+              Lunes - Viernes: 09:00 - 14:00 y 17:00 - 19:00<br />
+              Sábado: 09:30 - 13:30<br />
+              Fuera de horario con cita previa.
             </p>
           </div>
         </div>

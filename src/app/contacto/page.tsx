@@ -19,9 +19,9 @@ export default function ContactoPage() {
                     {/* Información de Contacto */}
                     <div className="space-y-12">
                         <div>
-                            <h2 className="text-3xl font-serif text-slate-900 dark:text-white mb-8">Información Boutique</h2>
+                            <h2 className="text-3xl font-serif text-slate-900 dark:text-white mb-8">Nuestra Oficina</h2>
                             <p className="text-slate-500 dark:text-slate-400 font-light leading-relaxed text-lg max-w-md">
-                                Visítanos en nuestra oficina en el Grau de Gandia para una atención personalizada y privada sobre tu próxima inversión.
+                                Visítanos en nuestra oficina en el Grau de Gandia para una atención personalizada sobre tu próxima gestión inmobiliaria.
                             </p>
                         </div>
 
@@ -49,7 +49,10 @@ export default function ContactoPage() {
                             <div className="p-8 border border-slate-50 dark:border-slate-900/50 rounded-sm">
                                 <Clock size={24} className="text-slate-300 mb-6" />
                                 <h4 className="text-[10px] tracking-widest uppercase font-bold text-slate-400 mb-2">Horario</h4>
-                                <p className="text-slate-900 dark:text-white font-serif text-sm">Lunes - Viernes: 09:30 - 19:30</p>
+                                <p className="text-slate-900 dark:text-white font-serif text-sm">
+                                    Lunes - Viernes: 09:00 - 14:00 y 17:00 - 19:00 <br />
+                                    Sábado: 09:30 - 13:30
+                                </p>
                             </div>
                         </div>
                     </div>
