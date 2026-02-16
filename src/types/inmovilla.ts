@@ -15,6 +15,7 @@ export interface PropertyListEntry {
     fotoletra?: string;
     mainImage?: string;
     precioinmo?: number;
+    precioalq?: number;
     calle?: string;
     descripciones?: string;
     poblacion?: string;

@@ -32,7 +32,7 @@ interface WebApiPropertyResponse {
 /**
  * Convert Web API property to PropertyListEntry format
  */
-function convertToPropertyListEntry(webProp: WebApiPropertyResponse): PropertyListEntry {
+function convertToPropertyListEntry(webProp: any): PropertyListEntry {
     const codOfer = parseInt(webProp.cod_ofer);
     const numFotos = parseInt(webProp.numfotos || '0');
 
@@ -43,21 +43,30 @@ function convertToPropertyListEntry(webProp: WebApiPropertyResponse): PropertyLi
 
     const totalHabitaciones = (Number(webProp.habitaciones) || 0) + (Number(webProp.habdobles) || 0);
 
+    // Inmovilla Web API often returns descriptions as an object with language IDs
+    let description = '';
+    if (typeof webProp.descripciones === 'object' && webProp.descripciones !== null) {
+        description = webProp.descripciones['1'] || webProp.descripciones[1] || '';
+    } else if (typeof webProp.descripciones === 'string') {
+        description = webProp.descripciones;
+    }
+
     return {
         cod_ofer: codOfer,
-        ref: webProp.ref,
+        ref: webProp.ref || '',
         keyacci: webProp.keyacci ? parseInt(webProp.keyacci) : undefined,
         precioinmo: webProp.precioinmo ? parseFloat(webProp.precioinmo) : undefined,
+        precioalq: webProp.precioalq ? parseFloat(webProp.precioalq) : undefined,
         habitaciones: totalHabitaciones || undefined,
         banyos: webProp.banyos ? parseFloat(webProp.banyos) : undefined,
         m_cons: webProp.m_cons ? parseFloat(webProp.m_cons) : undefined,
         calle: webProp.calle,
-        descripciones: webProp.descripciones,
+        descripciones: description,
         numagencia: webProp.numagencia,
         numfotos: webProp.numfotos,
         fotoletra: webProp.fotoletra,
-        nodisponible: webProp.nodisponible === '1',
-        prospecto: webProp.prospecto === '1',
+        nodisponible: webProp.nodisponible === '1' || webProp.nodisponible === 1,
+        prospecto: webProp.prospecto === '1' || webProp.prospecto === 1,
         fechaact: '', // Not provided by Web API
         poblacion: webProp.poblacion || '',
         tipo_nombre: webProp.tipo_nombre || '',

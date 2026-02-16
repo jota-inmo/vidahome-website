@@ -47,7 +47,7 @@ export async function fetchPropertiesAction(): Promise<{
         };
     }
 
-    const cacheKey = 'property_list_v2';
+    const cacheKey = 'property_list_v3';
     let properties = apiCache.get<PropertyListEntry[]>(cacheKey);
 
     try {
@@ -62,7 +62,14 @@ export async function fetchPropertiesAction(): Promise<{
 
             if (properties && properties.length > 0) {
                 // Filter: only active, available, and non-prospect
-                properties = properties.filter(p => !p.nodisponible && !p.prospecto);
+                // Plus: Ensure we have a valid ID and reference
+                properties = properties.filter(p =>
+                    !p.nodisponible &&
+                    !p.prospecto &&
+                    !isNaN(p.cod_ofer) &&
+                    p.ref &&
+                    p.ref.trim() !== ''
+                );
                 apiCache.set(cacheKey, properties, 1200); // 20 min cache
             }
         } else {
