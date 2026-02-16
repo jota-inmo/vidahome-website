@@ -86,11 +86,32 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
+        // 3. Persist to Supabase (Backup and management)
+        try {
+            const { supabase } = await import('@/lib/supabase');
+            await supabase.from('valuation_leads').insert([
+                {
+                    nombre: contactData.nombre,
+                    email: contactData.email,
+                    telefono: contactData.telefono,
+                    direccion: property.direccion,
+                    municipio: municipio,
+                    provincia: address?.provincia || '',
+                    referencia_catastral: property.referenciaCatastral,
+                    datos_catastro: property, // Store all catastro details as JSONB
+                    mensaje: contactData.mensaje,
+                    created_at: new Date().toISOString()
+                }
+            ]);
+        } catch (supaError) {
+            console.warn('[Valuation] Failed to save lead to Supabase (non-critical):', supaError);
+        }
+
         console.log('[Mail] Solicitud enviada correctamente a Inmovilla via Email:', data?.id);
 
         return NextResponse.json({
             success: true,
-            message: 'Solicitud enviada correctamente por email.'
+            message: 'Solicitud enviada correctamente por email y guardada en base de datos.'
         });
 
     } catch (error: any) {
