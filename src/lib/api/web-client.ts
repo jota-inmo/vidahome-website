@@ -21,8 +21,8 @@ interface WebApiConfig {
 
 interface ProcessRequest {
     tipo: string;
-    posinicial: number;
-    numelementos: number;
+    posinicial: string | number;
+    numelementos: string | number;
     where: string;
     orden: string;
 }
@@ -42,49 +42,63 @@ export class InmovillaWebClient {
     }
 
     /**
-     * Security: Validate that a value is numeric
+     * Security: Validate that a value is numeric or a list of numeric values
+     * As recommended: "valores numéricos separados por comas"
      */
-    private validateNumeric(value: any, fieldName: string): number {
-        const num = Number(value);
-        if (isNaN(num) || !Number.isInteger(num)) {
-            throw new Error(`Invalid numeric value for ${fieldName}: ${value}`);
+    private validateNumeric(value: any, fieldName: string): string {
+        const strValue = String(value).trim();
+        if (!strValue) return '0';
+
+        // Check if it's a single number or a comma-separated list of numbers
+        const parts = strValue.split(',');
+        const isValid = parts.every(part => {
+            const trimmed = part.trim();
+            // Allow numbers with leading zeros (common in some IDs) but ensure they are numeric
+            return trimmed !== '' && !isNaN(Number(trimmed)) && Number.isFinite(Number(trimmed));
+        });
+
+        if (!isValid) {
+            console.error(`[InmovillaWebClient] Security Block: Invalid numeric value for ${fieldName}: ${value}`);
+            throw new Error(`Security Validation Error: Invalid numeric value for ${fieldName}`);
         }
-        return num;
+        return strValue;
     }
 
     /**
-     * Security: Sanitize text input to prevent SQL injection
+     * Security: Sanitize text input to prevent SQL injection and malicious code
+     * Checks for SQL commands, length, nested parentheses, and quotes as requested.
      */
     private sanitizeText(text: string): string {
         if (!text) return '';
 
-        // Remove SQL keywords and dangerous characters
-        const dangerous = [
-            'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE',
-            'ALTER', 'EXEC', 'EXECUTE', 'SCRIPT', '--', ';--', '/*', '*/',
-            'xp_', 'sp_', 'UNION', 'OR 1=1', 'AND 1=1'
-        ];
+        let sanitized = text.trim();
 
-        let sanitized = text;
-        dangerous.forEach(keyword => {
-            const regex = new RegExp(keyword, 'gi');
-            sanitized = sanitized.replace(regex, '');
-        });
-
-        // Limit length
+        // 1. Length validation
         if (sanitized.length > 200) {
             sanitized = sanitized.substring(0, 200);
         }
 
-        // Check for nested parentheses or quotes
-        const nestedParens = /\([^)]*\([^)]*\)/;
-        const multipleQuotes = /(['"])[^'"]*\1[^'"]*\1/;
+        // 2. SQL Command validation (Case-insensitive)
+        const forbiddenCommands = [
+            'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE',
+            'ALTER', 'EXEC', 'EXECUTE', 'UNION', 'OR 1=1', 'AND 1=1'
+        ];
 
-        if (nestedParens.test(sanitized) || multipleQuotes.test(sanitized)) {
-            throw new Error('Invalid text format: nested structures detected');
+        const hasForbidden = forbiddenCommands.some(cmd =>
+            new RegExp(`\\b${cmd}\\b`, 'gi').test(sanitized)
+        );
+
+        // 3. Nested parentheses and multiple quotes validation
+        const hasNestedParens = /\([^)]*\([^)]*\)/.test(sanitized);
+        const hasSuspiciousQuotes = /(['"])[^'"]*\1/.test(sanitized) || /['"]/.test(sanitized);
+        const hasDangerousChars = /[;\\*]/.test(sanitized);
+
+        if (hasForbidden || hasNestedParens || hasSuspiciousQuotes || hasDangerousChars) {
+            console.error(`[InmovillaWebClient] Security Block: Malicious pattern detected in text: "${sanitized}"`);
+            throw new Error('Security Validation Error: Potential malicious code detected in input');
         }
 
-        return sanitized.trim();
+        return sanitized;
     }
 
     /**
@@ -92,29 +106,32 @@ export class InmovillaWebClient {
      */
     public addProcess(
         tipo: string,
-        posinicial: number,
-        numelementos: number,
+        posinicial: string | number,
+        numelementos: string | number,
         where: string = '',
         orden: string = ''
     ): void {
-        // Validate numeric parameters
-        this.validateNumeric(posinicial, 'posinicial');
-        this.validateNumeric(numelementos, 'numelementos');
+        // Validate basic numeric parameters (returns a string but we accept both for internal consistency)
+        const vPos = this.validateNumeric(posinicial, 'posinicial');
+        const vNum = this.validateNumeric(numelementos, 'numelementos');
 
-        // Sanitize where clause if it contains text
+        // Sanitize where and orden clauses
         const sanitizedWhere = where ? this.sanitizeText(where) : '';
+        const sanitizedOrden = orden ? this.sanitizeText(orden) : '';
 
         this.requests.push({
             tipo,
-            posinicial,
-            numelementos,
+            posinicial: vPos,
+            numelementos: vNum,
             where: sanitizedWhere,
-            orden
+            orden: sanitizedOrden
         });
     }
 
     /**
      * Build the parameter string for the API
+     * Conforms to PHP: $texto = "$numagencia$addnumagencia;$password;$idioma;lostipos";
+     * followed by processes: ";$tipo;$posinicial;$numelementos;$where;$orden"
      */
     private buildParamString(): string {
         const { numagencia, addnumagencia, password, idioma } = this.config;
@@ -122,6 +139,7 @@ export class InmovillaWebClient {
         let texto = `${numagencia}${addnumagencia};${password};${idioma};lostipos`;
 
         for (const req of this.requests) {
+            // Semicolon separated values for each process
             texto += `;${req.tipo};${req.posinicial};${req.numelementos};${req.where};${req.orden}`;
         }
 
@@ -132,36 +150,39 @@ export class InmovillaWebClient {
      * Execute all queued requests and get data
      */
     public async execute<T = any>(json: boolean = true): Promise<T> {
+        if (this.requests.length === 0) {
+            return {} as T;
+        }
+
         const paramString = this.buildParamString();
 
         const domain = this.config.domain || (typeof window !== 'undefined'
             ? window.location.hostname
             : 'vidahome.es');
 
+        const clientIp = this.config.ip || '127.0.0.1';
+
+        // Critical: Inmovilla requires 'ia' parameter for verification to avoid firewall blocks
         const bodyParams: Record<string, string> = {
             param: paramString,
             elDominio: domain,
-            laIP: this.config.ip || '127.0.0.1',
-            laip: this.config.ip || '127.0.0.1',
-            ip: this.config.ip || '127.0.0.1',
-            cli_ip: this.config.ip || '127.0.0.1',
-            ip_cliente: this.config.ip || '127.0.0.1'
+            ia: clientIp,
+            laIP: clientIp,
+            json: json ? '1' : '0'
         };
-
-        if (json) {
-            bodyParams.json = '1';
-        }
 
         const body = new URLSearchParams(bodyParams);
 
-        // Some Inmovilla servers look for IP in the query string even on POST
-        const urlWithIp = `${this.baseUrl}?laIP=${encodeURIComponent(this.config.ip || '127.0.0.1')}`;
+        // Security: Send IP in both POST body and URL query as per common legacy patterns
+        const urlWithIp = `${this.baseUrl}?ia=${encodeURIComponent(clientIp)}`;
 
         try {
             const response = await fetch(urlWithIp, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    // User-Agent must match precisely the one provided in their PHP example
+                    'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3'
                 },
                 body: body.toString()
             });
