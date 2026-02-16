@@ -8,6 +8,10 @@
  * - Numeric validation for key fields (zona, ciudad, tipo, operación)
  * - SQL injection prevention for text fields
  * - Input sanitization
+ * 
+ * Static IP Support (Arsys Proxy):
+ * - Supports routing through Arsys server with static IP
+ * - Set ARSYS_PROXY_URL and ARSYS_PROXY_SECRET in environment
  */
 
 interface WebApiConfig {
@@ -155,37 +159,58 @@ export class InmovillaWebClient {
         }
 
         const paramString = this.buildParamString();
-
-        const domain = this.config.domain || (typeof window !== 'undefined'
-            ? window.location.hostname
-            : 'vidahome.es');
-
         const clientIp = this.config.ip || '127.0.0.1';
+        const domain = this.config.domain || 'vidahome.es';
 
-        // Critical: Inmovilla requires 'ia' parameter for verification to avoid firewall blocks
-        const bodyParams: Record<string, string> = {
-            param: paramString,
-            elDominio: domain,
-            ia: clientIp,
-            laIP: clientIp,
-            json: json ? '1' : '0'
-        };
+        /**
+         * IMPORTANT: Inmovilla's legacy API is extremely sensitive to encoding.
+         * We use manual construction to ensure RFC 3986 (rawurlencode) behavior:
+         * - Spaces must be %20, not +
+         * - Semicolons and other chars must be percent-encoded
+         */
+        const encode = (str: string) => encodeURIComponent(str).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 
-        const body = new URLSearchParams(bodyParams);
+        const bodyParts = [
+            `param=${encode(paramString)}`,
+            `elDominio=${encode(domain)}`,
+            `ia=${encode(clientIp)}`,
+            `laIP=${encode(clientIp)}`,
+            `json=${json ? '1' : '0'}`
+        ];
 
-        // Security: Send IP in both POST body and URL query as per common legacy patterns
-        const urlWithIp = `${this.baseUrl}?ia=${encodeURIComponent(clientIp)}`;
+        const body = bodyParts.join('&');
+
+        // Check if Arsys proxy is configured
+        const arsysProxyUrl = process.env.ARSYS_PROXY_URL;
+        const arsysProxySecret = process.env.ARSYS_PROXY_SECRET;
+        const useArsysProxy = arsysProxyUrl && arsysProxySecret;
 
         try {
-            const response = await fetch(urlWithIp, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    // User-Agent must match precisely the one provided in their PHP example
-                    'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3'
-                },
-                body: body.toString()
-            });
+            let response: Response;
+
+            if (useArsysProxy) {
+                // Route through Arsys proxy with static IP
+                console.log('[InmovillaWebClient] Using Arsys proxy with static IP');
+                response = await fetch(arsysProxyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Proxy-Secret': arsysProxySecret
+                    },
+                    body: JSON.stringify({ body })
+                });
+            } else {
+                // Direct call to Inmovilla (will use Vercel's dynamic IP)
+                response = await fetch(this.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        // Precision User-Agent from Inmovilla PHP sample
+                        'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3'
+                    },
+                    body: body
+                });
+            }
 
             if (!response.ok) {
                 throw new Error(`API request failed: ${response.status} ${response.statusText}`);
@@ -200,6 +225,23 @@ export class InmovillaWebClient {
                     this.requests = [];
                     return data;
                 } catch (e) {
+                    // Diagnostic check for Inmovilla specific IP/Domain errors
+                    if (text.includes('IP NO VALIDADA')) {
+                        console.error('[InmovillaWebClient] Authorization Error:', text);
+                        const ipMatch = text.match(/IP_RECIVED:\s*([0-9.]+)/);
+                        const receivedIp = ipMatch ? ipMatch[1] : 'unknown';
+                        throw new Error(
+                            `Inmovilla API: IP no autorizada. ` +
+                            `IP recibida: ${receivedIp}. ` +
+                            (useArsysProxy
+                                ? `Verifica que la IP de tu servidor Arsys esté autorizada en Inmovilla.`
+                                : `Considera usar el proxy de Arsys con IP estática. Ver docs/ARSYS_PROXY_SETUP.md`)
+                        );
+                    }
+                    if (text.includes('DOMINIO NO VALIDADO')) {
+                        throw new Error(`Inmovilla API: Dominio (${domain}) no autorizado.`);
+                    }
+
                     console.error('[InmovillaWebClient] JSON Parse error. Raw response:', text);
                     if (text.includes('NECESITAMO') || text.includes('ERROR')) {
                         throw new Error(`Inmovilla API Error: ${text}`);
