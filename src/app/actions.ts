@@ -193,14 +193,51 @@ export async function submitLeadAction(formData: {
 }
 
 export async function getFeaturedPropertiesAction(): Promise<number[]> {
-    return apiCache.get<number[]>('featured_properties_ids') || [];
+    try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data, error } = await supabase
+            .from('featured_properties')
+            .select('cod_ofer')
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+        return data.map(item => item.cod_ofer);
+    } catch (e) {
+        console.error('Error fetching featured properties from Supabase:', e);
+        // Fallback to cache if needed, but Supabase is primary
+        return [];
+    }
 }
 
 export async function updateFeaturedPropertiesAction(ids: number[]) {
-    apiCache.set('featured_properties_ids', ids.slice(0, 6));
-    // Clear main list cache to reflect changes if needed
-    apiCache.remove('property_list_main');
-    return { success: true };
+    try {
+        const { supabase } = await import('@/lib/supabase');
+
+        // 1. Remove all existing featured properties
+        const { error: deleteError } = await supabase
+            .from('featured_properties')
+            .delete()
+            .neq('id', 0); // Hack to delete everything
+
+        if (deleteError) throw deleteError;
+
+        // 2. Insert new selections
+        if (ids.length > 0) {
+            const inserts = ids.map(id => ({ cod_ofer: id }));
+            const { error: insertError } = await supabase
+                .from('featured_properties')
+                .insert(inserts);
+
+            if (insertError) throw insertError;
+        }
+
+        // Clear main list cache to reflect changes
+        apiCache.remove('property_list_v4');
+        return { success: true };
+    } catch (e) {
+        console.error('Error updating featured properties in Supabase:', e);
+        return { success: false, error: 'Error al persistir cambios' };
+    }
 }
 
 export async function loginAction(password: string) {
