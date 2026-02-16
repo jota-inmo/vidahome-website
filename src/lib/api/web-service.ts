@@ -152,7 +152,7 @@ export class InmovillaWebApiService {
         const page = options.page || 1;
 
         try {
-            const response = await this.client.getProperties(page, 100, '', 'precioinmo, precioalq');
+            const response = await this.client.getProperties(page, 100, '', 'cod_ofer DESC');
 
             // The Web API returns data in a specific format
             // We need to parse it based on the actual response structure

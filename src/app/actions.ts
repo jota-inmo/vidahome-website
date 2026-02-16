@@ -47,7 +47,7 @@ export async function fetchPropertiesAction(): Promise<{
         };
     }
 
-    const cacheKey = 'property_list_v3';
+    const cacheKey = 'property_list_v4';
     let properties = apiCache.get<PropertyListEntry[]>(cacheKey);
 
     try {
