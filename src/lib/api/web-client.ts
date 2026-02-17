@@ -157,7 +157,7 @@ export class InmovillaWebClient {
         const vAgencia = this.validateAgencyId(numagencia, 'numagencia');
         const vAddAgencia = this.validateAgencyId(addnumagencia, 'addnumagencia');
 
-        let texto = `${vAgencia}${vAddAgencia};${password};${idioma}`;
+        let texto = `${vAgencia}${vAddAgencia};${password};${idioma};lostipos`;
 
         for (const req of this.requests) {
             // Semicolon separated values for each process
