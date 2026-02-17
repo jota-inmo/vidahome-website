@@ -27,7 +27,7 @@ const SLIDES: Slide[] = [
         type: 'video',
         url: 'https://assets.mixkit.co/videos/preview/mixkit-luxurious-swimming-pool-and-spa-resort-area-40150-large.mp4',
         poster: 'https://images.unsplash.com/photo-1521791136364-798a7bc0d267?auto=format&fit=crop&q=80&w=1200',
-        title: 'The Real Meaning of Luxury.',
+        title: 'El lujo en cada detalle.',
         subtitle: 'Nuestra medida de éxito es tu satisfacción a largo plazo.'
     },
     {
@@ -92,7 +92,7 @@ export const LuxuryHero = () => {
             <div className={`relative z-10 w-full max-w-6xl mx-auto px-8 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <div className="text-center text-white mb-12">
                     <span className="text-[10px] tracking-[0.6em] uppercase font-bold mb-8 block text-teal-400 opacity-90">
-                        Vidahome Real Estate Ecosystem
+                        Ecosistema Inmobiliario Vidahome
                     </span>
 
                     <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-[1.05] tracking-tight">
