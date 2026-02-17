@@ -47,7 +47,7 @@ export async function fetchPropertiesAction(): Promise<{
         };
     }
 
-    const cacheKey = 'property_list_v4';
+    const cacheKey = 'property_list_v5';
     let properties = apiCache.get<PropertyListEntry[]>(cacheKey);
 
     try {
@@ -62,7 +62,6 @@ export async function fetchPropertiesAction(): Promise<{
 
             if (properties && properties.length > 0) {
                 // Filter: only active, available, and non-prospect
-                // Plus: Ensure we have a valid ID and reference
                 properties = properties.filter(p =>
                     !p.nodisponible &&
                     !p.prospecto &&
@@ -70,10 +69,19 @@ export async function fetchPropertiesAction(): Promise<{
                     p.ref &&
                     p.ref.trim() !== ''
                 );
+
+                // Sort by cod_ofer DESC (highest ID = newest property)
+                properties.sort((a, b) => b.cod_ofer - a.cod_ofer);
+
                 apiCache.set(cacheKey, properties, 1200); // 20 min cache
             }
         } else {
             console.log('[Actions] Cache hit: Returning from cache.');
+        }
+
+        // Just in case, ensure sorting is applied to cached data too
+        if (properties) {
+            properties.sort((a, b) => b.cod_ofer - a.cod_ofer);
         }
 
         // Extract unique populations for filters
