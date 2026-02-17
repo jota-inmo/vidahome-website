@@ -102,31 +102,31 @@ export const LuxuryHero = () => {
                         </>
                     )}
 
-                    {/* Layered Overlays for Depth - 40% Black as requested */}
-                    <div className="absolute inset-0 bg-black/40" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                    {/* Layered Overlays for Clarity - Subtle white mist instead of black */}
+                    <div className="absolute inset-0 bg-white/5" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10" />
                 </div>
             ))}
 
             {/* Content Container */}
             <div className={`relative z-10 w-full max-w-6xl mx-auto px-8 transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <div className="text-center text-white mb-12">
-                    <span className="text-[10px] tracking-[0.6em] uppercase font-bold mb-8 block text-teal-400 opacity-90">
+                    <span className="text-[10px] tracking-[0.6em] uppercase font-bold mb-8 block text-teal-400 drop-shadow-md">
                         Ecosistema Inmobiliario Vidahome
                     </span>
 
-                    <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-[1.05] tracking-tight">
+                    <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-[1.05] tracking-tight drop-shadow-2xl">
                         {SLIDES[currentSlide].title.split(', ').map((text, i) => (
                             <React.Fragment key={i}>
                                 {i > 0 && <br className="hidden md:block" />}
-                                <span className={`${i === 1 ? 'italic font-normal text-slate-200' : 'font-medium'} transition-all duration-700`}>
+                                <span className={`${i === 1 ? 'italic font-normal text-slate-100' : 'font-medium'} transition-all duration-700`}>
                                     {text}{i === 0 && SLIDES[currentSlide].title.includes(', ') ? ',' : ''}
                                 </span>
                             </React.Fragment>
                         ))}
                     </h1>
 
-                    <p className="text-lg md:text-xl text-white/70 font-light leading-relaxed max-w-2xl mx-auto mb-16 px-4">
+                    <p className="text-lg md:text-xl text-white font-light leading-relaxed max-w-2xl mx-auto mb-16 px-4 drop-shadow-lg">
                         {SLIDES[currentSlide].subtitle}
                     </p>
                 </div>
