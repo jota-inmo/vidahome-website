@@ -199,23 +199,33 @@ export class InmovillaWebApiService {
     }
 
     /**
-     * Get property details by ID
+     * Retrieves detailed information for a specific property
+     * Uses a dual-lookup strategy: 'ficha' for full details and 'paginacion' as fallback
+     * to ensure basic data (photos, price) is available even if 'ficha' is misconfigured.
      */
-    async getPropertyDetails(codOfer: number): Promise<PropertyDetails> {
+    async getPropertyDetails(id: number): Promise<PropertyDetails | null> {
         try {
-            const response = await this.client.getPropertyDetails(codOfer);
+            // Request both ficha for details and paginacion for safety
+            this.client.addProcess('ficha', 1, 1, `ofertas.cod_ofer=${id}`, '');
+            this.client.addProcess('paginacion', 1, 1, `ofertas.cod_ofer=${id}`, '');
 
-            if (!response || !response.ficha) {
-                throw new Error(`Property ${codOfer} not found`);
-            }
+            const result = await this.client.execute();
 
-            const propertyData = Array.isArray(response.ficha)
-                ? response.ficha[0]
-                : response.ficha;
+            let detailData: any = null;
+            let listData: any = null;
 
-            return convertToPropertyDetails(propertyData);
+            // Extract records (skipping metadata at index 0)
+            if (result.ficha && result.ficha.length > 1) detailData = result.ficha[1];
+            if (result.paginacion && result.paginacion.length > 1) listData = result.paginacion[1];
+
+            if (!detailData && !listData) return null;
+
+            // Merge: listData provides working basic fields, detailData provides rich descriptions
+            const combined = { ...listData, ...detailData };
+
+            return convertToPropertyDetails(combined);
         } catch (error) {
-            console.error(`Error fetching property ${codOfer} from Web API:`, error);
+            console.error(`Error fetching property ${id}:`, error);
             throw error;
         }
     }

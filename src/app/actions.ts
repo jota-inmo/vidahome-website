@@ -138,6 +138,10 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         const api = new InmovillaWebApiService(numagencia, password, addnumagencia, 1, clientIp, domain);
         const details = await api.getPropertyDetails(id);
 
+        if (!details) {
+            return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
+        }
+
         // Resolve population name (adapter already does basic, but let's ensure)
         if (details.key_loca && !details.poblacion) {
             try {
