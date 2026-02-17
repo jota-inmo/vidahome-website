@@ -17,26 +17,42 @@ const SLIDES: Slide[] = [
     {
         id: 1,
         type: 'video',
-        url: 'https://assets.mixkit.co/videos/preview/mixkit-modern-apartment-with-an-ocean-view-1768-large.mp4',
+        url: '/videos/cocina.mp4',
         poster: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2000&auto=format&fit=crop',
-        title: 'Hogares excepcionales, experiencia inigualable.',
+        title: 'Hogares excepcionales, experiencia inigualable',
         subtitle: 'Donde el diseño arquitectónico se une con la ubicación perfecta.'
     },
     {
         id: 2,
         type: 'video',
-        url: 'https://assets.mixkit.co/videos/preview/mixkit-luxurious-swimming-pool-and-spa-resort-area-40150-large.mp4',
-        poster: 'https://images.unsplash.com/photo-1521791136364-798a7bc0d267?auto=format&fit=crop&q=80&w=1200',
-        title: 'El lujo en cada detalle.',
+        url: '/videos/gato.mp4',
+        poster: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2000&auto=format&fit=crop',
+        title: 'Hogares excepcionales, experiencia inigualable',
         subtitle: 'Nuestra medida de éxito es tu satisfacción a largo plazo.'
     },
     {
         id: 3,
-        type: 'image',
-        url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=2000',
-        poster: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=2000',
-        title: 'Tu confianza, nuestra prioridad.',
-        subtitle: 'Más de 25 años de experiencia en el mercado inmobiliario de Gandia.'
+        type: 'video',
+        url: '/videos/piscina.mp4',
+        poster: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=2000&auto=format&fit=crop',
+        title: 'Hogares excepcionales, experiencia inigualable',
+        subtitle: 'Espacios diseñados para disfrutar de cada momento.'
+    },
+    {
+        id: 4,
+        type: 'video',
+        url: '/videos/lateral.mp4',
+        poster: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=2000&auto=format&fit=crop',
+        title: 'Hogares excepcionales, experiencia inigualable',
+        subtitle: 'Atención personalizada en cada paso del camino.'
+    },
+    {
+        id: 5,
+        type: 'video',
+        url: '/videos/techo.mp4',
+        poster: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2000&auto=format&fit=crop',
+        title: 'Hogares excepcionales, experiencia inigualable',
+        subtitle: 'Tu confianza, nuestra prioridad más absoluta.'
     }
 ];
 
@@ -50,7 +66,7 @@ export const LuxuryHero = () => {
 
     useEffect(() => {
         setIsLoaded(true);
-        const timer = setInterval(nextSlide, 8000);
+        const timer = setInterval(nextSlide, 10000); // 10 seconds auto-rotate
         return () => clearInterval(timer);
     }, [nextSlide]);
 
@@ -60,14 +76,14 @@ export const LuxuryHero = () => {
             {SLIDES.map((slide, index) => (
                 <div
                     key={slide.id}
-                    className={`absolute inset-0 transition-all duration-1000 ease-[cubic-bezier(0.4, 0, 0.2, 1)] ${index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-110 pointer-events-none'
+                    className={`absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.4, 0, 0.2, 1)] ${index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-110 pointer-events-none'
                         }`}
                 >
                     {slide.type === 'video' ? (
                         <video
                             autoPlay
                             muted
-                            loop
+                            loop={false}
                             playsInline
                             poster={slide.poster}
                             className="absolute inset-0 w-full h-full object-cover"
@@ -82,9 +98,9 @@ export const LuxuryHero = () => {
                         />
                     )}
 
-                    {/* Layered Overlays for Depth */}
-                    <div className="absolute inset-0 bg-slate-950/30" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40" />
+                    {/* Layered Overlays for Depth - 40% Black as requested */}
+                    <div className="absolute inset-0 bg-black/40" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
                 </div>
             ))}
 
@@ -131,7 +147,7 @@ export const LuxuryHero = () => {
                             href="/propiedades"
                             className="bg-white text-slate-900 px-12 py-5 text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-teal-500 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm active:scale-95"
                         >
-                            Explorar
+                            Ver propiedades
                         </Link>
                     </div>
                 </div>
