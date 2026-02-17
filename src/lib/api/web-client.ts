@@ -157,7 +157,7 @@ export class InmovillaWebClient {
         const vAgencia = this.validateAgencyId(numagencia, 'numagencia');
         const vAddAgencia = this.validateAgencyId(addnumagencia, 'addnumagencia');
 
-        let texto = `${vAgencia}${vAddAgencia};${password};${idioma};lostipos`;
+        let texto = `${vAgencia}${vAddAgencia};${password};${idioma}`;
 
         for (const req of this.requests) {
             // Semicolon separated values for each process
@@ -312,8 +312,8 @@ export class InmovillaWebClient {
 
     public async getPropertyDetails(codOfer: number) {
         const validatedId = this.validateNumeric(codOfer, 'codOfer');
-        // Simple cod_ofer is usually better for Web API ficha process
-        this.addProcess('ficha', 1, 1, `cod_ofer=${validatedId}`, '');
+        // Use ofertas.cod_ofer for better compatibility with joins
+        this.addProcess('ficha', 1, 1, `ofertas.cod_ofer=${validatedId}`, '');
         return this.execute();
     }
 
