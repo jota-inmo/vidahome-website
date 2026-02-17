@@ -32,7 +32,7 @@ Se ha implementado un cliente profesional (`src/lib/api/web-client.ts`) que mane
     *   Sucursal: `_244_ext`
     *   Dominio registrado: `vidahome.es`
 *   **Seguridad**: Validación de tipos de datos y saneamiento de entradas para evitar inyecciones.
-*   **Ordenación**: Configurado para mostrar siempre lo más reciente primero (`cod_ofer DESC`).
+*   **Ordenación**: Configurado para mostrar siempre lo más reciente primero (`cod_ofer DESC`). Esto es un requisito de negocio crítico para garantizar que las últimas captaciones encabecen el catálogo.
 
 ---
 
@@ -103,4 +103,20 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 4.  **Caché**: Implementamos una caché de 20 minutos para no saturar la API y que la web vuele.
 
 ---
-*Documento actualizado el 16/02/2026 por Antigravity AI.*
+
+## 7. Identidad Visual y Multimedia
+
+### Logotipo Oficial
+*   **Archivo**: `public/MARCA OK.png`
+*   **Implementación**: El componente `src/components/Logo.tsx` utiliza esta imagen directamente en lugar de SVG generados, garantizando la fidelidad de la marca. Posee filtros automáticos para adaptarse a fondos oscuros (Hero) y claros (Navbar).
+
+### Hero Banner (Carrusel de Vídeos)
+*   **Archivos**: Ubicados en `public/videos/` (`cocina.mp4`, `gato.mp4`, etc.).
+*   **Comportamiento**:
+    *   Autorrotación cada 10 segundos.
+    *   Carga diferida (solo carga el vídeo activo para ahorrar datos).
+    *   **Posters**: Utiliza imágenes de alta resolución de Unsplash mientras el vídeo se descarga.
+    *   **Loop**: Activado para evitar que el banner se detenga.
+
+---
+*Documento actualizado el 17/02/2026 por Antigravity AI.*
