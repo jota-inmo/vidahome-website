@@ -33,6 +33,7 @@ Se ha implementado un cliente profesional (`src/lib/api/web-client.ts`) que mane
     *   Dominio registrado: `vidahome.es`
 *   **Seguridad**: Validación de tipos de datos y saneamiento de entradas para evitar inyecciones.
 *   **Ordenación**: Configurado para mostrar siempre lo más reciente primero (`cod_ofer DESC`). Esto es un requisito de negocio crítico para garantizar que las últimas captaciones encabecen el catálogo.
+*   **Estructura del Header**: La API Web es extremadamente sensible. El header debe ser estrictamente `$agencia$sucursal;$password;$idioma`. Añadir campos extra como `;lostipos` en el header básico rompe la sincronización de los procesos siguientes.
 
 ---
 
@@ -119,4 +120,5 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
     *   **Loop**: Activado para evitar que el banner se detenga.
 
 ---
-*Documento actualizado el 17/02/2026 por Antigravity AI.*
+---
+*Documento actualizado el 17/02/2026 por Antigravity AI (Fix Crítico API).*
