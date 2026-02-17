@@ -310,12 +310,10 @@ export class InmovillaWebClient {
         return this.execute();
     }
 
-    /**
-     * Convenience method: Get property details by ID
-     */
     public async getPropertyDetails(codOfer: number) {
         const validatedId = this.validateNumeric(codOfer, 'codOfer');
-        this.addProcess('ficha', 1, 1, `ofertas.cod_ofer=${validatedId}`, '');
+        // Simple cod_ofer is usually better for Web API ficha process
+        this.addProcess('ficha', 1, 1, `cod_ofer=${validatedId}`, '');
         return this.execute();
     }
 

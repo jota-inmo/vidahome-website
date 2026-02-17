@@ -77,51 +77,73 @@ function convertToPropertyListEntry(webProp: any): PropertyListEntry {
 /**
  * Convert Web API property to PropertyDetails format
  */
-function convertToPropertyDetails(webProp: WebApiPropertyResponse): PropertyDetails {
-    const codOfer = parseInt(webProp.cod_ofer);
-    const numFotos = parseInt(webProp.numfotos || '0');
+function convertToPropertyDetails(webProp: any): PropertyDetails {
+    // Inmovilla Web API Detail (ficha) can return cod_ofer or codofer
+    const codOfer = parseInt(webProp.cod_ofer || webProp.codofer);
 
-    // Generate all photo URLs
-    const photos: string[] = [];
-    if (numFotos > 0 && webProp.numagencia && webProp.fotoletra) {
+    // In some cases, numagencia might be missing in the ficha response, fallback to a sensible default or use the one from our config if we can
+    // But usually it's there if we ask for it correctly.
+    const numAgencia = webProp.numagencia || '';
+    const numFotos = parseInt(webProp.numfotos || '0');
+    const fotoLetra = webProp.fotoletra || '';
+
+    // Generate photo URLs
+    let photos: string[] = [];
+
+    // 1. Check if there's a 'fotos' object (sometimes returned by Inmovilla Web API)
+    if (webProp.fotos && typeof webProp.fotos === 'object') {
+        const fotosObj = webProp.fotos;
+        // Convert object to sorted array by position
+        const sortedFotos = Object.values(fotosObj)
+            .filter((f: any) => f.url)
+            .sort((a: any, b: any) => (a.posicion || 0) - (b.posicion || 0));
+
+        if (sortedFotos.length > 0) {
+            photos = sortedFotos.map((f: any) => f.url);
+        }
+    }
+
+    // 2. Fallback: Manual construction if no fotos object or it was empty
+    if (photos.length === 0 && numFotos > 0 && numAgencia && fotoLetra) {
         for (let i = 1; i <= numFotos; i++) {
-            photos.push(`https://fotos15.inmovilla.com/${webProp.numagencia}/${codOfer}/${webProp.fotoletra}-${i}.jpg`);
+            photos.push(`https://fotos15.inmovilla.com/${numAgencia}/${codOfer}/${fotoLetra}-${i}.jpg`);
         }
     }
 
     const totalHabitaciones = (Number(webProp.habitaciones) || 0) + (Number(webProp.habdobles) || 0);
 
+    // More robust feature mapping for Web API
     return {
         cod_ofer: codOfer,
-        ref: webProp.ref,
+        ref: webProp.ref || '',
         keyacci: webProp.keyacci ? parseInt(webProp.keyacci) : 0,
         key_tipo: webProp.key_tipo ? parseInt(webProp.key_tipo) : 0,
         key_loca: webProp.key_loca ? parseInt(webProp.key_loca) : 0,
-        key_zona: 0, // Not provided by Web API
-        keycli: 0, // Not provided by Web API
-        keyori: 0, // Not provided by Web API
-        fecha: '', // Not provided by Web API
-        nodisponible: webProp.nodisponible === '1',
+        key_zona: 0,
+        keycli: 0,
+        keyori: 0,
+        fecha: webProp.fecha || '',
+        nodisponible: webProp.nodisponible === '1' || webProp.nodisponible === 1,
         precio: webProp.precioinmo ? parseFloat(webProp.precioinmo) : 0,
         precioinmo: webProp.precioinmo ? parseFloat(webProp.precioinmo) : 0,
         calle: webProp.calle || '',
-        planta: 0, // Not provided by Web API
-        numero: '', // Not provided by Web API
+        planta: webProp.planta ? parseInt(webProp.planta) : 0,
+        numero: webProp.numero || '',
         banyos: webProp.banyos ? parseFloat(webProp.banyos) : 0,
         m_cons: webProp.m_cons ? parseFloat(webProp.m_cons) : undefined,
-        m_utiles: undefined,
-        terraza: undefined,
-        ascensor: undefined,
-        piscina_com: undefined,
-        aire_con: undefined,
-        calefaccion: undefined,
-        garaje: undefined,
-        vistasalmar: undefined,
+        m_utiles: webProp.m_utiles ? parseFloat(webProp.m_utiles) : undefined,
+        terraza: webProp.terraza === '1' || webProp.terraza === 1,
+        ascensor: webProp.ascensor === '1' || webProp.ascensor === 1,
+        piscina_com: webProp.piscina_com === '1' || webProp.piscina_com === 1 || webProp.piscina === '1',
+        aire_con: webProp.aire_con === '1' || webProp.aire_con === 1,
+        calefaccion: webProp.calefaccion === '1' || webProp.calefaccion === 1,
+        garaje: webProp.garaje === '1' || webProp.garaje === 1,
+        vistasalmar: webProp.vistasalmar === '1' || webProp.vistasalmar === 1,
         descripciones: webProp.descripciones,
         fotos_lista: photos,
-        numagencia: webProp.numagencia,
+        numagencia: numAgencia,
         numfotos: webProp.numfotos,
-        fotoletra: webProp.fotoletra,
+        fotoletra: fotoLetra,
         habitaciones: totalHabitaciones || undefined,
         poblacion: webProp.poblacion || '',
         tipo_nombre: webProp.tipo_nombre || ''
