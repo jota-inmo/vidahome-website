@@ -76,26 +76,30 @@ export const LuxuryHero = () => {
             {SLIDES.map((slide, index) => (
                 <div
                     key={slide.id}
-                    className={`absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.4, 0, 0.2, 1)] ${index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-110 pointer-events-none'
-                        }`}
+                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 >
-                    {slide.type === 'video' ? (
-                        <video
-                            autoPlay
-                            muted
-                            loop={false}
-                            playsInline
-                            poster={slide.poster}
-                            className="absolute inset-0 w-full h-full object-cover"
-                        >
-                            <source src={slide.url} type="video/mp4" />
-                        </video>
-                    ) : (
-                        <img
-                            src={slide.url}
-                            alt={slide.title}
-                            className="absolute inset-0 w-full h-full object-cover"
-                        />
+                    {index === currentSlide && (
+                        <>
+                            {slide.type === 'video' ? (
+                                <video
+                                    key={slide.url} // Force restart on slide change
+                                    autoPlay
+                                    muted
+                                    loop
+                                    playsInline
+                                    poster={slide.poster}
+                                    className="absolute inset-0 w-full h-full object-cover transition-scale duration-[10000ms] ease-linear scale-110"
+                                >
+                                    <source src={slide.url} type="video/mp4" />
+                                </video>
+                            ) : (
+                                <img
+                                    src={slide.url}
+                                    alt={slide.title}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                />
+                            )}
+                        </>
                     )}
 
                     {/* Layered Overlays for Depth - 40% Black as requested */}
