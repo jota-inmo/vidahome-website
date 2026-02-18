@@ -17,7 +17,7 @@ export default function Home() {
         <div className="max-w-[1600px] mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-8">
             <div className="max-w-2xl">
-              <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Nuestra Selección</span>
+              <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Selección de Inmuebles</span>
               <h2 className="text-3xl md:text-4xl font-serif text-[#0a192f] dark:text-white leading-tight">
                 Propiedades de Vidahome
               </h2>
