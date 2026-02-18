@@ -31,8 +31,9 @@ interface WebApiPropertyResponse {
 
 /**
  * Convert Web API property to PropertyListEntry format
+ * Supports parallel arrays like $descripciones[cod_ofer][idioma]
  */
-function convertToPropertyListEntry(webProp: any): PropertyListEntry {
+function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyListEntry {
     const codOfer = parseInt(webProp.cod_ofer);
     const numFotos = parseInt(webProp.numfotos || '0');
 
@@ -43,12 +44,26 @@ function convertToPropertyListEntry(webProp: any): PropertyListEntry {
 
     const totalHabitaciones = (Number(webProp.habitaciones) || 0) + (Number(webProp.habdobles) || 0);
 
-    // Inmovilla Web API often returns descriptions as an object with language IDs
+    // Extract description: try parallel root-level array first ($descripciones[id][idioma]['descrip'])
     let description = '';
-    if (typeof webProp.descripciones === 'object' && webProp.descripciones !== null) {
-        description = webProp.descripciones['1'] || webProp.descripciones[1] || '';
-    } else if (typeof webProp.descripciones === 'string') {
-        description = webProp.descripciones;
+    const idStr = String(codOfer);
+
+    // 1. Try parallel root-level array first
+    const rootDesc = fullResponse?.descripciones || webProp?.descripciones;
+    if (rootDesc && typeof rootDesc === 'object' && rootDesc[idStr]) {
+        const langData = rootDesc[idStr]['1'] || rootDesc[idStr][1] || Object.values(rootDesc[idStr])[0];
+        if (langData && typeof langData === 'object') {
+            description = langData.descrip || langData.descripcion || langData.texto || '';
+        }
+    }
+
+    // 2. Fallback to standard field
+    if (!description) {
+        if (typeof webProp.descripciones === 'object' && webProp.descripciones !== null) {
+            description = webProp.descripciones['1'] || webProp.descripciones[1] || '';
+        } else {
+            description = String(webProp.descripciones || '');
+        }
     }
 
     return {
@@ -212,7 +227,7 @@ export class InmovillaWebApiService {
                 ? response.paginacion
                 : [response.paginacion];
 
-            return properties.map(convertToPropertyListEntry);
+            return properties.map((p: any) => convertToPropertyListEntry(p, response));
         } catch (error) {
             console.error('Error fetching properties from Web API:', error);
             throw error;
@@ -267,7 +282,7 @@ export class InmovillaWebApiService {
                 ? response.destacados
                 : [response.destacados];
 
-            return properties.map(convertToPropertyListEntry);
+            return properties.map((p: any) => convertToPropertyListEntry(p, response));
         } catch (error) {
             console.error('Error fetching featured properties from Web API:', error);
             throw error;
