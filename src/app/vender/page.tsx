@@ -3,8 +3,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { CatastroProperty } from '@/lib/api/catastro';
 import { Home, MapPin, Calendar, Ruler, Euro, ArrowRight, Search, CheckCircle, ChevronDown, Bed, Bath, Droplets, ArrowUpSquare, Waves, Palmtree, Sun, Hammer } from 'lucide-react';
-import localidadesData from '@/lib/api/localidades_map.json';
 import { getCatastroProvinciasAction, getCatastroMunicipiosAction } from '@/app/actions';
+import { toast } from 'sonner';
 
 export default function VenderPage() {
     const [step, setStep] = useState(1);
@@ -18,16 +18,12 @@ export default function VenderPage() {
     const [municipios, setMunicipios] = useState<string[]>([]);
 
     // Autocomplete state
-    const [municipioQuery, setMunicipioQuery] = useState('GANDIA');
-    const [suggestions, setSuggestions] = useState<string[]>([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
     const [viaSuggestions, setViaSuggestions] = useState<any[]>([]);
     const [showViaSuggestions, setShowViaSuggestions] = useState(false);
     const [numeroSuggestions, setNumeroSuggestions] = useState<any[]>([]);
     const [showNumeroSuggestions, setShowNumeroSuggestions] = useState(false);
     const [selectedVia, setSelectedVia] = useState<{ tipo: string, nombre: string } | null>(null);
 
-    const suggestionsRef = useRef<HTMLDivElement>(null);
     const viaRef = useRef<HTMLDivElement>(null);
     const numRef = useRef<HTMLDivElement>(null);
 
@@ -132,11 +128,9 @@ export default function VenderPage() {
         return () => clearTimeout(timer);
     }, [address.numero, selectedVia, address.municipio, address.provincia]);
 
+
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
-                setShowSuggestions(false);
-            }
             if (viaRef.current && !viaRef.current.contains(event.target as Node)) {
                 setShowViaSuggestions(false);
             }
@@ -149,32 +143,10 @@ export default function VenderPage() {
     }, []);
 
     const handleSelectMunicipio = (m: string) => {
-        setMunicipioQuery(m);
         setAddress(prev => ({ ...prev, municipio: m, via: '', numero: '' }));
         setSelectedVia(null);
         setReferenciaCatastral('');
-        setShowSuggestions(false);
     };
-
-    // Load and memoize all municipalities
-    const allMunicipios = useMemo(() => {
-        const names = Object.values(localidadesData as Record<string, string>);
-        return Array.from(new Set(names)).sort();
-    }, []);
-
-    // Filter suggestions when query changes
-    useEffect(() => {
-        if (municipioQuery.length < 2) {
-            setSuggestions([]);
-            return;
-        }
-
-        const filtered = allMunicipios
-            .filter(m => m.toLowerCase().includes(municipioQuery.toLowerCase()))
-            .slice(0, 10); // Limit to 10 for performance
-
-        setSuggestions(filtered);
-    }, [municipioQuery, allMunicipios]);
 
     const handleDemoSearch = () => {
         // Datos de ejemplo basados en una propiedad real en Gandia
@@ -246,7 +218,7 @@ export default function VenderPage() {
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    alert(errorData.error || 'No se encontró la propiedad.');
+                    toast.error(errorData.error || 'No se encontró la propiedad.');
                     setLoading(false);
                     return;
                 }
@@ -275,7 +247,7 @@ export default function VenderPage() {
 
                 if (!searchResponse.ok) {
                     const err = await searchResponse.json();
-                    alert(err.message || err.error || 'Error al buscar en el Catastro.');
+                    toast.error(err.message || err.error || 'Error al buscar en el Catastro.');
                     setLoading(false);
                     return;
                 }
@@ -300,7 +272,7 @@ export default function VenderPage() {
                         est = detailsData.estimation;
                     }
                 } else {
-                    alert(searchResult.error || 'No se encontraron resultados para esa búsqueda.');
+                    toast.error(searchResult.error || 'No se encontraron resultados para esa búsqueda.');
                     setLoading(false);
                     return;
                 }
@@ -311,11 +283,12 @@ export default function VenderPage() {
                 setProperty(details);
                 setEstimation(est);
                 setStep(2);
+                toast.success('¡Propiedad encontrada!');
             }
 
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al consultar el Catastro. Revisa la conexión e inténtalo de nuevo.');
+            toast.error('Error al consultar el Catastro. Revisa la conexión e inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
@@ -326,7 +299,7 @@ export default function VenderPage() {
         try {
             const detailsResponse = await fetch(`/api/catastro/details?ref=${encodeURIComponent(prop.referenciaCatastral)}`);
             if (!detailsResponse.ok) {
-                alert('No se pudieron obtener los detalles de la propiedad seleccionada.');
+                toast.error('No se pudieron obtener los detalles de la propiedad seleccionada.');
                 return;
             }
             const detailsData = await detailsResponse.json();
@@ -364,20 +337,23 @@ export default function VenderPage() {
                 throw new Error(errorData.message || errorData.error || 'Error desconocido');
             }
 
-            alert('¡Solicitud enviada! Un agente se pondrá en contacto contigo pronto para una valoración física profesional.');
+            toast.success('¡Solicitud enviada!', {
+                description: 'Un agente se pondrá en contacto contigo pronto para una valoración física profesional.'
+            });
 
             // Reset form y volver al inicio
             setStep(1);
             setProperty(null);
             setEstimation(null);
             setContactData({ nombre: '', email: '', telefono: '', mensaje: '' });
-            setAddress({ provincia: 'Valencia', municipio: 'Gandia', via: '', numero: '' });
+            setAddress({ provincia: 'VALENCIA', municipio: 'GANDIA', via: '', numero: '' });
             setReferenciaCatastral('');
-            setMunicipioQuery('Gandia');
 
         } catch (error: any) {
             console.error('Error enviando lead:', error);
-            alert(`Hubo un problema al enviar tu solicitud: ${error.message}\n\nPor favor, inténtalo de nuevo o llámanos directamente.`);
+            toast.error('Hubo un problema al enviar tu solicitud', {
+                description: `${error.message}. Por favor, inténtalo de nuevo o llámanos directamente.`
+            });
         } finally {
             setLoading(false);
         }
@@ -498,7 +474,6 @@ export default function VenderPage() {
                                                     onChange={(e) => {
                                                         const m = e.target.value.toUpperCase();
                                                         setAddress({ ...address, municipio: m, via: '', numero: '' });
-                                                        setMunicipioQuery(m);
                                                     }}
                                                     disabled={!address.provincia || municipios.length === 0}
                                                     className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"

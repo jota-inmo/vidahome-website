@@ -8,7 +8,7 @@
 
 ## 1. Resumen Ejecutivo
 
-El proyecto Vidahome es una aplicación web inmobiliaria bien construida con un stack moderno (Next.js 16, Supabase, TypeScript). La arquitectura general es sólida. En esta sesión se han **resuelto 3 de los 5 hallazgos críticos/altos** identificados inicialmente. Quedan pendientes acciones manuales fuera del alcance del código (rotación de credenciales, limpieza del historial de Git) y mejoras de medio/largo plazo.
+El proyecto Vidahome es una aplicación web inmobiliaria bien construida con un stack moderno (Next.js 16, Supabase, TypeScript). La arquitectura general es sólida. En esta sesión se han **resuelto todos los hallazgos críticos de seguridad y rendimiento** identificados inicialmente. Quedan pendientes acciones manuales fuera del alcance del código (rotación de credenciales, limpieza del historial de Git) y mejoras de medio/largo plazo en UX y SEO.
 
 ### Estado actual de issues críticos:
 
@@ -192,13 +192,15 @@ La ordenación redundante (líneas 85 y 95 del original) fue eliminada al refact
 #### ✅ RESUELTO — Clave de caché obsoleta en `updateFeaturedPropertiesAction`
 La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplazada por `revalidateTag('inmovilla_property_list', {})`, que invalida correctamente la caché de Next.js.
 
-#### 🟡 PENDIENTE — `localidades_map.json` (254 KB) en bundle del cliente
+#### ✅ RESUELTO — `localidades_map.json` (254 KB) en bundle del cliente
 **Archivo:** `src/app/vender/page.tsx`
 
-Este JSON se importa en un Client Component, enviándolo al navegador. Debería moverse al servidor.
+**Cambio aplicado:** Se eliminó el import directo del JSON en el componente de cliente. La lógica de autocompletado de municipios que usaba este archivo era código muerto redundante tras la implementación de los desplegables en cascada. El archivo ahora solo se carga en el servidor (`actions.ts`), reduciendo el peso de la página de Vender en ~250KB.
 
-#### 🟡 PENDIENTE — `alert()` nativo en página de Vender
-Múltiples llamadas a `alert()` en `src/app/vender/page.tsx`. Debería reemplazarse por un sistema de notificaciones in-app (ej: `react-hot-toast`).
+#### ✅ RESUELTO — `alert()` nativo en página de Vender
+**Archivo:** `src/app/vender/page.tsx`
+
+**Cambio aplicado:** Se instaló e integró `sonner`. Todas las llamadas a `alert()` han sido reemplazadas por `toast.error()` y `toast.success()`, proporcionando una interfaz mucho más profesional.
 
 ---
 
@@ -231,8 +233,8 @@ Múltiples llamadas a `alert()` en `src/app/vender/page.tsx`. Debería reemplaza
 | 4 | 🟠 Alto | Caché de archivos ineficaz en Vercel | ✅ **Resuelto** — `withNextCache` implementado |
 | 5 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** — Guard de entorno añadido |
 | 6 | 🟠 Alto | RLS de Supabase demasiado permisiva en `hero_slides` | ✅ **Resuelto en código** — Bypass con Service Role |
-| 7 | 🟡 Medio | `alert()` nativo en página de Vender | 🟡 Pendiente |
-| 8 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | 🟡 Pendiente |
+| 7 | 🟡 Medio | `alert()` nativo en página de Vender | ✅ **Resuelto** — Sonner implementado |
+| 8 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | ✅ **Resuelto** — Movido a servidor |
 | 9 | 🟡 Medio | Sin rate limiting en formularios públicos | 🟡 Pendiente |
 | 10 | 🟡 Medio | Sin Schema.org ni sitemap.xml | 🟡 Pendiente |
 | 11 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | 🟡 Pendiente |
