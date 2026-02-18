@@ -154,7 +154,7 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         }
 
         // Resolve population name (adapter already does basic, but let's ensure)
-        if (details.key_loca && !details.poblacion) {
+        if (details && details.key_loca && !details.poblacion) {
             try {
                 const localidadMap = require('@/lib/api/localidades_map.json');
                 details.poblacion = localidadMap[details.key_loca] || '';

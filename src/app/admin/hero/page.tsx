@@ -22,6 +22,11 @@ export default function HeroAdmin() {
     const [editingSlide, setEditingSlide] = useState<Partial<HeroSlide> | null>(null);
     const router = useRouter();
 
+    const handleLogout = async () => {
+        await logoutAction();
+        router.push('/login');
+    };
+
     useEffect(() => {
         loadSlides();
     }, []);

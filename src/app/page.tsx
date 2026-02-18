@@ -1,11 +1,9 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { LuxuryPropertyCard } from '@/components/LuxuryPropertyCard';
-import { fetchPropertiesAction, getFeaturedPropertiesAction } from './actions';
-import { PropertyListEntry } from '@/types/inmovilla';
 import { LuxuryHero } from '@/components/LuxuryHero';
+import { FeaturedGrid } from '@/components/FeaturedGrid';
+
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
   return (
@@ -30,7 +28,9 @@ export default function Home() {
             </Link>
           </div>
 
-          <FeaturedGrid />
+          <Suspense fallback={<GridSkeleton />}>
+            <FeaturedGrid />
+          </Suspense>
         </div>
       </section>
 
@@ -103,46 +103,11 @@ export default function Home() {
   );
 }
 
-function FeaturedGrid() {
-  const [featured, setFeatured] = useState<PropertyListEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const { getFeaturedPropertiesWithDetailsAction } = await import('./actions');
-        const res = await getFeaturedPropertiesWithDetailsAction();
-
-        if (res.success && res.data) {
-          setFeatured(res.data);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="aspect-[16/11] bg-slate-100 dark:bg-slate-900 animate-pulse rounded-sm" />
-        ))}
-      </div>
-    );
-  }
-
-  if (featured.length === 0) return null;
-
+function GridSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">
-      {featured.map((prop) => (
-        <div key={prop.cod_ofer} className="animate-fade-up">
-          <LuxuryPropertyCard property={prop} />
-        </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="aspect-[16/11] bg-slate-100 dark:bg-slate-900 animate-pulse rounded-sm" />
       ))}
     </div>
   );
