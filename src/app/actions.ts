@@ -2,8 +2,9 @@
 
 import { createInmovillaApi } from '@/lib/api/properties';
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
-import { apiCache } from '@/lib/api/cache';
+import { apiCache, withNextCache } from '@/lib/api/cache';
 import { cookies, headers } from 'next/headers';
+import { revalidateTag } from 'next/cache';
 
 export interface HeroSlide {
     id: string;
@@ -15,6 +16,31 @@ export interface HeroSlide {
     type: 'video' | 'image';
     poster?: string;
 }
+
+// ─── Función interna cacheada con Next.js Data Cache ─────────────────────────
+// Persiste entre invocaciones serverless en Vercel (a diferencia de fs/memoria).
+const _fetchPropertiesFromApi = withNextCache(
+    'inmovilla_property_list',
+    async (numagencia: string, password: string, addnumagencia: string, clientIp: string, domain: string): Promise<PropertyListEntry[]> => {
+        console.log(`[Actions] Next.js Cache miss: Fetching from Web API (IP: ${clientIp})...`);
+        const { InmovillaWebApiService } = await import('@/lib/api/web-service');
+        const api = new InmovillaWebApiService(numagencia, password, addnumagencia, 1, clientIp, domain);
+        const properties: PropertyListEntry[] = await api.getProperties({ page: 1 });
+
+        if (!properties || properties.length === 0) return [];
+
+        return properties
+            .filter(p =>
+                !p.nodisponible &&
+                !p.prospecto &&
+                !isNaN(p.cod_ofer) &&
+                p.ref &&
+                p.ref.trim() !== ''
+            )
+            .sort((a, b) => b.cod_ofer - a.cod_ofer);
+    },
+    { revalidate: 1200, tags: ['inmovilla_property_list'] } // 20 minutos
+);
 
 export async function fetchPropertiesAction(): Promise<{
     success: boolean;
@@ -47,7 +73,6 @@ export async function fetchPropertiesAction(): Promise<{
         }
     }
 
-    // We prioritize Web API as it has no rate limits and is more stable
     const isConfigured = !!(numagencia && password) || (!!token && token !== 'your_token_here');
 
     if (!isConfigured) {
@@ -58,49 +83,13 @@ export async function fetchPropertiesAction(): Promise<{
         };
     }
 
-    const cacheKey = 'property_list_v7';
-    let properties = apiCache.get<PropertyListEntry[]>(cacheKey);
-
     try {
-        if (!properties) {
-            console.log(`[Actions] Cache miss: Fetching from Web API (IP: ${clientIp})...`);
-
-            const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-            const api = new InmovillaWebApiService(numagencia!, password!, addnumagencia, 1, clientIp, domain);
-
-            // Get properties (100 at a time)
-            properties = await api.getProperties({ page: 1 });
-
-            if (properties && properties.length > 0) {
-                // Filter: only active, available, and non-prospect
-                properties = properties.filter(p =>
-                    !p.nodisponible &&
-                    !p.prospecto &&
-                    !isNaN(p.cod_ofer) &&
-                    p.ref &&
-                    p.ref.trim() !== ''
-                );
-
-                // Sort by cod_ofer DESC (highest ID = newest property)
-                properties.sort((a, b) => b.cod_ofer - a.cod_ofer);
-
-                apiCache.set(cacheKey, properties, 1200); // 20 min cache
-            }
-        } else {
-            console.log('[Actions] Cache hit: Returning from cache.');
-        }
-
-        // Just in case, ensure sorting is applied to cached data too
-        if (properties) {
-            properties.sort((a: PropertyListEntry, b: PropertyListEntry) => b.cod_ofer - a.cod_ofer);
-        }
-
-        // Extract unique populations for filters
-        const populations = [...new Set((properties || []).map((p: PropertyListEntry) => p.poblacion).filter(Boolean))].sort() as string[];
+        const properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain);
+        const populations = [...new Set(properties.map(p => p.poblacion).filter(Boolean))].sort() as string[];
 
         return {
             success: true,
-            data: properties || [],
+            data: properties,
             isConfigured: true,
             meta: { populations }
         };
@@ -281,8 +270,8 @@ export async function updateFeaturedPropertiesAction(ids: number[]) {
             if (insertError) throw insertError;
         }
 
-        // Clear main list cache to reflect changes
-        apiCache.remove('property_list_v6');
+        // Invalidar la Next.js Data Cache para que la próxima visita obtenga datos frescos
+        revalidateTag('inmovilla_property_list', {});
         return { success: true };
     } catch (e) {
         console.error('Error updating featured properties in Supabase:', e);
@@ -291,7 +280,11 @@ export async function updateFeaturedPropertiesAction(ids: number[]) {
 }
 
 export async function loginAction(password: string) {
-    const adminPass = process.env.ADMIN_PASSWORD || 'VID@home0720';
+    const adminPass = process.env.ADMIN_PASSWORD;
+    if (!adminPass) {
+        console.error('[Auth] ADMIN_PASSWORD no está configurado en las variables de entorno.');
+        return { success: false, error: 'Error de configuración del servidor' };
+    }
     if (password.trim() === adminPass.trim()) {
         (await cookies()).set('admin_session', 'active', {
             httpOnly: true,

@@ -87,15 +87,15 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 
 | Variable | Descripción |
 | :--- | :--- |
-| `INMOVILLA_AGENCIA` | `13031` |
-| `INMOVILLA_ADDAGENCIA` | `_244_ext` |
-| `INMOVILLA_PASSWORD` | `HQYn5#Gg8` |
-| `INMOVILLA_DOMAIN` | `vidahome.es` |
-| `ARSYS_PROXY_URL` | `http://api.vidahome.es/api/inmovilla-proxy.php` |
-| `ARSYS_PROXY_SECRET` | Clave aleatoria de seguridad (debe coincidir con la del PHP) |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL de tu proyecto Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anónima de tu proyecto Supabase |
-| `ADMIN_PASSWORD` | Contraseña para acceder a `/admin/login` |
+| `INMOVILLA_AGENCIA` | Número de agencia Inmovilla (ver panel de Inmovilla) |
+| `INMOVILLA_ADDAGENCIA` | Sufijo de sucursal Inmovilla (ej: `_244_ext`) |
+| `INMOVILLA_PASSWORD` | Contraseña de la API de Inmovilla (ver panel de Inmovilla) |
+| `INMOVILLA_DOMAIN` | Dominio autorizado en Inmovilla (ej: `vidahome.es`) |
+| `ARSYS_PROXY_URL` | URL completa del script PHP en Arsys (ej: `https://api.tudominio.es/api/inmovilla-proxy.php`) |
+| `ARSYS_PROXY_SECRET` | Clave secreta aleatoria (debe coincidir con `PROXY_SECRET` en el PHP de Arsys) |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL de tu proyecto Supabase (panel de Supabase → Settings → API) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anónima de Supabase (panel de Supabase → Settings → API) |
+| `ADMIN_PASSWORD` | Contraseña elegida para acceder a `/admin/login` (mínimo 12 caracteres) |
 
 ---
 

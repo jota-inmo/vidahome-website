@@ -3,20 +3,22 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
     const session = request.cookies.get('admin_session');
-    const isLoginPage = request.nextUrl.pathname === '/admin/login';
-    const isAdminPage = request.nextUrl.pathname.startsWith('/admin');
+    const pathname = request.nextUrl.pathname;
+    const isLoginPage = pathname === '/admin/login';
+    const isAdminPage = pathname.startsWith('/admin') || pathname.startsWith('/admin-hero');
 
     if (isAdminPage && !isLoginPage && !session) {
         return NextResponse.redirect(new URL('/admin/login', request.url));
     }
 
     if (isLoginPage && session) {
-        return NextResponse.redirect(new URL('/admin/featured', request.url));
+        return NextResponse.redirect(new URL('/admin', request.url));
     }
 
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/admin/:path*'],
+    // Protege /admin/*, /admin-hero y /admin-hero/* (por si se añaden subrutas)
+    matcher: ['/admin/:path*', '/admin-hero', '/admin-hero/:path*'],
 };
