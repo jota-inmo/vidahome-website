@@ -12,7 +12,7 @@ export const Logo = ({ className = '', variant = 'full', showSlogan = true }: Lo
 
     // Use the official PNG logo provided by the user
     const OfficialLogo = () => (
-        <div className="relative flex items-center h-11 w-auto bg-white px-4 py-1.5 rounded-sm shadow-sm border border-slate-100">
+        <div className="relative flex items-center h-16 w-auto bg-white px-6 py-2 rounded-sm shadow-sm border border-slate-100">
             <img
                 src="/MARCA OK.png"
                 alt="Vidahome Logo"
