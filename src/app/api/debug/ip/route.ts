@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Debug endpoint to check what IP Inmovilla will receive
+ * Debug endpoint to check what IP Inmovilla will receive.
+ * ⚠️  SOLO DISPONIBLE EN DESARROLLO LOCAL.
+ * En producción devuelve 404 para no exponer información de infraestructura.
  * Access: /api/debug/ip
  */
 export async function GET(request: NextRequest) {
+    // Guard: bloquear completamente en producción
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+            { error: 'Not found' },
+            { status: 404 }
+        );
+    }
+
     try {
         // Get the IP that would be sent to Inmovilla
         const forwardedFor = request.headers.get('x-forwarded-for');
@@ -45,3 +55,4 @@ export async function GET(request: NextRequest) {
         }, { status: 500 });
     }
 }
+

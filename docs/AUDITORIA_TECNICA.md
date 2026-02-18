@@ -18,7 +18,7 @@ El proyecto Vidahome es una aplicación web inmobiliaria bien construida con un 
 | 2 | 🔴 Crítico | `/admin-hero` sin protección de middleware | ✅ **Resuelto** |
 | 3 | 🔴 Crítico | Contraseña de admin hardcodeada como fallback | ✅ **Resuelto** |
 | 4 | 🟠 Alto | Caché de archivos ineficaz en Vercel (serverless) | ✅ **Resuelto** |
-| 5 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | 🔴 **Pendiente** |
+| 5 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** |
 | 6 | 🟠 Alto | RLS de Supabase demasiado permisiva en `hero_videos` | 🔴 **Pendiente** |
 
 ---
@@ -87,20 +87,18 @@ if (!adminPass) {
 
 ---
 
-#### 🔴 PENDIENTE — Endpoint de debug expuesto en producción
+#### ✅ RESUELTO — Endpoint de debug expuesto en producción
 **Archivo:** `src/app/api/debug/ip/route.ts`
 
-Este endpoint (`/api/debug/ip`) revela información sensible de la infraestructura:
-- La IP pública del servidor de Vercel
-- Headers internos de la petición
-- Instrucciones sobre cómo autorizar IPs en Inmovilla
+**Cambio aplicado:** Se añadió un guard al inicio del handler que devuelve `404` inmediatamente en producción, sin ejecutar ninguna lógica ni revelar información de infraestructura. El endpoint sigue funcionando en desarrollo local para depuración:
 
-**Acción recomendada:** Eliminar el archivo o añadir una comprobación de entorno:
 ```typescript
 if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not available' }, { status: 404 });
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
 }
 ```
+
+En producción (Vercel), `/api/debug/ip` ahora devuelve un genérico `404 Not found` sin revelar IPs, headers ni instrucciones de configuración.
 
 ---
 
@@ -231,7 +229,7 @@ Múltiples llamadas a `alert()` en `src/app/vender/page.tsx`. Debería reemplaza
 | 2 | 🔴 Crítico | `/admin-hero` sin protección de middleware | ✅ **Resuelto** |
 | 3 | 🔴 Crítico | Contraseña de admin hardcodeada como fallback | ✅ **Resuelto** |
 | 4 | 🟠 Alto | Caché de archivos ineficaz en Vercel | ✅ **Resuelto** — `withNextCache` implementado |
-| 5 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | 🔴 Pendiente |
+| 5 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** — Guard de entorno añadido |
 | 6 | 🟠 Alto | RLS de Supabase demasiado permisiva en `hero_videos` | 🔴 Pendiente (requiere panel Supabase) |
 | 7 | 🟡 Medio | `alert()` nativo en página de Vender | 🟡 Pendiente |
 | 8 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | 🟡 Pendiente |
@@ -281,6 +279,7 @@ Múltiples llamadas a `alert()` en `src/app/vender/page.tsx`. Debería reemplaza
 | `src/middleware.ts` | Añadido `/admin-hero` y `/admin-hero/*` al matcher de protección |
 | `src/lib/api/cache.ts` | Reescrito: `MemoryCache` + `withNextCache` (Next.js Data Cache) |
 | `src/app/actions.ts` | `fetchPropertiesAction` usa `withNextCache`; eliminado fallback de contraseña; `revalidateTag` correcto |
+| `src/app/api/debug/ip/route.ts` | Guard de entorno: devuelve `404` en producción sin ejecutar lógica |
 
 **Build status:** ✅ `Exit code: 0` — Compilación exitosa sin errores TypeScript.
 
