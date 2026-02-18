@@ -58,11 +58,13 @@ const SLIDES: Slide[] = [
 
 export const LuxuryHero = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [prevSlide, setPrevSlide] = useState<number | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
 
     const nextSlide = useCallback(() => {
+        setPrevSlide(currentSlide);
         setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
-    }, []);
+    }, [currentSlide]);
 
     useEffect(() => {
         setIsLoaded(true);
@@ -78,7 +80,7 @@ export const LuxuryHero = () => {
                     key={slide.id}
                     className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 >
-                    {index === currentSlide && (
+                    {(index === currentSlide || index === prevSlide) && (
                         <>
                             {slide.type === 'video' ? (
                                 <video
@@ -143,13 +145,9 @@ export const LuxuryHero = () => {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={18} />
                         </div>
 
-                        <div className="flex border-l border-white/10 px-2 items-center hidden md:flex">
-                            <span className="text-[10px] uppercase tracking-widest text-white/40 px-4 whitespace-nowrap">Comprar</span>
-                        </div>
-
                         <Link
                             href="/propiedades"
-                            className="bg-white text-slate-900 px-12 py-5 text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-teal-500 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm active:scale-95"
+                            className="bg-white text-slate-900 px-12 py-5 text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-teal-500 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm active:scale-95 whitespace-nowrap"
                         >
                             Ver propiedades
                         </Link>
@@ -175,11 +173,6 @@ export const LuxuryHero = () => {
                 ))}
             </div>
 
-            {/* Bottom Decor */}
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-40 hover:opacity-100 transition-opacity duration-500">
-                <span className="text-[9px] uppercase tracking-[0.4em] text-white font-medium">Descubre</span>
-                <div className="w-px h-12 bg-gradient-to-b from-teal-500 to-transparent animate-pulse" />
-            </div>
         </section>
     );
 };

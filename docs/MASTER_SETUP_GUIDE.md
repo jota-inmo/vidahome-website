@@ -143,6 +143,10 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 *   **Protección de Identidad**: El logotipo oficial (PNG con transparencia) ahora se presenta dentro de una "cápsula" con fondo blanco y bordes suavizados. Esto garantiza que los colores originales de la marca sean siempre visibles y legibles, independientemente de si el usuario utiliza el modo claro, el modo oscuro o si el logo se encuentra sobre una imagen compleja.
 *   **Eliminación de Filtros**: Se han eliminado los filtros de inversión de color (`invert`) para respetar la paleta cromática original de Vidahome en todo momento.
 
+### Perfeccionamiento del Banner (Hero)
+*   **Transiciones Fluida**: Se ha corregido el error de parpadeo (flicker) entre vídeos. Ahora, el vídeo saliente permanece renderizado durante la transición de opacidad, logrando un fundido cruzado perfecto sin que se vean fotos estáticas o huecos negros entre clips.
+*   **Simplificación de UI**: Se han eliminado los elementos "Comprar" del buscador y "Descubre" del pie de página del banner para una estética más minimalista y centrada en la marca Vidahome.
+
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Protección de identidad visual y logo).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Perfeccionamiento de Hero y limpieza UI).*
