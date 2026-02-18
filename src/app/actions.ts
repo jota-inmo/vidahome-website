@@ -5,6 +5,16 @@ import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
 import { apiCache } from '@/lib/api/cache';
 import { cookies, headers } from 'next/headers';
 
+export interface HeroSlide {
+    id: string;
+    type: 'video' | 'image';
+    url: string;
+    poster: string;
+    title: string;
+    subtitle: string;
+    order_index: number;
+}
+
 export async function fetchPropertiesAction(): Promise<{
     success: boolean;
     data?: PropertyListEntry[];
@@ -81,11 +91,11 @@ export async function fetchPropertiesAction(): Promise<{
 
         // Just in case, ensure sorting is applied to cached data too
         if (properties) {
-            properties.sort((a, b) => b.cod_ofer - a.cod_ofer);
+            properties.sort((a: PropertyListEntry, b: PropertyListEntry) => b.cod_ofer - a.cod_ofer);
         }
 
         // Extract unique populations for filters
-        const populations = [...new Set((properties || []).map(p => p.poblacion).filter(Boolean))].sort() as string[];
+        const populations = [...new Set((properties || []).map((p: PropertyListEntry) => p.poblacion).filter(Boolean))].sort() as string[];
 
         return {
             success: true,
@@ -234,12 +244,12 @@ export async function getFeaturedPropertiesWithDetailsAction(): Promise<{ succes
     try {
         // Fetch details for each featured property in parallel
         // They will be cached individually by getPropertyDetailAction
-        const detailPromises = featuredIds.map(id => getPropertyDetailAction(id));
+        const detailPromises = featuredIds.map((id: number) => getPropertyDetailAction(id));
         const results = await Promise.all(detailPromises);
 
         const validDetails = results
-            .filter(res => res.success && res.data)
-            .map(res => res.data);
+            .filter((res: { success: boolean; data?: PropertyDetails; error?: string }) => res.success && res.data)
+            .map((res: { success: boolean; data?: PropertyDetails; error?: string }) => res.data);
 
         return { success: true, data: validDetails };
     } catch (error) {
@@ -300,7 +310,95 @@ export async function logoutAction() {
 
 export async function checkAuthAction() {
     const session = (await cookies()).get('admin_session');
-    return !!session;
+    return session?.value === 'active';
+}
+
+/**
+ * HERO SLIDES MANAGEMENT
+ */
+export async function getHeroSlidesAction(): Promise<HeroSlide[]> {
+    try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data, error } = await supabase
+            .from('hero_slides')
+            .select('*')
+            .order('order_index', { ascending: true });
+
+        if (error) throw error;
+        return (data || []) as HeroSlide[];
+    } catch (e) {
+        console.error('Error fetching hero slides:', e);
+        return [];
+    }
+}
+
+export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
+    try {
+        const { supabase } = await import('@/lib/supabase');
+
+        if (slide.id) {
+            const { error } = await supabase
+                .from('hero_slides')
+                .update(slide)
+                .eq('id', slide.id);
+            if (error) throw error;
+        } else {
+            const { error } = await supabase
+                .from('hero_slides')
+                .insert([slide]);
+            if (error) throw error;
+        }
+
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error saving hero slide:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function deleteHeroSlideAction(id: string) {
+    try {
+        const { supabase } = await import('@/lib/supabase');
+        const { error } = await supabase
+            .from('hero_slides')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error deleting hero slide:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function uploadMediaAction(formData: FormData) {
+    try {
+        const { supabase } = await import('@/lib/supabase');
+        const file = formData.get('file') as File;
+        if (!file) throw new Error('No se ha proporcionado ningún archivo');
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `hero/${fileName}`;
+
+        // Upload to 'media' bucket
+        const { data, error } = await supabase.storage
+            .from('media')
+            .upload(filePath, file);
+
+        if (error) throw error;
+
+        // Get Public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('media')
+            .getPublicUrl(filePath);
+
+        return { success: true, url: publicUrl };
+    } catch (e: any) {
+        console.error('Upload Error:', e);
+        return { success: false, error: e.message };
+    }
 }
 
 // Catastro Actions

@@ -13,7 +13,9 @@ interface Slide {
     subtitle: string;
 }
 
-const SLIDES: Slide[] = [
+import { getHeroSlidesAction, HeroSlide } from '@/app/actions';
+
+const DEFAULT_SLIDES: Slide[] = [
     {
         id: 1,
         type: 'video',
@@ -57,17 +59,26 @@ const SLIDES: Slide[] = [
 ];
 
 export const LuxuryHero = () => {
+    const [slides, setSlides] = useState<any[]>(DEFAULT_SLIDES);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [prevSlide, setPrevSlide] = useState<number | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
 
     const nextSlide = useCallback(() => {
         setPrevSlide(currentSlide);
-        setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
-    }, [currentSlide]);
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, [currentSlide, slides.length]);
 
     useEffect(() => {
-        setIsLoaded(true);
+        async function fetchSlides() {
+            const dynamicSlides = await getHeroSlidesAction();
+            if (dynamicSlides && dynamicSlides.length > 0) {
+                setSlides(dynamicSlides);
+            }
+            setIsLoaded(true);
+        }
+        fetchSlides();
+
         const timer = setInterval(nextSlide, 10000); // 10 seconds auto-rotate
         return () => clearInterval(timer);
     }, [nextSlide]);
@@ -75,7 +86,7 @@ export const LuxuryHero = () => {
     return (
         <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-slate-950">
             {/* Carousel Assets */}
-            {SLIDES.map((slide, index) => (
+            {slides.map((slide: Slide, index: number) => (
                 <div
                     key={slide.id}
                     className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
@@ -118,18 +129,18 @@ export const LuxuryHero = () => {
                     </span>
 
                     <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-[1.05] tracking-tight drop-shadow-2xl">
-                        {SLIDES[currentSlide].title.split(', ').map((text, i) => (
+                        {slides[currentSlide].title.split(', ').map((text: string, i: number) => (
                             <React.Fragment key={i}>
                                 {i > 0 && <br className="hidden md:block" />}
                                 <span className={`${i === 1 ? 'italic font-normal text-slate-100' : 'font-medium'} transition-all duration-700`}>
-                                    {text}{i === 0 && SLIDES[currentSlide].title.includes(', ') ? ',' : ''}
+                                    {text}{i === 0 && slides[currentSlide].title.includes(', ') ? ',' : ''}
                                 </span>
                             </React.Fragment>
                         ))}
                     </h1>
 
                     <p className="text-lg md:text-xl text-white font-light leading-relaxed max-w-2xl mx-auto mb-16 px-4 drop-shadow-lg">
-                        {SLIDES[currentSlide].subtitle}
+                        {slides[currentSlide].subtitle}
                     </p>
                 </div>
 
@@ -157,7 +168,7 @@ export const LuxuryHero = () => {
 
             {/* Side Navigation Dots */}
             <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-6 z-20">
-                {SLIDES.map((_, index) => (
+                {slides.map((_: any, index: number) => (
                     <button
                         key={index}
                         onClick={() => setCurrentSlide(index)}

@@ -147,6 +147,30 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 *   **Transiciones Fluida**: Se ha corregido el error de parpadeo (flicker) entre vídeos. Ahora, el vídeo saliente permanece renderizado durante la transición de opacidad, logrando un fundido cruzado perfecto sin que se vean fotos estáticas o huecos negros entre clips.
 *   **Simplificación de UI**: Se han eliminado los elementos "Comprar" del buscador y "Descubre" del pie de página del banner para una estética más minimalista y centrada en la marca Vidahome.
 
+### Gestión Dinámica de Banner (Hero CMS)
+*   **Independencia de Código**: Se ha implementado un sistema que permite al administrador subir y gestionar los vídeos del banner principal directamente desde el panel de control (`/admin/hero`).
+*   **Almacenamiento en Supabase**: Los vídeos se alojan en el bucket `media` de Supabase Storage para un rendimiento óptimo.
+
+#### Configuración Pro (Supabase):
+Para que este sistema funcione, es necesario ejecutar este SQL en el panel de Supabase:
+```sql
+CREATE TABLE hero_slides (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  type TEXT NOT NULL DEFAULT 'video', -- 'video' | 'image'
+  url TEXT NOT NULL,
+  poster TEXT,
+  title TEXT,
+  subtitle TEXT,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Habilitar RLS y políticas si es necesario
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Lectura pública" ON hero_slides FOR SELECT USING (true);
+```
+Y crear un bucket llamado **`media`** en la sección de Storage con acceso público.
+
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Perfeccionamiento de Hero y limpieza UI).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Implementación de Hero CMS y gestión de vídeos).*
