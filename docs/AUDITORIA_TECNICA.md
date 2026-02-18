@@ -124,15 +124,27 @@ En producción (Vercel), `/api/debug/ip` ahora devuelve un genérico `404 Not fo
 
 ---
 
-#### 🟡 MEDIO — Sin rate limiting en formularios públicos
-**Archivos:** `src/components/ContactForm.tsx`, `src/app/vender/page.tsx`
+#### ✅ RESUELTO — Sin rate limiting en formularios públicos
+**Archivos:** `src/lib/rate-limit.ts`, `src/app/actions/inmovilla.ts`, `src/app/api/leads/valuation/route.ts`
 
-Los formularios de contacto y tasación no tienen:
-- Rate limiting (un bot puede enviar miles de solicitudes)
-- CAPTCHA o validación anti-spam
-- Validación de formato de email y teléfono en el servidor
+**Cambio aplicado:**
+1. **Rate Limiting Persistente:** Se creó una utilidad que rastrea intentos por IP en Supabase.
+   - Límite de **3 envíos/hora** para contacto general.
+   - Límite de **5 tasaciones/hora** para prevenir raspado del Catastro.
+2. **Honeypot Anti-spam:** Campos ocultos añadidos a todos los formularios públicos. Los bots que los rellenan son bloqueados silenciosamente sin darles pistas de error.
 
-**Acción recomendada:** Añadir Vercel Rate Limiting o implementar un middleware de rate limiting con `@upstash/ratelimit`.
+> ⚠️ **ACCIÓN MANUAL REQUERIDA:**
+> Ejecutar este SQL para habilitar el rastreo de rate limiting:
+> ```sql
+> CREATE TABLE public.rate_limits (
+>     identifier TEXT PRIMARY KEY,
+>     count INTEGER DEFAULT 0,
+>     last_attempt TIMESTAMPTZ DEFAULT now(),
+>     reset_at TIMESTAMPTZ NOT NULL
+> );
+> ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
+> -- El servidor (admin) gestiona esto, no hace falta política pública.
+> ```
 
 ---
 
@@ -245,11 +257,11 @@ La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplaz
 | 6 | 🟠 Alto | RLS de Supabase demasiado permisiva en `hero_slides` | ✅ **Resuelto en código** — Bypass con Service Role |
 | 7 | 🟡 Medio | `alert()` nativo en página de Vender | ✅ **Resuelto** — Sonner implementado |
 | 8 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | ✅ **Resuelto** — Movido a servidor |
-| 9 | 🟡 Medio | Sin rate limiting en formularios públicos | 🟡 Pendiente |
+| 9 | 🟡 Medio | Sin rate limiting en formularios públicos | ✅ **Resuelto** — Persistent Rate Limit + Honeypot |
 | 10 | 🟡 Medio | Sin Schema.org ni sitemap.xml | 🟡 Pendiente |
 | 11 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | 🟡 Pendiente |
-| 12 | 🟢 Bajo | `actions.ts` monolítico (417 líneas) | 🟢 Pendiente |
-| 13 | 🟢 Bajo | `VenderPage` megacomponente (>1000 líneas) | 🟢 Pendiente |
+| 12 | 🟢 Bajo | `actions.ts` monolítico (417 líneas) | ✅ **Resuelto** — Modularizado en `src/app/actions/` |
+| 13 | 🟢 Bajo | `VenderPage` megacomponente (>1000 líneas) | ✅ **Resuelto** — Componentizado en `src/app/vender/components/` |
 | 14 | 🟢 Bajo | Sin tests automatizados | 🟢 Pendiente |
 | 15 | 🟢 Bajo | Archivos de debug en el repositorio | 🟢 Pendiente |
 

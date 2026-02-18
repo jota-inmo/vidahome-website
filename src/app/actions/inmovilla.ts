@@ -119,6 +119,8 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
     }
 }
 
+import { checkRateLimit } from '@/lib/rate-limit';
+
 export async function submitLeadAction(formData: {
     nombre: string;
     apellidos: string;
@@ -127,7 +129,22 @@ export async function submitLeadAction(formData: {
     mensaje: string;
     cod_ofer: number;
 }) {
+    // ─── Rate Limiting ──────────────────────────────────────────────────────────
+    const rate = await checkRateLimit({
+        key: 'submit_lead',
+        limit: 3,         // 3 envíos
+        windowMs: 3600000 // por hora
+    });
+
+    if (!rate.success) {
+        return {
+            success: false,
+            error: 'Has superado el límite de envíos permitidos por hora. Por favor, inténtalo más tarde o llámanos directamente.'
+        };
+    }
+
     const token = process.env.INMOVILLA_TOKEN;
+
     const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
 
     try {

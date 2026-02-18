@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+    // ─── Rate Limiting ──────────────────────────────────────────────────────────
+    const rate = await checkRateLimit({
+        key: 'valuation_lead',
+        limit: 5,         // 5 tasaciones
+        windowMs: 3600000 // por hora
+    });
+
+    if (!rate.success) {
+        return NextResponse.json({
+            error: 'Límite excedido',
+            message: 'Has realizado demasiadas consultas de tasación en poco tiempo. Por favor, espera una hora o contacta con nosotros.'
+        }, { status: 429 });
+    }
+
     try {
+
         const apiKey = process.env.RESEND_API_KEY;
         const resend = new Resend(apiKey);
 

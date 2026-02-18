@@ -14,10 +14,18 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const formData = new FormData(e.currentTarget);
+
+        // Anti-spam honeypot
+        if (formData.get('fax')) {
+            setSuccess(true);
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
-        const formData = new FormData(e.currentTarget);
         const data = {
             nombre: formData.get('nombre') as string,
             apellidos: formData.get('apellidos') as string,
@@ -106,6 +114,11 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
 
                 {error && <p className="text-red-500 text-xs">{error}</p>}
 
+                {/* Anti-spam honeypot */}
+                <div className="hidden" aria-hidden="true">
+                    <input type="text" name="fax" tabIndex={-1} autoComplete="off" />
+                </div>
+
                 <button
                     type="submit"
                     disabled={loading}
@@ -113,6 +126,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
                 >
                     {loading ? 'Enviando Solicitud...' : 'Enviar Solicitud'}
                 </button>
+
             </form>
         </div>
     );

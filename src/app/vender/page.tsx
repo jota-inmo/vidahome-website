@@ -234,13 +234,30 @@ export default function VenderPage() {
 
     const handleSubmitContact = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Anti-spam: Honeypot check
+        const formDataObj = new FormData(e.currentTarget as HTMLFormElement);
+        if (formDataObj.get('website')) {
+            console.warn('Bot detected via honeypot');
+            toast.success('¡Solicitud enviada!'); // Engañar al bot
+            setStep(1);
+            return;
+        }
+
         setLoading(true);
         try {
             const response = await fetch('/api/leads/valuation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ property, contactData, estimation, address })
+                body: JSON.stringify({
+                    property,
+                    contactData,
+                    estimation,
+                    address,
+                    hp: formDataObj.get('website') // Por si acaso el backend también quiere chequear
+                })
             });
+
 
             if (!response.ok) {
                 const errorData = await response.json();

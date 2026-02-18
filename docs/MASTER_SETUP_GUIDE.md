@@ -78,6 +78,16 @@ CREATE TABLE IF NOT EXISTS valuation_leads (
   mensaje TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- 4. Control de Frecuencia (Rate Limiting)
+CREATE TABLE IF NOT EXISTS rate_limits (
+    identifier TEXT PRIMARY KEY, -- Identificador único (ej: "submit_lead:IP")
+    count INTEGER DEFAULT 0,
+    last_attempt TIMESTAMPTZ DEFAULT now(),
+    reset_at TIMESTAMPTZ NOT NULL
+);
+ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
+-- Solo acceso desde el servidor (service role)
 ```
 
 ---
@@ -99,11 +109,15 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 
 ---
 
-## 6. Seguridad y Buenas Prácticas
+## 6. Seguridad y Protección Anti-Spam
 1.  **Validación de IPs**: Inmovilla solo responde a Arsys.
-2.  **Secretos**: La comunicación Vercel -> Arsys está protegida por un secreto que cambia si es necesario.
-3.  **Sanitización**: Todas las búsquedas de texto pasan por un filtro que bloquea comandos SQL sospechosos.
-4.  **Caché**: Implementamos una caché de 20 minutos para no saturar la API y que la web vuele.
+2.  **Secretos**: La comunicación Vercel -> Arsys está protegida por un secreto.
+3.  **Sanitización**: Todas las búsquedas pasan por filtros anti-inyección SQL.
+4.  **Caché (Next.js Data Cache)**: Implementamos una caché de 20 minutos usando `unstable_cache` para persistencia en Vercel.
+5.  **Rate Limiting Persistente**: Control de intentos por IP guardado en Supabase para evitar abusos en formularios:
+    *   **Contacto**: 3 envíos/hora.
+    *   **Tasaciones**: 5 consultas/hora.
+6.  **Honeypot Mechanism**: Campos ocultos en formularios que detectan bots automáticamente y bloquean el procesamiento de forma silenciosa.
 
 ---
 
@@ -157,7 +171,7 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 #### Configuración Técnica (Supabase):
 Ejecuta este SQL revisado para compatibilidad total con el nuevo motor:
 ```sql
-CREATE TABLE hero_videos (
+CREATE TABLE hero_slides (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   type TEXT NOT NULL DEFAULT 'video', -- 'video' | 'image'
   video_path TEXT NOT NULL,         -- Ruta en el storage
@@ -170,15 +184,21 @@ CREATE TABLE hero_videos (
 );
 
 -- Habilitar RLS y Políticas
-ALTER TABLE hero_videos ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Lectura pública" ON hero_videos FOR SELECT USING (true);
-CREATE POLICY "Gestión Admin" ON hero_videos FOR ALL USING (true); 
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Lectura pública" ON hero_slides FOR SELECT USING (true);
+CREATE POLICY "Gestión Admin" ON hero_slides FOR ALL USING (true); 
 ```
 **Requisito de Storage**: Crear bucket público llamado **`videos`**.
 
 ### Panel de Control Centralizado (Admin Hub)
 *   **Gestión Unificada**: Se ha creado un centro de mando en `/admin` que permite gestionar el **Banner Principal** (`/admin-hero`) o las **Propiedades Destacadas**.
 *   **Hero Admin PRO**: Panel avanzado con previsualización de vídeo en tiempo real, subida directa al storage y gestión de orden/visibilidad.
+
+### 8. Arquitectura Modular (Refactorización 2026)
+Para mejorar la mantenibilidad, el proyecto ha sido desacoplado:
+1.  **Modular Server Actions**: Las acciones ya no viven en un archivo central. Se dividen en `src/app/actions/`: `auth`, `catastro`, `hero`, `inmovilla`, `media`.
+2.  **Componentización de Páginas**: Las páginas complejas (como `/vender`) se han fragmentado en componentes especializados dentro de sus directorios locales (`/components`).
+3.  **Barrel Files**: Uso de `actions.ts` como punto de exportación límpio para facilitar las importaciones en el frontend.
 
 ### Próximos Pasos (Roadmap)
 1.  **Cumplimiento Legal (Cookies & GDPR)**:

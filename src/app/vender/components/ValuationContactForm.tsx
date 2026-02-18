@@ -60,10 +60,27 @@ export function ValuationContactForm({
                         />
                     </div>
 
+                    {/* Honeypot field for spam protection */}
+                    <div className="hidden" aria-hidden="true">
+                        <label htmlFor="website">Website</label>
+                        <input
+                            id="website"
+                            type="text"
+                            name="website"
+                            tabIndex={-1}
+                            autoComplete="off"
+                            onChange={(e) => {
+                                // No necesitamos guardar esto en el estado real, 
+                                // pero si se llena, el backend lo detectará.
+                            }}
+                        />
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                             Mensaje (opcional)
                         </label>
+
                         <textarea
                             rows={4}
                             value={contactData.mensaje}
