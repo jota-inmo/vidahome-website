@@ -171,6 +171,14 @@ CREATE POLICY "Lectura pública" ON hero_slides FOR SELECT USING (true);
 ```
 Y crear un bucket llamado **`media`** en la sección de Storage con acceso público.
 
+### Panel de Control Centralizado (Admin Hub)
+*   **Gestión Unificada**: Se ha creado un centro de mando en `/admin` que permite al usuario elegir entre gestionar el **Banner Principal** o las **Propiedades Destacadas**.
+*   **Experiencia de Usuario**: El sistema de login ahora redirige automáticamente a este menú central, facilitando la navegación interna del panel sin tener que recargar la web.
+
+### Refinamiento Lingüístico (Brand Accuracy)
+*   **Terminología Inmobiliaria**: Se ha corregido la expresión "Inmuebles de Selección" por la más natural y profesional **"Selección de Inmuebles"** en todas las secciones públicas (Home y Catálogo).
+*   **Coherencia de Marca**: Este ajuste asegura que el tono de comunicación sea impecable y acorde a una inmobiliaria de alto nivel.
+
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Implementación de Hero CMS y gestión de vídeos).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Admin Hub y refinamiento terminológico).*
