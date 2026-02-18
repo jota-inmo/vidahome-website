@@ -139,6 +139,10 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 *   **Reestructuración de Grid**: La página de propiedades ha pasado de 2 a **3 columnas** en pantallas grandes, optimizando el espacio y ofreciendo una sensación más premium y de catálogo completo.
 *   **Conservación de Impacto**: El banner de vídeo (Hero) se mantiene a pantalla completa (`h-screen`) para conservar su fuerza visual original mientras el resto de la web se adapta a una vista más informativa.
 
+### Visibilidad de Marca (Logo OK)
+*   **Protección de Identidad**: El logotipo oficial (PNG con transparencia) ahora se presenta dentro de una "cápsula" con fondo blanco y bordes suavizados. Esto garantiza que los colores originales de la marca sean siempre visibles y legibles, independientemente de si el usuario utiliza el modo claro, el modo oscuro o si el logo se encuentra sobre una imagen compleja.
+*   **Eliminación de Filtros**: Se han eliminado los filtros de inversión de color (`invert`) para respetar la paleta cromática original de Vidahome en todo momento.
+
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Expansión de layout y optimización de rejilla).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Protección de identidad visual y logo).*
