@@ -43,7 +43,7 @@ export const LuxuryHero = () => {
         // Realtime Subscription
         const channel = supabase
             .channel('hero_changes')
-            .on('postgres_changes', { event: '*', table: 'hero_videos', schema: 'public' }, () => {
+            .on('postgres_changes', { event: '*', table: 'hero_slides', schema: 'public' }, () => {
                 fetchSlides();
             })
             .subscribe();

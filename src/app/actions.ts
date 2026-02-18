@@ -250,20 +250,21 @@ export async function getFeaturedPropertiesWithDetailsAction(): Promise<{ succes
 
 export async function updateFeaturedPropertiesAction(ids: number[]) {
     try {
-        const { supabase } = await import('@/lib/supabase');
+        // Escritura: usar supabaseAdmin (SERVICE_ROLE_KEY) para bypassar RLS
+        const { supabaseAdmin } = await import('@/lib/supabase-admin');
 
         // 1. Remove all existing featured properties
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await supabaseAdmin
             .from('featured_properties')
             .delete()
-            .neq('id', 0); // Hack to delete everything
+            .neq('id', 0);
 
         if (deleteError) throw deleteError;
 
         // 2. Insert new selections
         if (ids.length > 0) {
             const inserts = ids.map(id => ({ cod_ofer: id }));
-            const { error: insertError } = await supabase
+            const { error: insertError } = await supabaseAdmin
                 .from('featured_properties')
                 .insert(inserts);
 
@@ -314,7 +315,7 @@ export async function getHeroSlidesAction(onlyActive = false): Promise<HeroSlide
     try {
         const { supabase } = await import('@/lib/supabase');
         let query = supabase
-            .from('hero_videos')
+            .from('hero_slides')
             .select('*')
             .order('order', { ascending: true });
 
@@ -335,10 +336,11 @@ export async function getHeroSlidesAction(onlyActive = false): Promise<HeroSlide
 
 export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
     try {
-        const { supabase } = await import('@/lib/supabase');
+        // Escritura: usar supabaseAdmin (SERVICE_ROLE_KEY) para bypassar RLS
+        const { supabaseAdmin } = await import('@/lib/supabase-admin');
 
-        const { error } = await supabase
-            .from('hero_videos')
+        const { error } = await supabaseAdmin
+            .from('hero_slides')
             .upsert(slide);
 
         if (error) throw error;
@@ -352,9 +354,10 @@ export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
 
 export async function deleteHeroSlideAction(id: string) {
     try {
-        const { supabase } = await import('@/lib/supabase');
-        const { error } = await supabase
-            .from('hero_videos')
+        // Escritura: usar supabaseAdmin (SERVICE_ROLE_KEY) para bypassar RLS
+        const { supabaseAdmin } = await import('@/lib/supabase-admin');
+        const { error } = await supabaseAdmin
+            .from('hero_slides')
             .delete()
             .eq('id', id);
 
@@ -368,7 +371,8 @@ export async function deleteHeroSlideAction(id: string) {
 
 export async function uploadMediaAction(formData: FormData) {
     try {
-        const { supabase } = await import('@/lib/supabase');
+        // Escritura en Storage: usar supabaseAdmin (SERVICE_ROLE_KEY) para bypassar RLS
+        const { supabaseAdmin } = await import('@/lib/supabase-admin');
         const file = formData.get('file') as File;
         if (!file) throw new Error('No se ha proporcionado ningún archivo');
 
@@ -377,14 +381,14 @@ export async function uploadMediaAction(formData: FormData) {
         const filePath = `hero/${fileName}`;
 
         // Upload to 'videos' bucket
-        const { data, error } = await supabase.storage
+        const { data, error } = await supabaseAdmin.storage
             .from('videos')
             .upload(filePath, file);
 
         if (error) throw error;
 
-        // Get Public URL
-        const { data: { publicUrl } } = supabase.storage
+        // Get Public URL (la URL pública no requiere autenticación)
+        const { data: { publicUrl } } = supabaseAdmin.storage
             .from('videos')
             .getPublicUrl(filePath);
 
