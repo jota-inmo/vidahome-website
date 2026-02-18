@@ -68,10 +68,10 @@ export default function PropiedadesPage() {
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-slate-900 selection:text-white dark:selection:bg-white dark:selection:text-slate-900">
             {/* Header Minimalista */}
-            <header className="px-8 py-20 max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center border-b border-slate-50 dark:border-slate-900 mb-20">
+            <header className="px-8 py-12 max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center border-b border-slate-50 dark:border-slate-900 mb-12">
                 <div className="text-center md:text-left">
                     <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Portfolio</span>
-                    <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-[1.1]">Inmuebles <br /> de Selección</h1>
+                    <h1 className="text-4xl md:text-6xl font-serif mb-6 leading-[1.1]">Inmuebles <br /> de Selección</h1>
                 </div>
                 <div className="mt-8 md:mt-0 max-w-xs text-right hidden md:block">
                     <p className="text-sm text-slate-400 leading-relaxed font-light">

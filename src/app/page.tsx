@@ -13,12 +13,12 @@ export default function Home() {
       <LuxuryHero />
 
       {/* Propiedades Destacadas (Featured Properties) */}
-      <section className="py-24 bg-white dark:bg-slate-950 px-8">
+      <section className="py-16 bg-white dark:bg-slate-950 px-8">
         <div className="max-w-[1600px] mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-8">
             <div className="max-w-2xl">
               <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Nuestra Selección</span>
-              <h2 className="text-4xl md:text-5xl font-serif text-[#0a192f] dark:text-white leading-tight">
+              <h2 className="text-3xl md:text-4xl font-serif text-[#0a192f] dark:text-white leading-tight">
                 Propiedades de Vidahome
               </h2>
             </div>
