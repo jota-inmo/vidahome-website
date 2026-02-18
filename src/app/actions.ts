@@ -1,4 +1,6 @@
-'use server';
+// Barrel file for actions
+// No 'use server' here to avoid Turbopack restrictions on re-exports
+
 
 export * from './actions/auth';
 export * from './actions/catastro';
