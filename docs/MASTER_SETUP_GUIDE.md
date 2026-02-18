@@ -33,7 +33,9 @@ Se ha implementado un cliente profesional (`src/lib/api/web-client.ts`) que mane
     *   Dominio registrado: `vidahome.es`
 *   **Seguridad**: Validación de tipos de datos y saneamiento de entradas para evitar inyecciones.
 *   **Ordenación**: Configurado para mostrar siempre lo más reciente primero (`cod_ofer DESC`). Esto es un requisito de negocio crítico para garantizar que las últimas captaciones encabecen el catálogo.
-*   **Estructura del Header**: La API Web es extremadamente sensible. El header debe ser estrictamente `$agencia$sucursal;$password;$idioma`. Añadir campos extra como `;lostipos` en el header básico rompe la sincronización de los procesos siguientes.
+*   **Estructura del Header**: La API Web es extremadamente sensible. El header **DEBE** incluir `;lostipos` al final de la cadena de autenticación inicial: `$agencia$sucursal;$password;$idioma;lostipos`. Sin este campo fijo, Inmovilla devuelve errores de PHP (`Error tipo consulta`).
+*   **Estrategia "Dual-Fetch" (Ficha + Paginación)**: Para maximizar la fiabilidad, la web solicita simultáneamente el proceso `ficha` (para descripciones ricas) y `paginacion` (para campos básicos y fotos). Los datos se fusionan para asegurar que nunca falten imágenes o precios si un proceso falla.
+*   **Mapeo de Descripciones**: Se ha descubierto que Inmovilla envía las descripciones en un array paralelo de nivel raíz `$descripciones[id][idioma]['descrip']`. El adaptador de la web está programado para localizar estos datos dinámicamente, solucionando el problema de los textos genéricos.
 
 ---
 
@@ -119,6 +121,10 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
     *   **Posters**: Utiliza imágenes de alta resolución de Unsplash mientras el vídeo se descarga.
     *   **Loop**: Activado para evitar que el banner se detenga.
 
+### Optimización de Galería (Visual)
+*   **Modo de Visualización**: Se utiliza `object-contain` en lugar de `cover` para garantizar que el 100% de la fotografía inmobiliaria sea visible sin cortes ni zooms automáticos que alteren la percepción del espacio.
+*   **Estabilidad**: Se han eliminado los efectos de zoom y escalado en la galería para ofrecer una experiencia de usuario más premium y fiel a la realidad.
+
 ---
 ---
-*Documento actualizado el 17/02/2026 por Antigravity AI (Fix Crítico API).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Implementación de Dual-Fetch y Mapeo de Descripciones Reales).*

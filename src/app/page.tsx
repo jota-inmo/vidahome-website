@@ -110,20 +110,11 @@ function FeaturedGrid() {
   useEffect(() => {
     async function load() {
       try {
-        const [allRes, featuredIds] = await Promise.all([
-          fetchPropertiesAction(),
-          getFeaturedPropertiesAction()
-        ]);
+        const { getFeaturedPropertiesWithDetailsAction } = await import('./actions');
+        const res = await getFeaturedPropertiesWithDetailsAction();
 
-        if (allRes.success && allRes.data) {
-          if (featuredIds.length > 0) {
-            // Filter by the selected IDs
-            const filtered = allRes.data.filter(p => featuredIds.includes(p.cod_ofer));
-            setFeatured(filtered);
-          } else {
-            // Fallback: Show first 6 if none selected
-            setFeatured(allRes.data.slice(0, 6));
-          }
+        if (res.success && res.data) {
+          setFeatured(res.data);
         }
       } catch (e) {
         console.error(e);

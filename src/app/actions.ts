@@ -216,8 +216,35 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
         return data.map(item => item.cod_ofer);
     } catch (e) {
         console.error('Error fetching featured properties from Supabase:', e);
-        // Fallback to cache if needed, but Supabase is primary
         return [];
+    }
+}
+
+/**
+ * NEW: Fetches featured properties with FULL details (descriptions, etc)
+ * Using the Dual-Fetch strategy for each property.
+ */
+export async function getFeaturedPropertiesWithDetailsAction(): Promise<{ success: boolean; data: any[] }> {
+    const featuredIds = await getFeaturedPropertiesAction();
+
+    if (featuredIds.length === 0) {
+        return { success: true, data: [] };
+    }
+
+    try {
+        // Fetch details for each featured property in parallel
+        // They will be cached individually by getPropertyDetailAction
+        const detailPromises = featuredIds.map(id => getPropertyDetailAction(id));
+        const results = await Promise.all(detailPromises);
+
+        const validDetails = results
+            .filter(res => res.success && res.data)
+            .map(res => res.data);
+
+        return { success: true, data: validDetails };
+    } catch (error) {
+        console.error('Error enriching featured properties:', error);
+        return { success: false, data: [] };
     }
 }
 
@@ -244,7 +271,7 @@ export async function updateFeaturedPropertiesAction(ids: number[]) {
         }
 
         // Clear main list cache to reflect changes
-        apiCache.remove('property_list_v4');
+        apiCache.remove('property_list_v6');
         return { success: true };
     } catch (e) {
         console.error('Error updating featured properties in Supabase:', e);
