@@ -132,10 +132,10 @@ export default function FeaturedAdmin() {
 
                 <div className="mt-12 flex justify-center">
                     <Link
-                        href="/"
+                        href="/admin"
                         className="text-[11px] tracking-widest uppercase text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
-                        Volver a la web principal
+                        Volver al Menú Principal
                     </Link>
                     <span className="mx-4 text-slate-200">|</span>
                     <button

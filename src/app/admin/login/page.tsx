@@ -18,7 +18,7 @@ export default function AdminLogin() {
         try {
             const res = await loginAction(password);
             if (res.success) {
-                router.push('/admin/featured');
+                router.push('/admin');
                 router.refresh();
             } else {
                 setError(res.error || 'Error al iniciar sesión');
