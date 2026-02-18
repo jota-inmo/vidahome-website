@@ -76,8 +76,9 @@ function convertToPropertyListEntry(webProp: any): PropertyListEntry {
 
 /**
  * Convert Web API property to PropertyDetails format
+ * Supports parallel arrays like $descripciones[cod_ofer][idioma]
  */
-function convertToPropertyDetails(webProp: any): PropertyDetails {
+function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDetails {
     // Detect ID from multiple possible locations
     const codOfer = parseInt(webProp.cod_ofer || webProp.codofer || webProp.key || webProp.cod || '0');
 
@@ -110,18 +111,30 @@ function convertToPropertyDetails(webProp: any): PropertyDetails {
 
     const totalHabitaciones = (Number(webProp.habitaciones) || 0) + (Number(webProp.habdobles) || 0);
 
-    // Permit descriptions in multiple formats
-    // Permit descriptions in multiple formats (descripciones, descripcion, texto)
+    // Extract description using the specific structure identified ($descripciones[id][idioma]['descrip'])
     let description = '';
-    const descField = webProp.descripciones || webProp.descripcion || webProp.texto;
+    const idStr = String(codOfer);
 
-    if (typeof descField === 'object' && descField !== null) {
-        description = descField['1'] || descField[1] || descField['es'] || '';
-    } else {
-        description = String(descField || '');
+    // 1. Try parallel root-level array first (most reliable for Ficha)
+    const rootDesc = fullResponse?.descripciones || webProp?.descripciones;
+    if (rootDesc && typeof rootDesc === 'object' && rootDesc[idStr]) {
+        const langData = rootDesc[idStr]['1'] || rootDesc[idStr][1] || Object.values(rootDesc[idStr])[0];
+        if (langData && typeof langData === 'object') {
+            description = langData.descrip || langData.descripcion || langData.texto || '';
+        }
     }
 
-    // Fallback: If still empty, check if it's nested in a 'web' or 'public' object (rare but happens)
+    // 2. Fallback to standard fields if root array lookup failed
+    if (!description) {
+        const descField = webProp.descripciones || webProp.descripcion || webProp.texto;
+        if (typeof descField === 'object' && descField !== null) {
+            description = descField['1'] || descField[1] || descField['es'] || '';
+        } else {
+            description = String(descField || '');
+        }
+    }
+
+    // 3. Last resort fallback
     if (!description && webProp.web && webProp.web.descripcion) {
         description = webProp.web.descripcion;
     }
@@ -231,7 +244,8 @@ export class InmovillaWebApiService {
             // Merge: listData provides working basic fields, detailData provides rich descriptions
             const combined = { ...listData, ...detailData };
 
-            return convertToPropertyDetails(combined);
+            // Pass the full result as well so we can find the parallel $descripciones array
+            return convertToPropertyDetails(combined, result);
         } catch (error) {
             console.error(`Error fetching property ${id}:`, error);
             throw error;

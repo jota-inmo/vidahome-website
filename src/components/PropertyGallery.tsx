@@ -83,7 +83,7 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
                     </button>
 
                     <Swiper
-                        modules={[Navigation, Pagination, Keyboard, Zoom]}
+                        modules={[Navigation, Pagination, Keyboard]}
                         navigation
                         pagination={{
                             type: 'fraction',
@@ -93,13 +93,12 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
                             }
                         }}
                         keyboard={{ enabled: true }}
-                        zoom={true}
                         loop={true}
                         className="h-full w-full"
                     >
                         {images.map((img, index) => (
                             <SwiperSlide key={index} className="flex items-center justify-center bg-black">
-                                <div className="swiper-zoom-container relative w-full h-full flex items-center justify-center">
+                                <div className="relative w-full h-full flex items-center justify-center">
                                     <img
                                         src={img}
                                         alt={`Full screen ${index}`}

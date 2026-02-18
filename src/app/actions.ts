@@ -111,8 +111,8 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
     if (!numagencia || !password) return { success: false, error: 'Credenciales no configuradas' };
 
-    // Check individual cache - v6 to ensure fresh data after protocol fix
-    const cacheKey = `prop_detail_v6_${id}`;
+    // Check individual cache - v7 to ensure fresh data after description fix
+    const cacheKey = `prop_detail_v7_${id}`;
     const cachedDetail = apiCache.get<PropertyDetails>(cacheKey);
     if (cachedDetail) {
         return { success: true, data: cachedDetail };
