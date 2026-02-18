@@ -206,6 +206,16 @@ La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplaz
 
 ### 2.4 Mejores Prácticas
 
+#### ✅ RESUELTO — Código monolítico y difícil de mantener
+**Archivos:** `src/app/actions.ts` y `src/app/vender/page.tsx`
+
+**Cambio aplicado:** 
+- **Server Actions:** Se ha dividido `actions.ts` en un directorio `src/app/actions/` con módulos especializados (`auth`, `catastro`, `hero`, `inmovilla`, `media`).
+- **Página de Vender:** Se han extraído los componentes de interfaz en `src/app/vender/components/` (`PropertySearch`, `PropertyDetailsDisplay`, `ValuationContactForm`, `StepsIndicator`).
+- **Resultado:** El archivo `page.tsx` ha pasado de **987 líneas a menos de 300**, y las acciones están ahora categorizadas, eliminando el "archivo basura" centralizado.
+
+---
+
 #### SEO — Pendiente
 - ❌ Sin `og:image` para compartición en redes sociales
 - ❌ Sin Schema.org (RealEstateListing) para rich snippets en Google
