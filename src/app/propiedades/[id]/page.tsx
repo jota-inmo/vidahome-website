@@ -75,7 +75,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         { icon: <Waves size={18} />, label: 'Piscina', show: !!property.piscina_com },
         { icon: <Wind size={18} />, label: 'A/A', show: !!property.aire_con },
         { icon: <Car size={18} />, label: 'Parking', show: !!property.garaje },
-        { icon: <Compass size={18} />, label: 'Elevador', show: !!property.ascensor },
+        { icon: <Compass size={18} />, label: 'Ascensor', show: !!property.ascensor },
     ].filter(f => f.show);
 
     return (
@@ -145,7 +145,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                     <Logo variant="icon" />
                                 </div>
                                 <div>
-                                    <h4 className="font-serif text-lg">Vidahome Expert</h4>
+                                    <h4 className="font-serif text-lg">Vidahome</h4>
                                     <p className="text-xs text-slate-400 uppercase tracking-widest">Especialista en La Safor</p>
                                 </div>
                             </div>

@@ -125,6 +125,10 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 *   **Modo de Visualización**: Se utiliza `object-contain` en lugar de `cover` para garantizar que el 100% de la fotografía inmobiliaria sea visible sin cortes ni zooms automáticos que alteren la percepción del espacio.
 *   **Estabilidad**: Se han eliminado los efectos de zoom y escalado en la galería para ofrecer una experiencia de usuario más premium y fiel a la realidad.
 
+### Identidad y Terminología
+*   **Adaptación Lingüística**: El proyecto está enfocado exclusivamente en la versión española. Se ha estandarizado el uso de términos como "Ascensor" en lugar de "Elevador" para mayor naturalidad.
+*   **Branding Sidebar**: Se ha simplificado la marca en la ficha de detalle, eliminando el sufijo "Expert" para mantener la consistencia con la marca principal "Vidahome", pero manteniendo el sello de "Especialista en La Safor".
+
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Implementación de Dual-Fetch y Mapeo de Descripciones Reales).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Refinamiento de identidad y traducción).*
