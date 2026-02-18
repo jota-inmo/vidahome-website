@@ -15,7 +15,7 @@ export default function Home() {
       {/* Propiedades Destacadas (Featured Properties) */}
       <section className="py-16 bg-white dark:bg-slate-950 px-8">
         <div className="max-w-[1600px] mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-8">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-8">
             <div className="max-w-2xl">
               <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Nuestra Selección</span>
               <h2 className="text-3xl md:text-4xl font-serif text-[#0a192f] dark:text-white leading-tight">
@@ -138,7 +138,7 @@ function FeaturedGrid() {
   if (featured.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-16">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">
       {featured.map((prop) => (
         <div key={prop.cod_ofer} className="animate-fade-up">
           <LuxuryPropertyCard property={prop} />
