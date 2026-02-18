@@ -180,7 +180,16 @@ CREATE POLICY "Gestión Admin" ON hero_videos FOR ALL USING (true);
 *   **Gestión Unificada**: Se ha creado un centro de mando en `/admin` que permite gestionar el **Banner Principal** (`/admin-hero`) o las **Propiedades Destacadas**.
 *   **Hero Admin PRO**: Panel avanzado con previsualización de vídeo en tiempo real, subida directa al storage y gestión de orden/visibilidad.
 
+### Próximos Pasos (Roadmap)
+1.  **Cumplimiento Legal (Cookies & GDPR)**:
+    *   Implementar banner de consentimiento granular (LSSI-CE / RGPD).
+    *   Configurar Consent Mode para scripts analíticos y de marketing.
+2.  **Estrategia SEO & GEO (Posicionamiento Local)**:
+    *   **GEO-SEO**: Optimización profunda para Gandia y La Safor.
+    *   **Rich Snippets**: Marcado Schema.org (JSON-LD) para propiedades (precio, fotos, estrellas en Google).
+    *   **Social Graph**: Optimización de OpenGraph para compartición enriquecida en WhatsApp/Redes.
+
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Hero Engine PRO & Smart Links).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Roadmap Estratégico).*
 
