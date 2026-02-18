@@ -47,7 +47,7 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
                                     src={img}
                                     alt={`Imagen ${index + 1}`}
                                     fill
-                                    className="object-cover transition-transform duration-700 hover:scale-105"
+                                    className="object-contain"
                                     priority={index === 0}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />

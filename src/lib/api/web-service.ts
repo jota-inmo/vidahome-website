@@ -111,11 +111,19 @@ function convertToPropertyDetails(webProp: any): PropertyDetails {
     const totalHabitaciones = (Number(webProp.habitaciones) || 0) + (Number(webProp.habdobles) || 0);
 
     // Permit descriptions in multiple formats
+    // Permit descriptions in multiple formats (descripciones, descripcion, texto)
     let description = '';
-    if (typeof webProp.descripciones === 'object' && webProp.descripciones !== null) {
-        description = webProp.descripciones['1'] || webProp.descripciones[1] || '';
+    const descField = webProp.descripciones || webProp.descripcion || webProp.texto;
+
+    if (typeof descField === 'object' && descField !== null) {
+        description = descField['1'] || descField[1] || descField['es'] || '';
     } else {
-        description = webProp.descripciones || '';
+        description = String(descField || '');
+    }
+
+    // Fallback: If still empty, check if it's nested in a 'web' or 'public' object (rare but happens)
+    if (!description && webProp.web && webProp.web.descripcion) {
+        description = webProp.web.descripcion;
     }
 
     return {
