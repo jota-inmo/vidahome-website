@@ -53,7 +53,8 @@ export interface PropertyDetails {
     garaje?: number | boolean;
     vistasalmar?: number | boolean;
     descripciones?: string;
-    fotos_lista?: string[]; // Custom field we will populate
+    fotos_lista?: string[];
+    mainImage?: string;
     numagencia?: string;
     numfotos?: string;
     fotoletra?: string;

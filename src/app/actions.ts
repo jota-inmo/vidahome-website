@@ -47,7 +47,7 @@ export async function fetchPropertiesAction(): Promise<{
         };
     }
 
-    const cacheKey = 'property_list_v6';
+    const cacheKey = 'property_list_v7';
     let properties = apiCache.get<PropertyListEntry[]>(cacheKey);
 
     try {
@@ -111,8 +111,8 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
     if (!numagencia || !password) return { success: false, error: 'Credenciales no configuradas' };
 
-    // Check individual cache - v8 to ensure fresh data after global description fix
-    const cacheKey = `prop_detail_v8_${id}`;
+    // Check individual cache - v9 to ensure fresh data after full-detail-for-cards fix
+    const cacheKey = `prop_detail_v9_${id}`;
     const cachedDetail = apiCache.get<PropertyDetails>(cacheKey);
     if (cachedDetail) {
         return { success: true, data: cachedDetail };

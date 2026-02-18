@@ -182,6 +182,7 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
         vistasalmar: webProp.vistasalmar === '1' || webProp.vistasalmar === 1,
         descripciones: description,
         fotos_lista: photos,
+        mainImage: photos[0] || '',
         numagencia: numAgencia,
         numfotos: webProp.numfotos,
         fotoletra: fotoLetra,
