@@ -46,7 +46,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
             <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-12 text-center rounded-sm">
                 <h3 className="font-serif text-3xl mb-4">Solicitud Recibida</h3>
                 <p className="text-slate-500 font-light leading-relaxed">
-                    Nuestros asesores se pondrán en contacto con usted a la brevedad posible para gestionar su interés en esta exclusiva propiedad.
+                    Nuestros asesores se pondrán en contacto con usted a la brevedad posible para gestionar su interés en esta propiedad.
                 </p>
             </div>
         );
@@ -111,7 +111,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
                     disabled={loading}
                     className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 uppercase text-[11px] tracking-[0.3em] font-bold hover:opacity-90 transition-all disabled:opacity-50"
                 >
-                    {loading ? 'Enviando Solicitud...' : 'Enviar Solicitud Exclusiva'}
+                    {loading ? 'Enviando Solicitud...' : 'Enviar Solicitud'}
                 </button>
             </form>
         </div>

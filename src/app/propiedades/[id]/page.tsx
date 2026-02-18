@@ -15,7 +15,8 @@ import {
     Car,
     ArrowLeft,
     Calendar,
-    Compass
+    Compass,
+    Share2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -63,6 +64,26 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             </div>
         );
     }
+
+    const handleShare = async () => {
+        const shareData = {
+            title: `Residencia en ${property.poblacion} | Vidahome`,
+            text: `Mira esta propiedad en Vidahome: ${property.tipo_nombre} en ${property.poblacion}`,
+            url: window.location.href,
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback to WhatsApp
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareData.text + ' ' + shareData.url)}`;
+                window.open(whatsappUrl, '_blank');
+            }
+        } catch (err) {
+            console.error('Error sharing', err);
+        }
+    };
 
     const features = [
         { icon: <Square size={20} />, label: 'Superficie', value: `${property.m_cons} m²` },
@@ -133,9 +154,22 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                     {/* Sidebar de Contacto */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-24">
-                            <div className="mb-8">
-                                <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">Precio bajo consulta</span>
-                                <span className="text-4xl font-serif text-slate-900 dark:text-white">€ {property.precioinmo?.toLocaleString() || '---'}</span>
+                            <div className="mb-8 flex justify-between items-start">
+                                <div>
+                                    {(!property.precioinmo || property.precioinmo === 0) && (
+                                        <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">Precio bajo consulta</span>
+                                    )}
+                                    <span className="text-4xl font-serif text-slate-900 dark:text-white">
+                                        {property.precioinmo && property.precioinmo > 0 ? `€ ${property.precioinmo.toLocaleString()}` : 'Consulte precio'}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={handleShare}
+                                    className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-400 hover:text-[#2dd4bf] hover:bg-slate-100 transition-all shadow-sm"
+                                    title="Compartir"
+                                >
+                                    <Share2 size={18} />
+                                </button>
                             </div>
 
                             <ContactForm cod_ofer={property.cod_ofer} />

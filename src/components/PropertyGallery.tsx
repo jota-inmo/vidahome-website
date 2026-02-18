@@ -58,7 +58,7 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
 
                 {/* Overlay Minimalista */}
                 <div className="absolute bottom-12 left-12 z-10 pointer-events-none">
-                    <span className="text-white/60 text-[10px] tracking-[0.4em] uppercase">Galería Exclusiva</span>
+                    <span className="text-white/60 text-[10px] tracking-[0.4em] uppercase">Galería</span>
                 </div>
 
                 {/* Botón Pantalla Completa */}

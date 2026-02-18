@@ -129,6 +129,11 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 *   **Adaptación Lingüística**: El proyecto está enfocado exclusivamente en la versión española. Se ha estandarizado el uso de términos como "Ascensor" en lugar de "Elevador" para mayor naturalidad.
 *   **Branding Sidebar**: Se ha simplificado la marca en la ficha de detalle, eliminando el sufijo "Expert" para mantener la consistencia con la marca principal "Vidahome", pero manteniendo el sello de "Especialista en La Safor".
 
+### Refinamiento y Compartir
+*   **Limpieza de Terminología**: Se ha eliminado el adjetivo "Exclusiva" de los botones y textos para un tono más profesional y menos redundante.
+*   **Lógica de Precio**: Se ha ocultado el texto "Precio bajo consulta" cuando la propiedad tiene un precio definido.
+*   **Función Compartir**: Implementación del botón de compartición nativa (Web Share API) con fallback a WhatsApp para facilitar la difusión de las propiedades.
+
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Refinamiento de identidad y traducción).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Nuevas funcionalidades y pulido visual).*
