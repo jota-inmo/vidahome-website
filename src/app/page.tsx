@@ -14,7 +14,7 @@ export default function Home() {
 
       {/* Propiedades Destacadas (Featured Properties) */}
       <section className="py-24 bg-white dark:bg-slate-950 px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1600px] mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div className="max-w-2xl">
               <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Nuestra Selección</span>
@@ -36,7 +36,7 @@ export default function Home() {
 
       {/* Experience / Stats Section */}
       <section className="py-32 bg-white dark:bg-slate-950 px-8">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl font-serif text-[#0a192f] dark:text-white mb-10">Más que una inmobiliaria</h2>
           <p className="text-lg text-slate-500 font-light leading-relaxed mb-16">
             En <strong className="text-[#0a192f] dark:text-blue-400">Vidahome</strong>, entendemos que una casa no es solo ladrillo y cemento, sino el escenario donde transcurre tu vida. Nuestro equipo en el Grau de Gandia se dedica a transformar la compraventa en una experiencia transparente, profesional y sin estrés.
@@ -60,7 +60,7 @@ export default function Home() {
 
       {/* Location Footer / Info */}
       <footer className="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-900 px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16">
+        <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-16">
           <div>
             <h4 className="font-serif text-xl mb-6">Nuestra Sede</h4>
             <a
@@ -93,7 +93,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-slate-100 dark:border-slate-800 text-center">
+        <div className="max-w-[1600px] mx-auto mt-20 pt-8 border-t border-slate-100 dark:border-slate-800 text-center">
           <p className="text-[10px] tracking-[0.3em] uppercase text-slate-400">
             © 2026 Vidahome Premium Experience - Acompañamiento Profesional y Completo
           </p>
@@ -138,7 +138,7 @@ function FeaturedGrid() {
   if (featured.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-16">
       {featured.map((prop) => (
         <div key={prop.cod_ofer} className="animate-fade-up">
           <LuxuryPropertyCard property={prop} />

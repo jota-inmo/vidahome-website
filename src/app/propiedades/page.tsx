@@ -68,7 +68,7 @@ export default function PropiedadesPage() {
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-slate-900 selection:text-white dark:selection:bg-white dark:selection:text-slate-900">
             {/* Header Minimalista */}
-            <header className="px-8 py-20 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center border-b border-slate-50 dark:border-slate-900 mb-20">
+            <header className="px-8 py-20 max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center border-b border-slate-50 dark:border-slate-900 mb-20">
                 <div className="text-center md:text-left">
                     <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Portfolio</span>
                     <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-[1.1]">Inmuebles <br /> de Selección</h1>
@@ -82,7 +82,7 @@ export default function PropiedadesPage() {
 
             <PropertySearch onSearch={handleSearch} populations={populations} />
 
-            <main className="px-8 max-w-7xl mx-auto pb-32">
+            <main className="px-8 max-w-[1600px] mx-auto pb-32">
                 {error && (
                     <div className="text-center py-20 border border-red-100 bg-red-50/30 rounded-lg">
                         <p className="font-serif text-2xl text-red-800 mb-2">Inconveniente Técnico</p>
@@ -91,7 +91,7 @@ export default function PropiedadesPage() {
                 )}
 
                 {/* Grid de Propiedades */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">
                     {loading ? (
                         // Esqueletos de Carga
                         [1, 2, 4, 5].map((i) => <PropertySkeleton key={i} />)
@@ -108,7 +108,7 @@ export default function PropiedadesPage() {
             </main>
 
             <footer className="px-8 py-20 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-900">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+                <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="text-[10px] tracking-[0.3em] uppercase text-slate-400">
                         © 2026 Vidahome Premium Experience - Acompañamiento Profesional y Completo
                     </div>

@@ -37,12 +37,12 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     </div>
                 </div>
 
-                <div className="p-10 flex flex-col flex-grow">
-                    <h3 className="text-2xl font-serif text-slate-900 dark:text-slate-100 leading-tight mb-4">
+                <div className="p-8 flex flex-col flex-grow">
+                    <h3 className="text-xl font-serif text-slate-900 dark:text-slate-100 leading-tight mb-4">
                         {property.poblacion ? `${property.tipo_nombre || 'Residencia'} en ${property.poblacion}` : `Referencia ${property.ref}`}
                     </h3>
 
-                    <div className="flex items-center gap-12 mb-8 text-slate-400">
+                    <div className="flex items-center gap-8 mb-6 text-slate-400">
                         <div className="flex items-center gap-3">
                             <Bed size={16} strokeWidth={1.5} />
                             <span className="text-sm font-light">{property.habitaciones || '-'}</span>

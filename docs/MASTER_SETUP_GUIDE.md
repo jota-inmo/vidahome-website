@@ -134,6 +134,11 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 *   **Lógica de Precio**: Se ha ocultado el texto "Precio bajo consulta" cuando la propiedad tiene un precio definido.
 *   **Función Compartir**: Implementación del botón de compartición nativa (Web Share API) con fallback a WhatsApp para facilitar la difusión de las propiedades.
 
+### Expansión de Layout (Efecto de Vista Panorámica)
+*   **Contenedores Ampliados**: Se ha aumentado el ancho máximo de los contenedores de `1280px` (7xl) a **`1600px`**. Esto simula el efecto visual de un zoom al 80%, permitiendo que el usuario vea más información y más propiedades simultáneamente sin perder impacto visual.
+*   **Reestructuración de Grid**: La página de propiedades ha pasado de 2 a **3 columnas** en pantallas grandes, optimizando el espacio y ofreciendo una sensación más premium y de catálogo completo.
+*   **Conservación de Impacto**: El banner de vídeo (Hero) se mantiene a pantalla completa (`h-screen`) para conservar su fuerza visual original mientras el resto de la web se adapta a una vista más informativa.
+
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Nuevas funcionalidades y pulido visual).*
+*Documento actualizado el 18/02/2026 por Antigravity AI (Expansión de layout y optimización de rejilla).*
