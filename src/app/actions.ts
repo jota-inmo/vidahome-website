@@ -7,12 +7,13 @@ import { cookies, headers } from 'next/headers';
 
 export interface HeroSlide {
     id: string;
-    type: 'video' | 'image';
-    url: string;
-    poster: string;
+    video_path: string;
+    link_url: string;
     title: string;
-    subtitle: string;
-    order_index: number;
+    order: number;
+    active: boolean;
+    type: 'video' | 'image';
+    poster?: string;
 }
 
 export async function fetchPropertiesAction(): Promise<{
@@ -316,13 +317,19 @@ export async function checkAuthAction() {
 /**
  * HERO SLIDES MANAGEMENT
  */
-export async function getHeroSlidesAction(): Promise<HeroSlide[]> {
+export async function getHeroSlidesAction(onlyActive = false): Promise<HeroSlide[]> {
     try {
         const { supabase } = await import('@/lib/supabase');
-        const { data, error } = await supabase
-            .from('hero_slides')
+        let query = supabase
+            .from('hero_videos')
             .select('*')
-            .order('order_index', { ascending: true });
+            .order('order', { ascending: true });
+
+        if (onlyActive) {
+            query = query.eq('active', true);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         return (data || []) as HeroSlide[];
@@ -332,22 +339,16 @@ export async function getHeroSlidesAction(): Promise<HeroSlide[]> {
     }
 }
 
+
 export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
     try {
         const { supabase } = await import('@/lib/supabase');
 
-        if (slide.id) {
-            const { error } = await supabase
-                .from('hero_slides')
-                .update(slide)
-                .eq('id', slide.id);
-            if (error) throw error;
-        } else {
-            const { error } = await supabase
-                .from('hero_slides')
-                .insert([slide]);
-            if (error) throw error;
-        }
+        const { error } = await supabase
+            .from('hero_videos')
+            .upsert(slide);
+
+        if (error) throw error;
 
         return { success: true };
     } catch (e: any) {
@@ -360,7 +361,7 @@ export async function deleteHeroSlideAction(id: string) {
     try {
         const { supabase } = await import('@/lib/supabase');
         const { error } = await supabase
-            .from('hero_slides')
+            .from('hero_videos')
             .delete()
             .eq('id', id);
 
@@ -382,19 +383,19 @@ export async function uploadMediaAction(formData: FormData) {
         const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
         const filePath = `hero/${fileName}`;
 
-        // Upload to 'media' bucket
+        // Upload to 'videos' bucket
         const { data, error } = await supabase.storage
-            .from('media')
+            .from('videos')
             .upload(filePath, file);
 
         if (error) throw error;
 
         // Get Public URL
         const { data: { publicUrl } } = supabase.storage
-            .from('media')
+            .from('videos')
             .getPublicUrl(filePath);
 
-        return { success: true, url: publicUrl };
+        return { success: true, url: publicUrl, path: filePath };
     } catch (e: any) {
         console.error('Upload Error:', e);
         return { success: false, error: e.message };

@@ -8,7 +8,7 @@ import {
     uploadMediaAction,
     logoutAction,
     HeroSlide
-} from '../../actions';
+} from '../actions';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Trash2, Plus, Upload, MoveUp, MoveDown, Play, Image as ImageIcon, ExternalLink, Eye, CheckCircle2, Circle } from 'lucide-react';
@@ -33,11 +33,17 @@ export default function HeroAdmin() {
         setLoading(false);
     };
 
+    const handleLogout = async () => {
+        await logoutAction();
+        router.push('/admin/login');
+    };
+
     const handleSaveSlide = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingSlide) return;
 
         setSaving(true);
+        // Ensure defaults
         const payload = {
             ...editingSlide,
             active: editingSlide.active ?? true,
@@ -105,6 +111,21 @@ export default function HeroAdmin() {
         loadSlides();
     };
 
+    const getRealUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http') || path.startsWith('/')) return path;
+        return `https://${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1] || ''}/storage/v1/object/public/videos/${path}`;
+    };
+
+    // Better fallback for URL if env is not perfect
+    const getStorageUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http') || path.startsWith('/')) return path;
+        // Using the public project structure
+        const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('.')[0].split('//')[1];
+        return `https://${projectRef}.supabase.co/storage/v1/object/public/videos/${path}`;
+    };
+
     if (loading) return <div className="p-20 text-center font-serif italic text-slate-400">Cargando gestor de vídeos...</div>;
 
     return (
@@ -136,20 +157,24 @@ export default function HeroAdmin() {
                     )}
 
                     {slides.map((slide, index) => (
-                        <div key={slide.id} className={`bg-white dark:bg-slate-900 border ${slide.active ? 'border-slate-100 dark:border-slate-800' : 'border-red-100 dark:border-red-900/30 grayscale opacity-60'} p-6 rounded-sm flex flex-col md:flex-row items-center gap-8 group transition-all`}>
-                            <div className="relative w-56 aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden rounded-sm ring-1 ring-black/5">
+                        <div key={slide.id} className={`bg-white dark:bg-slate-900 border ${slide.active ? 'border-slate-100 dark:border-slate-800' : 'border-red-100 dark:border-red-900/30 grayscale opacity-60'} p-6 rounded-sm flex flex-col md:flex-row items-center gap-8 group transition-all hover:border-teal-500/30 shadow-sm`}>
+                            <div className="relative w-72 aspect-video bg-black overflow-hidden rounded-sm ring-1 ring-black/5 shadow-inner">
                                 {slide.video_path ? (
-                                    <div className="flex items-center justify-center h-full bg-black">
-                                        <Play size={20} className="text-white/20" />
-                                        <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 text-[8px] text-white/60 font-mono rounded-xs">
-                                            {slide.video_path.split('/').pop()}
-                                        </div>
-                                    </div>
+                                    <video
+                                        src={getStorageUrl(slide.video_path)}
+                                        className="w-full h-full object-cover"
+                                        muted
+                                        onMouseOver={e => e.currentTarget.play()}
+                                        onMouseOut={e => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+                                    />
                                 ) : (
                                     <div className="flex items-center justify-center h-full">
                                         <ImageIcon size={32} className="text-slate-200" />
                                     </div>
                                 )}
+                                <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 text-[8px] text-white/80 font-mono rounded-xs backdrop-blur-sm">
+                                    {slide.video_path?.split('/').pop()}
+                                </div>
                             </div>
 
                             <div className="flex-grow">
@@ -164,7 +189,7 @@ export default function HeroAdmin() {
                                 </div>
 
                                 {slide.link_url && (
-                                    <div className="flex items-center gap-2 text-[10px] text-teal-400 font-mono mb-4">
+                                    <div className="flex items-center gap-2 text-[10px] text-teal-400 font-mono mb-4 bg-teal-400/5 px-2 py-1 rounded-xs inline-block">
                                         <ExternalLink size={10} /> {slide.link_url}
                                     </div>
                                 )}
@@ -172,16 +197,16 @@ export default function HeroAdmin() {
                                 <div className="flex gap-4 text-[10px] uppercase tracking-widest font-bold text-slate-400">
                                     <span className="flex items-center gap-1"><Play size={10} /> {slide.type}</span>
                                     <span>•</span>
-                                    <span>Posición: {slide.order + 1}</span>
+                                    <span className="text-teal-500/70">Posición: {slide.order + 1}</span>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <div className="flex flex-col gap-1 mr-4">
-                                    <button onClick={() => moveSlide(index, 'up')} disabled={index === 0} className="p-1.5 text-slate-400 hover:text-teal-500 disabled:opacity-10"><MoveUp size={16} /></button>
-                                    <button onClick={() => moveSlide(index, 'down')} disabled={index === slides.length - 1} className="p-1.5 text-slate-400 hover:text-teal-500 disabled:opacity-10"><MoveDown size={16} /></button>
+                                    <button onClick={() => moveSlide(index, 'up')} disabled={index === 0} className="p-1.5 text-slate-400 hover:text-teal-500 disabled:opacity-10 transition-colors"><MoveUp size={16} /></button>
+                                    <button onClick={() => moveSlide(index, 'down')} disabled={index === slides.length - 1} className="p-1.5 text-slate-400 hover:text-teal-500 disabled:opacity-10 transition-colors"><MoveDown size={16} /></button>
                                 </div>
-                                <button onClick={() => setEditingSlide(slide)} className="px-6 py-3 border border-slate-100 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all rounded-sm shadow-sm">Editar</button>
+                                <button onClick={() => setEditingSlide(slide)} className="px-6 py-3 border border-slate-100 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-all rounded-sm shadow-sm active:scale-95">Editar</button>
                                 <button onClick={() => handleDelete(slide.id)} className="p-3 text-red-300 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                             </div>
                         </div>
@@ -197,7 +222,7 @@ export default function HeroAdmin() {
                                         <h2 className="font-serif text-3xl mb-1">{editingSlide.id ? 'Refinar' : 'Nuevo'} Vídeo Hero</h2>
                                         <p className="text-xs text-slate-400 uppercase tracking-widest">Configuración de diapositiva {editingSlide.order !== undefined ? `nº ${editingSlide.order + 1}` : ''}</p>
                                     </div>
-                                    <button type="button" onClick={() => setEditingSlide(null)} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">&times;</button>
+                                    <button type="button" onClick={() => setEditingSlide(null)} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all text-2xl">&times;</button>
                                 </div>
 
                                 <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
@@ -208,7 +233,7 @@ export default function HeroAdmin() {
                                                 value={editingSlide.title || ''}
                                                 onChange={e => setEditingSlide(prev => ({ ...prev, title: e.target.value }))}
                                                 required
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-white"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
                                                 placeholder="Ej: Calidad de Vida en Gandia"
                                             />
                                         </div>
@@ -217,10 +242,12 @@ export default function HeroAdmin() {
                                             <input
                                                 value={editingSlide.link_url || ''}
                                                 onChange={e => setEditingSlide(prev => ({ ...prev, link_url: e.target.value }))}
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-teal-400 font-mono"
-                                                placeholder="https://vidahome.es/propiedades/..."
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-teal-500 font-mono"
+                                                placeholder="Ej: 13031 (ID Propiedad) o /propiedades"
                                             />
+                                            <p className="text-[9px] text-slate-400 italic">Vacio = Catálogo | Solo número = Ficha Propiedad</p>
                                         </div>
+
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -230,8 +257,8 @@ export default function HeroAdmin() {
                                                 <input
                                                     value={editingSlide.video_path || ''}
                                                     onChange={e => setEditingSlide(prev => ({ ...prev, video_path: e.target.value }))}
-                                                    className="flex-grow bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-[10px] font-mono focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-white"
-                                                    placeholder="hero/video-name.mp4"
+                                                    className="flex-grow bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-[10px] font-mono focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
+                                                    placeholder="hero/mi-video.mp4"
                                                 />
                                                 <div className="relative">
                                                     <input
@@ -253,7 +280,7 @@ export default function HeroAdmin() {
                                                     id="active"
                                                     checked={editingSlide.active ?? true}
                                                     onChange={e => setEditingSlide(prev => ({ ...prev, active: e.target.checked }))}
-                                                    className="w-4 h-4 accent-teal-500"
+                                                    className="w-4 h-4 accent-teal-500 cursor-pointer"
                                                 />
                                                 <label htmlFor="active" className="text-[10px] uppercase tracking-widest text-slate-500 font-bold cursor-pointer">Estado Activo</label>
                                             </div>
@@ -263,18 +290,26 @@ export default function HeroAdmin() {
                                                     type="number"
                                                     value={editingSlide.order ?? 0}
                                                     onChange={e => setEditingSlide(prev => ({ ...prev, order: parseInt(e.target.value) }))}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-4 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-white"
+                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-4 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="p-6 bg-slate-100 dark:bg-slate-800/30 rounded-sm border border-slate-200 dark:border-slate-800">
-                                        <div className="flex items-center gap-4">
-                                            <Eye size={24} className="text-teal-500" />
+                                    <div className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-sm border border-slate-200 dark:border-slate-800">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-32 aspect-video bg-black rounded-sm overflow-hidden flex-shrink-0 shadow-lg">
+                                                {editingSlide.video_path ? (
+                                                    <video src={getStorageUrl(editingSlide.video_path)} className="w-full h-full object-cover" autoPlay muted loop />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-700">
+                                                        <Play size={20} />
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div>
-                                                <h4 className="text-sm font-serif italic mb-1 text-white">Vista Previa Dinámica</h4>
-                                                <p className="text-[10px] text-slate-400 font-light">El vídeo se cargará automáticamente en el banner usando el Video Path de Supabase.</p>
+                                                <h4 className="text-sm font-serif italic mb-1 text-[#0a192f] dark:text-white">Vista Previa del Media</h4>
+                                                <p className="text-[10px] text-slate-400 font-light max-w-xs">Si los cambios no aparecen, verifica que el archivo exista en el bucket 'videos' de Supabase.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -300,6 +335,7 @@ export default function HeroAdmin() {
                         </div>
                     </div>
                 )}
+
 
                 <div className="mt-24 flex flex-col items-center gap-8 border-t border-slate-200 dark:border-white/5 pt-12">
                     <div className="flex gap-12 text-[10px] tracking-widest uppercase font-bold text-slate-400">

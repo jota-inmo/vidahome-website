@@ -34,9 +34,10 @@ export default function AdminDashboard() {
             title: 'Banner Principal',
             desc: 'Vídeos y textos del hero banner',
             icon: <Film className="w-6 h-6" />,
-            href: '/admin/hero',
+            href: '/admin-hero',
             color: 'from-teal-500 to-emerald-600'
         },
+
         {
             title: 'Propiedades Destacadas',
             desc: 'Seleccionar las 6 viviendas de la home',
