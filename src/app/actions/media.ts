@@ -1,24 +1,69 @@
 'use server';
 
+// ─── Configuración de seguridad para subida de archivos ──────────────────────
+const ALLOWED_MIME_TYPES = [
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',   // .mov
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/avif',
+];
+
+const ALLOWED_EXTENSIONS = ['mp4', 'webm', 'mov', 'jpg', 'jpeg', 'png', 'webp', 'avif'];
+const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30 MB
+
 export async function uploadMediaAction(formData: FormData) {
     try {
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
         const file = formData.get('file') as File;
         if (!file) throw new Error('No se ha proporcionado ningún archivo');
 
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`; // Subir a la raíz del bucket 'media' para simplificar
+        // ─── Validación de tipo MIME ─────────────────────────────────────────────
+        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+            console.warn(`[Upload] Tipo MIME rechazado: ${file.type}`);
+            return {
+                success: false,
+                error: `Tipo de archivo no permitido (${file.type}). Solo se aceptan: MP4, WebM, MOV, JPG, PNG, WebP.`
+            };
+        }
 
-        // Convert File to Buffer/ArrayBuffer for more stable upload in some environments
+        // ─── Validación de extensión (doble check contra MIME spoofing) ──────────
+        const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+        if (!ALLOWED_EXTENSIONS.includes(fileExt)) {
+            console.warn(`[Upload] Extensión rechazada: .${fileExt}`);
+            return {
+                success: false,
+                error: `Extensión de archivo no permitida (.${fileExt}).`
+            };
+        }
+
+        // ─── Validación de tamaño ────────────────────────────────────────────────
+        if (file.size > MAX_FILE_SIZE) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+            return {
+                success: false,
+                error: `El archivo (${sizeMB} MB) supera el límite de ${MAX_FILE_SIZE / (1024 * 1024)} MB.`
+            };
+        }
+
+        if (file.size === 0) {
+            return { success: false, error: 'El archivo está vacío.' };
+        }
+
+        // ─── Nombre seguro ──────────────────────────────────────────────────────
+        const safeName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+
+        // Convert File to ArrayBuffer for stable upload
         const arrayBuffer = await file.arrayBuffer();
 
-        console.log(`⏳ Subiendo archivo ${fileName} a Supabase Storage (bucket: media)...`);
+        console.log(`⏳ Subiendo archivo ${safeName} (${(file.size / (1024 * 1024)).toFixed(1)} MB) a Supabase Storage...`);
 
         // Upload to 'media' bucket
         const { data, error } = await supabaseAdmin.storage
             .from('media')
-            .upload(filePath, arrayBuffer, {
+            .upload(safeName, arrayBuffer, {
                 contentType: file.type,
                 upsert: true
             });
@@ -31,11 +76,11 @@ export async function uploadMediaAction(formData: FormData) {
         // Get Public URL
         const { data: { publicUrl } } = supabaseAdmin.storage
             .from('media')
-            .getPublicUrl(filePath);
+            .getPublicUrl(safeName);
 
         console.log(`✅ Archivo subido con éxito: ${publicUrl}`);
 
-        return { success: true, url: publicUrl, path: filePath };
+        return { success: true, url: publicUrl, path: safeName };
     } catch (e: any) {
         console.error('Upload Error:', e);
         return { success: false, error: e.message };

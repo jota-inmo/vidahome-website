@@ -1,25 +1,29 @@
 # Auditoría Técnica Completa — Vidahome Premium
-**Fecha:** 18 de febrero de 2026  
+**Fecha:** 19 de febrero de 2026  
 **Auditor:** Antigravity AI  
 **Versión del proyecto:** Next.js 16.1.6 (Turbopack)  
-**Alcance:** Lectura + correcciones aplicadas en sesión.
+**Alcance:** Revisión integral con correcciones aplicadas + hallazgos nuevos.
 
 ---
 
 ## 1. Resumen Ejecutivo
 
-El proyecto Vidahome es una aplicación web inmobiliaria bien construida con un stack moderno (Next.js 16, Supabase, TypeScript). La arquitectura general es sólida. En esta sesión se han **resuelto todos los hallazgos críticos de seguridad y rendimiento** identificados inicialmente. Quedan pendientes acciones manuales fuera del alcance del código (rotación de credenciales, limpieza del historial de Git) y mejoras de medio/largo plazo en UX y SEO.
+El proyecto Vidahome es una aplicación web inmobiliaria construida con un stack moderno (Next.js 16, Supabase, TypeScript). La arquitectura general es sólida y se han resuelto la mayoría de los hallazgos críticos de seguridad y rendimiento. Sin embargo, se identifican **3 nuevos puntos importantes** que deben abordarse a corto plazo, especialmente en las áreas de seguridad del panel admin, validación de archivos subidos y manejo de errores en producción.
 
-### Estado actual de issues críticos:
+### Estado actual de issues:
 
 | # | Severidad | Issue | Estado |
 |---|-----------|-------|--------|
-| 1 | 🔴 Crítico | Credenciales de Inmovilla en Git/GitHub | ✅ **Resuelto en código** — ⚠️ Acción manual pendiente |
-| 2 | 🔴 Crítico | `/admin-hero` sin protección de middleware | ✅ **Resuelto** |
-| 3 | 🔴 Crítico | Contraseña de admin hardcodeada como fallback | ✅ **Resuelto** |
-| 4 | 🟠 Alto | Caché de archivos ineficaz en Vercel (serverless) | ✅ **Resuelto** |
-| 5 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** |
-| 6 | 🟠 Alto | RLS de Supabase demasiado permisiva en `hero_slides` | ✅ **Resuelto en código** |
+| 1 | 🔴 Crítico | Credenciales de Inmovilla en historial Git | ⚠️ **Acción manual pendiente** |
+| 2 | 🔴 Crítico | Cookie admin sin firma criptográfica | 🔴 **NUEVO — Pendiente** |
+| 3 | 🟠 Alto | Subida de archivos sin validación de tipo/tamaño | 🟠 **NUEVO — Pendiente** |
+| 4 | 🟠 Alto | Sin `error.tsx` ni `loading.tsx` globales | 🟠 **NUEVO — Pendiente** |
+| 5 | 🟠 Alto | `/admin-hero` sin protección de middleware | ✅ **Resuelto** |
+| 6 | 🟠 Alto | Contraseña admin hardcodeada como fallback | ✅ **Resuelto** |
+| 7 | 🟠 Alto | Caché de archivos ineficaz en serverless | ✅ **Resuelto** |
+| 8 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** |
+| 9 | 🟡 Medio | RLS de Supabase permisiva en `hero_slides` | ✅ **Resuelto en código** |
+| 10 | 🟡 Medio | Errores silenciados (`catch {}`) en acciones | ⚠️ **Parcialmente pendiente** |
 
 ---
 
@@ -27,10 +31,39 @@ El proyecto Vidahome es una aplicación web inmobiliaria bien construida con un 
 
 ### 2.1 Seguridad
 
-#### ✅ RESUELTO — Credenciales en repositorio Git
-**Archivo:** `docs/MASTER_SETUP_GUIDE.md`
+#### 🔴 NUEVO — Cookie de admin sin firma criptográfica
+**Archivo:** `src/app/actions/auth.ts`
 
-**Cambio aplicado:** Se eliminaron todos los valores reales de la tabla de variables de entorno y se reemplazaron por descripciones instructivas. Los valores `13031`, `HQYn5#Gg8`, `_244_ext` y la URL del proxy de Arsys ya no aparecen en el archivo.
+**Problema:** La cookie `admin_session` se establece con el valor literal `'active'`. Cualquier persona que conozca el nombre de la cookie puede crearla manualmente en el navegador (`document.cookie = "admin_session=active"`) y acceder a todo el panel de administración sin conocer la contraseña.
+
+**Estado actual:**
+```typescript
+(await cookies()).set('admin_session', 'active', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24
+});
+```
+
+**Mitigación actual:** La cookie es `httpOnly`, lo que impide inyección desde JS del cliente. Sin embargo, alguien con herramientas de desarrollo del navegador o un proxy HTTP puede insertar la cookie fácilmente.
+
+> ⚠️ **RECOMENDACIÓN:**
+> Reemplazar el valor `'active'` por un token firmado (JWT o HMAC) que solo el servidor pueda verificar. Ejemplo:
+> ```typescript
+> import crypto from 'crypto';
+> const secret = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD;
+> const token = crypto.createHmac('sha256', secret)
+>     .update(`admin-${Date.now()}`)
+>     .digest('hex');
+> ```
+
+---
+
+#### ⚠️ ACCIÓN MANUAL PENDIENTE — Credenciales en historial Git
+**Archivo:** `docs/MASTER_SETUP_GUIDE.md` (corregido en código)
+
+**Cambio aplicado:** Se eliminaron todos los valores reales de la tabla de variables de entorno y se reemplazaron por descripciones instructivas.
 
 > ⚠️ **ACCIÓN MANUAL REQUERIDA — URGENTE:**
 > El historial de Git anterior aún contiene los commits con las credenciales. Debes:
@@ -41,252 +74,327 @@ El proyecto Vidahome es una aplicación web inmobiliaria bien construida con un 
 >    ```
 > 3. **Limpiar el historial** si aparecen commits:
 >    ```bash
->    # Instalar git-filter-repo (pip install git-filter-repo)
 >    git filter-repo --replace-text <(echo "HQYn5#Gg8==>REDACTED")
 >    git push --force
 >    ```
-> 4. Si el repositorio es público en GitHub, usar la herramienta de eliminación de secretos de GitHub Security.
 
 ---
 
 #### ✅ RESUELTO — Ruta `/admin-hero` sin protección de middleware
 **Archivo:** `src/middleware.ts`
 
-**Cambio aplicado:** El matcher del middleware ahora incluye `/admin-hero` y `/admin-hero/*`:
+**Cambio aplicado:** Toda la lógica administrativa se ha consolidado bajo `/admin/*`. El middleware ahora protege todas las rutas con un único matcher simplificado:
 
 ```typescript
 export const config = {
-    matcher: ['/admin/:path*', '/admin-hero', '/admin-hero/:path*'],
+    matcher: ['/admin/:path*'],
 };
 ```
 
-La lógica de detección también se actualizó para cubrir ambos prefijos:
-
-```typescript
-const isAdminPage = pathname.startsWith('/admin') || pathname.startsWith('/admin-hero');
-```
-
-Cualquier acceso a `/admin-hero` sin cookie `admin_session` redirige automáticamente a `/admin/login`.
+La ruta antigua `/admin-hero` ha sido eliminada. Todas las funciones de gestión del hero están ahora en `/admin/hero`.
 
 ---
 
 #### ✅ RESUELTO — Contraseña de admin hardcodeada como fallback
-**Archivo:** `src/app/actions.ts` — función `loginAction`
+**Archivo:** `src/app/actions/auth.ts`
 
-**Cambio aplicado:** Se eliminó el fallback `|| 'VID@home0720'`. Ahora si `ADMIN_PASSWORD` no está configurado en las variables de entorno, la función devuelve un error claro en lugar de usar un valor por defecto inseguro:
+**Cambio aplicado:** Se eliminó el fallback inseguro. Si `ADMIN_PASSWORD` no está configurado, la función devuelve un error claro:
 
 ```typescript
 const adminPass = process.env.ADMIN_PASSWORD;
 if (!adminPass) {
-    console.error('[Auth] ADMIN_PASSWORD no está configurado en las variables de entorno.');
+    console.error('[Auth] ADMIN_PASSWORD no está configurado.');
     return { success: false, error: 'Error de configuración del servidor' };
 }
 ```
-
-> ⚠️ **Verificar:** Asegúrate de que `ADMIN_PASSWORD` está configurado en el panel de Vercel antes de hacer deploy.
 
 ---
 
 #### ✅ RESUELTO — Endpoint de debug expuesto en producción
 **Archivo:** `src/app/api/debug/ip/route.ts`
 
-**Cambio aplicado:** Se añadió un guard al inicio del handler que devuelve `404` inmediatamente en producción, sin ejecutar ninguna lógica ni revelar información de infraestructura. El endpoint sigue funcionando en desarrollo local para depuración:
-
-```typescript
-if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
-}
-```
-
-En producción (Vercel), `/api/debug/ip` ahora devuelve un genérico `404 Not found` sin revelar IPs, headers ni instrucciones de configuración.
+**Cambio aplicado:** Guard de entorno que devuelve `404` en producción sin revelar información de infraestructura.
 
 ---
 
-#### ✅ RESUELTO — Política RLS de Supabase demasiado permisiva
-**Archivo:** Configuración de Supabase (panel web)
-
-**Cambio aplicado:** Se implementó un cliente `supabaseAdmin` con la `SERVICE_ROLE_KEY` para todas las operaciones de escritura del panel de administración. Esto permite que el admin siga funcionando incluso con una política RLS restrictiva en Supabase.
+#### ✅ RESUELTO — Política RLS de Supabase
+**Implementación:** Se usa `supabaseAdmin` (con `SERVICE_ROLE_KEY`) para escrituras del admin, y el cliente público (`anon key`) solo para lecturas.
 
 > ⚠️ **ACCIÓN MANUAL REQUERIDA:**
-> Ejecutar este SQL en el panel de Supabase → SQL Editor:
+> Ejecutar en Supabase → SQL Editor:
 > ```sql
-> -- 1. Activar RLS en la tabla correcta
-> ALTER TABLE public.hero_slides ENABLE ROW LEVEL SECURITY;
-> 
-> -- 2. Eliminar políticas antiguas si existen
-> DROP POLICY IF EXISTS "Gestión Admin" ON public.hero_slides;
-> 
-> -- 3. Crear política que permite lectura pública a todos
-> CREATE POLICY "Lectura pública hero_slides" ON public.hero_slides
+> CREATE TABLE IF NOT EXISTS hero_slides (
+>   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+>   type TEXT NOT NULL DEFAULT 'video',
+>   video_path TEXT NOT NULL,
+>   link_url TEXT,
+>   title TEXT,
+>   "order" INTEGER DEFAULT 0,
+>   active BOOLEAN DEFAULT true,
+>   poster TEXT,
+>   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+> );
+> ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+> CREATE POLICY "Lectura pública hero_slides" ON hero_slides
 >     FOR SELECT USING (true);
 > ```
-> Las operaciones de escritura (INSERT/UPDATE/DELETE) ya están protegidas en el código mediante el uso de la clave de servicio secreta en el servidor.
 
 ---
 
-#### ✅ RESUELTO — Sin rate limiting en formularios públicos
-**Archivos:** `src/lib/rate-limit.ts`, `src/app/actions/inmovilla.ts`, `src/app/api/leads/valuation/route.ts`
+#### ✅ RESUELTO — Sanitización de texto refinada
+**Archivo:** `src/lib/api/web-client.ts`
 
-**Cambio aplicado:**
-1. **Rate Limiting Persistente:** Se creó una utilidad que rastrea intentos por IP en Supabase.
-   - Límite de **3 envíos/hora** para contacto general.
-   - Límite de **5 tasaciones/hora** para prevenir raspado del Catastro.
-2. **Honeypot Anti-spam:** Campos ocultos añadidos a todos los formularios públicos. Los bots que los rellenan son bloqueados silenciosamente sin darles pistas de error.
+Se permite ahora apóstrofes individuales (ej: `O'Brien`) mientras se mantienen bloqueos contra inyecciones SQL.
 
-> ⚠️ **ACCIÓN MANUAL REQUERIDA:**
-> Ejecutar este SQL para habilitar el rastreo de rate limiting:
-> ```sql
-> CREATE TABLE public.rate_limits (
->     identifier TEXT PRIMARY KEY,
->     count INTEGER DEFAULT 0,
->     last_attempt TIMESTAMPTZ DEFAULT now(),
->     reset_at TIMESTAMPTZ NOT NULL
-> );
-> ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
-> -- El servidor (admin) gestiona esto, no hace falta política pública.
+---
+
+#### ✅ RESUELTO — Rate Limiting y Anti-spam
+**Archivos:** `src/lib/rate-limit.ts`, formularios de contacto y vender.
+
+- **Rate Limiting Persistente:** 3 envíos/hora para contacto, 5 tasaciones/hora.
+- **Honeypot Anti-spam:** Implementado en `ContactForm.tsx`, `VenderPage` y `ValuationContactForm.tsx`.
+
+---
+
+### 2.2 Subida de Archivos
+
+#### 🟠 NUEVO — Sin validación de tipo ni tamaño de archivo en `uploadMediaAction`
+**Archivo:** `src/app/actions/media.ts`
+
+**Problema:** La función acepta cualquier archivo que el navegador envíe. No hay validación de:
+- **Tipo MIME:** Un atacante podría subir un archivo `.html` o `.svg` con JavaScript malicioso al bucket público.
+- **Tamaño máximo:** El `bodySizeLimit` en `next.config.ts` está en `50mb`, pero no hay verificación en la acción.
+- **Nombre:** Se genera un nombre aleatorio (bien), pero no se sanea la extensión.
+
+**Estado actual:**
+```typescript
+const file = formData.get('file') as File;
+if (!file) throw new Error('No se ha proporcionado ningún archivo');
+// ❌ No hay más validación
+```
+
+> ⚠️ **RECOMENDACIÓN:**
+> ```typescript
+> const ALLOWED_TYPES = ['video/mp4', 'video/webm', 'image/jpeg', 'image/png', 'image/webp'];
+> const MAX_SIZE = 30 * 1024 * 1024; // 30MB
+> 
+> if (!ALLOWED_TYPES.includes(file.type)) {
+>     return { success: false, error: 'Tipo de archivo no permitido' };
+> }
+> if (file.size > MAX_SIZE) {
+>     return { success: false, error: 'El archivo supera el límite de 30MB' };
+> }
 > ```
 
 ---
 
-#### ✅ RESUELTO — Sanitización de texto demasiado agresiva
-**Archivo:** `src/lib/api/web-client.ts`
+### 2.3 Arquitectura
 
-**Cambio aplicado:** Se refinó la regex de detección de comillas para permitir apóstrofes individuales (ej: `O'Brien`) mientras se mantienen bloqueos contra patrones de inyección SQL balanceados y operadores peligrosos.
-
----
-
-### 2.2 Arquitectura
-
-#### ✅ RESUELTO — Sistema de caché incompatible con Vercel (serverless)
+#### ✅ RESUELTO — Sistema de caché compatible con Vercel
 **Archivo:** `src/lib/api/cache.ts`
 
-**Cambio aplicado:** Se reemplazó completamente el módulo de caché. La implementación anterior usaba `fs.writeFileSync` que no funciona en entornos serverless. La nueva implementación tiene dos capas:
-
-1. **`MemoryCache`** — Mantiene compatibilidad con el código existente que usa `apiCache.get/set/remove`. Útil en desarrollo local.
-
-2. **`withNextCache(fn, key, options)`** — Nueva función que envuelve cualquier función async con `unstable_cache` de Next.js 16. Esta caché **sí persiste entre invocaciones serverless** en Vercel usando la Data Cache del framework.
-
-```typescript
-// Uso en actions.ts:
-const _fetchPropertiesFromApi = withNextCache(
-    'inmovilla_property_list',
-    async (numagencia, password, ...) => { /* fetch */ },
-    { revalidate: 1200, tags: ['inmovilla_property_list'] }
-);
-```
-
-**Invalidación correcta:** Al actualizar propiedades destacadas, se llama a `revalidateTag('inmovilla_property_list', {})` para forzar un refresco en la próxima petición.
-
-**Impacto en rendimiento:** La página `/propiedades` y la home ahora se benefician de caché real en producción. El tiempo de respuesta debería bajar de ~2-3s a <100ms en peticiones cacheadas.
+Implementación de dos capas: `MemoryCache` para desarrollo + `withNextCache` (Next.js Data Cache) para producción con `revalidateTag`.
 
 ---
 
-#### ⚠️ PENDIENTE — Monolito de `actions.ts`
-El archivo tiene 417 líneas y mezcla responsabilidades muy diferentes. Debería dividirse en módulos: `auth.actions.ts`, `properties.actions.ts`, `hero.actions.ts`, etc.
+#### ✅ RESUELTO — Monolito de acciones dividido
+**Directorio:** `src/app/actions/`
 
-#### ⚠️ PENDIENTE — Página `/vender` con >1000 líneas
-El componente `VenderPage` es un megacomponente. Debería dividirse en subcomponentes: `PropertySearchForm`, `PropertyDetails`, `ValuationEstimation`, `ContactStep`.
-
-#### ✅ RESUELTO — Inconsistencia en rutas del admin
-La ruta `/admin-hero` ha sido movida a `/admin/hero` para mantener la coherencia con el resto del ecosistema administrativo (`/admin/*`). El middleware y los enlaces internos han sido actualizados en consecuencia.
+Se ha modularizado en: `auth.ts`, `catastro.ts`, `hero.ts`, `inmovilla.ts`, `media.ts`.
 
 ---
 
-### 2.3 Optimización de Código
-
-#### ✅ RESUELTO — Doble ordenación redundante en `fetchPropertiesAction`
-La ordenación redundante (líneas 85 y 95 del original) fue eliminada al refactorizar la función con `withNextCache`. Ahora la ordenación se aplica una sola vez dentro de la función cacheada.
-
-#### ✅ RESUELTO — Clave de caché obsoleta en `updateFeaturedPropertiesAction`
-La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplazada por `revalidateTag('inmovilla_property_list', {})`, que invalida correctamente la caché de Next.js.
-
-#### ✅ RESUELTO — `localidades_map.json` (254 KB) en bundle del cliente
-**Archivo:** `src/app/vender/page.tsx`
-
-**Cambio aplicado:** Se eliminó el import directo del JSON en el componente de cliente. La lógica de autocompletado de municipios que usaba este archivo era código muerto redundante tras la implementación de los desplegables en cascada. El archivo ahora solo se carga en el servidor (`actions.ts`), reduciendo el peso de la página de Vender en ~250KB.
-
-#### ✅ RESUELTO — `alert()` nativo en página de Vender
-**Archivo:** `src/app/vender/page.tsx`
-
-**Cambio aplicado:** Se instaló e integró `sonner`. Todas las llamadas a `alert()` han sido reemplazadas por `toast.error()` y `toast.success()`, proporcionando una interfaz mucho más profesional.
+#### ✅ RESUELTO — Inconsistencia en rutas admin
+La ruta `/admin-hero` ha sido movida a `/admin/hero` bajo el ecosistema unificado `/admin/*`.
 
 ---
 
-### 2.4 Mejores Prácticas
+#### 🟠 NUEVO — Sin `error.tsx` ni `loading.tsx` globales
+**Directorio:** `src/app/`
 
-#### ✅ RESUELTO — Código monolítico y difícil de mantener
-**Archivos:** `src/app/actions.ts` y `src/app/vender/page.tsx`
+**Problema:** No existen archivos `error.tsx` ni `loading.tsx` en la raíz de la aplicación. Esto significa que:
+- Si una página o Server Action falla en producción, el usuario ve la pantalla genérica de error de Next.js (poco profesional).
+- No hay indicador de carga visual al navegar entre páginas.
 
-**Cambio aplicado:** 
-- **Server Actions:** Se ha dividido `actions.ts` en un directorio `src/app/actions/` con módulos especializados (`auth`, `catastro`, `hero`, `inmovilla`, `media`).
-- **Página de Vender:** Se han extraído los componentes de interfaz en `src/app/vender/components/` (`PropertySearch`, `PropertyDetailsDisplay`, `ValuationContactForm`, `StepsIndicator`).
-- **Resultado:** El archivo `page.tsx` ha pasado de **987 líneas a menos de 300**, y las acciones están ahora categorizadas, eliminando el "archivo basura" centralizado.
-
----
-
-#### SEO — Pendiente
-- ❌ Sin `og:image` para compartición en redes sociales
-- ❌ Sin Schema.org (RealEstateListing) para rich snippets en Google
-- ❌ Sin `sitemap.xml` ni `robots.txt`
-- ❌ Títulos de páginas interiores no son dinámicos
-- ❌ Imágenes con `<img>` en lugar de `<Image>` de Next.js (sin optimización WebP/lazy)
-
-#### Manejo de Errores — Pendiente
-- ❌ Errores silenciados con `catch (e) {}` en varios lugares
-- ❌ Sin logging centralizado
-
-#### Mantenibilidad — Pendiente
-- ❌ Sin tests automatizados
-- ❌ Archivos de debug en el repositorio (`test-catastro-live.js`, `hit_api.js`)
+> ⚠️ **RECOMENDACIÓN:**
+> Crear `src/app/error.tsx` y `src/app/loading.tsx` con el diseño premium de Vidahome para mantener una experiencia consistente incluso ante errores o tiempos de carga largos.
 
 ---
 
-## 3. Priorización de Issues — Estado Actualizado
+### 2.4 Manejo de Errores
+
+#### ⚠️ PARCIALMENTE PENDIENTE — Errores silenciados en acciones
+**Archivo:** `src/app/actions/inmovilla.ts`
+
+Se detectan **4 bloques `catch` vacíos** (`catch (e) { }`) en las funciones de IP y localidades. Estos fallos silenciosos dificultan enormemente la depuración en producción.
+
+**Bloques afectados (líneas):** 56, 98, 112 (IP fallback), y más.
+
+> ⚠️ **RECOMENDACIÓN:**
+> Sustituir `catch (e) { }` por `catch (e) { console.warn('[Context]', e); }` como mínimo.
+
+---
+
+### 2.5 SEO y Rendimiento
+
+#### ✅ RESUELTO — Metadatos OpenGraph y Twitter
+**Archivo:** `src/app/layout.tsx`
+
+Implementados correctamente con imagen, título, descripción, locale y siteName.
+
+#### ✅ RESUELTO — Schema.org y Sitemap
+**Archivos:** `src/components/GlobalSchema.tsx`, `src/app/sitemap.ts`, `src/app/robots.ts`
+
+- GlobalSchema con datos estructurados de RealEstateAgent.
+- Sitemap dinámico que incluye propiedades.
+- Robots.txt con referencia al sitemap.
+
+#### ✅ RESUELTO — Metadata dinámica en páginas interiores
+**Archivo:** `src/app/propiedades/[id]/page.tsx`
+
+Implementación de `generateMetadata` para títulos y descripciones dinámicas por propiedad.
+
+#### ✅ RESUELTO — Migración completa a `next/image`
+Todas las etiquetas `<img>` han sido reemplazadas por el componente `Image` de Next.js en: `LuxuryHero.tsx`, `PropertyGallery.tsx`, `Logo.tsx`, y `nosotros/page.tsx`.
+
+---
+
+### 2.6 Legal y Cumplimiento
+
+#### ✅ RESUELTO — LSSI/RGPD
+**Archivos:** `src/app/legal/aviso-legal/`, `src/app/legal/privacidad/`, `src/app/legal/cookies/`
+
+Páginas legales creadas y enlazadas. Componente `CookieConsent` integrado en el layout global.
+
+---
+
+### 2.7 Optimización de Código
+
+#### ✅ RESUELTO — Doble ordenación redundante
+Eliminada al refactorizar con `withNextCache`.
+
+#### ✅ RESUELTO — Clave de caché obsoleta
+Reemplazada por `revalidateTag('inmovilla_property_list')`.
+
+#### ✅ RESUELTO — JSON pesado eliminado del bundle cliente
+`localidades_map.json` (254 KB) solo se carga en servidor.
+
+#### ✅ RESUELTO — `alert()` reemplazado por `sonner`
+Todos los formularios y el panel admin usan `toast.error()` / `toast.success()`.
+
+---
+
+### 2.8 Tests
+
+#### ✅ PARCIAL — Framework de tests configurado
+- **Vitest + React Testing Library** instalados y configurados.
+- Se encontró **1 archivo de test:** `src/lib/utils/text-cleaner.test.ts`.
+- **Cobertura:** Solo cubre la utilidad de limpieza de texto. No hay tests para Server Actions, componentes principales ni flujos de usuario.
+
+> ⚠️ **RECOMENDACIÓN:** Ampliar tests a Server Actions críticas (`loginAction`, `saveHeroSlideAction`, `submitLeadAction`).
+
+---
+
+## 3. Variables de Entorno Requeridas
+
+Esta tabla documenta **todas** las variables que deben estar configuradas en Vercel. La falta de cualquiera de ellas puede causar fallos silenciosos.
+
+| Variable | Uso | Obligatoria |
+|----------|-----|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Conexión pública a Supabase | ✅ Sí |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave pública de Supabase | ✅ Sí |
+| `SUPABASE_SERVICE_ROLE_KEY` | Escrituras admin (bypass RLS) | ✅ Sí |
+| `ADMIN_PASSWORD` | Login al panel de administración | ✅ Sí |
+| `INMOVILLA_AGENCIA` | Nº de agencia para API Web | ✅ Sí |
+| `INMOVILLA_PASSWORD` | Contraseña API Web | ✅ Sí |
+| `INMOVILLA_TOKEN` | Token para API REST (fallback) | ✅ Sí |
+| `INMOVILLA_AUTH_TYPE` | Tipo de autenticación (`Token` o `Bearer`) | ✅ Sí |
+| `INMOVILLA_DOMAIN` | Dominio para validación API | ⚠️ Recomendada |
+| `ARSYS_PROXY_URL` | URL del proxy de IP estática | ⚠️ Si se usa Vercel |
+| `ARSYS_PROXY_SECRET` | Secreto compartido con proxy | ⚠️ Si se usa proxy |
+| `RESEND_API_KEY` | Envío de emails transaccionales | ⚠️ Recomendada |
+
+---
+
+## 4. Tablas SQL Requeridas en Supabase
+
+Estas tablas deben existir para que la aplicación funcione correctamente:
+
+| Tabla | Función | RLS |
+|-------|---------|-----|
+| `hero_slides` | Configuración del banner de la home | Lectura pública |
+| `featured_properties` | IDs de propiedades destacadas | Lectura pública |
+| `leads` | Backup de contactos recibidos | Sin política pública |
+| `rate_limits` | Rastreo de intentos por IP | Sin política pública |
+
+---
+
+## 5. Priorización de Issues — Estado Actualizado
 
 | # | Severidad | Issue | Estado |
 |---|-----------|-------|--------|
-| 1 | 🔴 Crítico | Credenciales de Inmovilla en Git/GitHub | ✅ Código corregido — ⚠️ Rotar contraseña + limpiar Git |
-| 2 | 🔴 Crítico | Configuración de headers de seguridad (CSP, HSTS) | ✅ **Resuelto** — Implementado en `next.config.ts` |
-| 3 | 🔴 Crítico | Validación de entradas en Inmovilla Client | ✅ **Resuelto** — Sanitización implementada |
-| 4 | 🟠 Alto | No hay persistencia de caché fuera de memoria | ✅ **Resuelto** — `unstable_cache` implementada |
-| 5 | 🟠 Alto | Falta Aviso Legal y Privacidad (LSSI/RGPD) | ✅ **Resuelto** — Páginas legales + Consentimiento |
-| 6 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** — Guard de entorno añadido |
-| 7 | 🟠 Alto | RLS de Supabase demasiado permisiva en `hero_slides` | ✅ **Resuelto en código** — Bypass con Service Role |
-| 8 | 🟡 Medio | `alert()` nativo en página de Vender | ✅ **Resuelto** — Sonner implementado |
-| 9 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | ✅ **Resuelto** — Movido a servidor |
-| 10 | 🟡 Medio | Sin rate limiting en formularios públicos | ✅ **Resuelto** — Persistent Rate Limit + Honeypot |
-| 11 | 🟡 Medio | Sin Schema.org ni sitemap.xml | ✅ **Resuelto** — Sitemap, Robots & JSON-LD implementados |
-| 12 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | ✅ **Resuelto** — Migración a `next/image` completada |
-| 13 | 🟢 Bajo | `actions.ts` monolítico (417 líneas) | ✅ **Resuelto** — Modularizado en `src/app/actions/` |
-| 14 | 🟢 Bajo | `VenderPage` megacomponente (>1000 líneas) | ✅ **Resuelto** — Componentizado en `src/app/vender/components/` |
-| 15 | 🟢 Bajo | Sin tests automatizados | ✅ **Resuelto** — Vitest + React Testing Library |
-| 16 | 🟢 Bajo | Archivos de debug en el repositorio | ✅ **Resuelto** — Limpieza de scripts raíz realizada |
+| 1 | 🔴 Crítico | Credenciales en historial Git | ⚠️ Acción manual pendiente |
+| 2 | 🔴 Crítico | Cookie admin sin firma criptográfica | 🔴 **Pendiente** |
+| 3 | 🟠 Alto | Sin validación de archivos en upload | 🟠 **Pendiente** |
+| 4 | 🟠 Alto | Sin `error.tsx` / `loading.tsx` globales | 🟠 **Pendiente** |
+| 5 | 🟠 Alto | Headers de seguridad (CSP, HSTS) | ✅ Resuelto |
+| 6 | 🟠 Alto | Validación de entradas en API Client | ✅ Resuelto |
+| 7 | 🟠 Alto | Caché incompatible con Vercel | ✅ Resuelto |
+| 8 | 🟠 Alto | LSSI/RGPD: aviso legal y privacidad | ✅ Resuelto |
+| 9 | 🟠 Alto | Endpoint debug expuesto en producción | ✅ Resuelto |
+| 10 | 🟡 Medio | Errores silenciados en catch vacíos | ⚠️ Parcialmente pendiente |
+| 11 | 🟡 Medio | `alert()` nativo en formularios | ✅ Resuelto |
+| 12 | 🟡 Medio | Schema.org, sitemap, robots | ✅ Resuelto |
+| 13 | 🟡 Medio | Imágenes con `<img>` sin optimizar | ✅ Resuelto |
+| 14 | 🟡 Medio | OpenGraph / Twitter Cards | ✅ Resuelto |
+| 15 | 🟢 Bajo | `actions.ts` monolítico | ✅ Resuelto |
+| 16 | 🟢 Bajo | `VenderPage` megacomponente | ✅ Resuelto |
+| 17 | 🟢 Bajo | Tests automatizados | ✅ Parcial — Framework OK, cobertura baja |
 
 ---
 
-## 4. Próximos Pasos Recomendados
-1. **Rotar contraseña de Inmovilla** — Contactar con soporte de Inmovilla.
-2. **Verificar y limpiar historial de Git** — Ver instrucciones en sección 2.1.
-3. **Optimizar imágenes con `<Image>` de Next.js** — Cambiar `<img>` por el componente nativo de Next.
-4. **Implementar Tests E2E** — Asegurar que los flujos de contacto no fallen en el tiempo.
+## 6. Próximos Pasos Recomendados (Prioridad)
+
+### Inmediatos (Seguridad)
+1. **Rotar contraseña de Inmovilla** — Contactar con soporte.
+2. **Firmar cookie de sesión admin** — Evitar falsificación manual.
+3. **Validar archivos en `uploadMediaAction`** — Tipo MIME y tamaño máximo.
+
+### Corto Plazo (UX Producción)
+4. **Crear `error.tsx` y `loading.tsx`** — Experiencia visual coherente ante errores.
+5. **Reemplazar `catch {}` vacíos** — Logging mínimo para depuración.
+
+### Medio Plazo (Calidad)
+6. **Ampliar cobertura de tests** — Server Actions y flujos críticos.
+7. **Implementar Tests E2E** — Flujos de contacto y admin.
 
 ---
 
-## 5. Cambios Aplicados en Esta Sesión
+## 7. Cambios Aplicados en Todas las Sesiones
 
 | Archivo | Cambio |
 |---------|--------|
-| `docs/MASTER_SETUP_GUIDE.md` | Eliminadas credenciales reales, reemplazadas por placeholders |
-| `src/middleware.ts` | Añadido `/admin-hero` y `/admin-hero/*` al matcher de protección |
-| `src/lib/api/cache.ts` | Reescrito: `MemoryCache` + `withNextCache` (Next.js Data Cache) |
-| `src/app/actions.ts` | `fetchPropertiesAction` usa `withNextCache`; eliminado fallback de contraseña; `revalidateTag` correcto |
-| `src/app/api/debug/ip/route.ts` | Guard de entorno: devuelve `404` en producción sin ejecutar lógica |
-| `src/lib/supabase-admin.ts` | Nuevo cliente Supabase con privilegios elevados para el servidor |
-| `src/components/LuxuryHero.tsx` | Corrección de nombre de tabla `hero_slides` y suscripción Realtime |
-| `src/app/actions.ts` | Migración de todas las escrituras a `supabaseAdmin` y corrección a `hero_slides` |
+| `docs/MASTER_SETUP_GUIDE.md` | Eliminadas credenciales reales, ruta actualizada a `/admin/hero` |
+| `src/middleware.ts` | Consolidado matcher a `/admin/:path*` |
+| `src/lib/api/cache.ts` | `MemoryCache` + `withNextCache` (Next.js Data Cache) |
+| `src/app/actions/` | Modularización en `auth`, `catastro`, `hero`, `inmovilla`, `media` |
+| `src/app/actions/auth.ts` | Eliminado fallback de contraseña |
+| `src/app/api/debug/ip/route.ts` | Guard de entorno: `404` en producción |
+| `src/lib/supabase-admin.ts` | Cliente Supabase con SERVICE_ROLE_KEY |
+| `src/components/LuxuryHero.tsx` | Tabla corregida a `hero_slides`, Realtime, `next/image` |
+| `src/components/PropertyGallery.tsx` | Migración a `next/image` |
+| `src/components/Logo.tsx` | Migración a `next/image` |
+| `src/app/nosotros/page.tsx` | Migración a `next/image` |
+| `src/app/admin/hero/page.tsx` | Nueva ruta consolidada, `toast` en lugar de `alert` |
+| `src/lib/api/web-client.ts` | Sanitización refinada (apóstrofes permitidos) |
+| `src/app/layout.tsx` | OpenGraph + Twitter Cards |
+| `next.config.ts` | CSP, HSTS, X-Frame-Options, redirects SEO |
+| `src/lib/rate-limit.ts` | Rate limiting persistente |
+| `src/app/sitemap.ts` | Sitemap dinámico |
+| `src/app/robots.ts` | Robots.txt con referencia a sitemap |
 
-**Build status:** ✅ `Exit code: 0` — Compilación exitosa sin errores TypeScript.
+**Build status:** ✅ Compilación exitosa sin errores TypeScript.
 
 ---
 
-*Documento actualizado el 19/02/2026 — Auditoría con correcciones integrales aplicadas.*
+*Documento actualizado el 19/02/2026 — Auditoría integral con estado real del código verificado.*
