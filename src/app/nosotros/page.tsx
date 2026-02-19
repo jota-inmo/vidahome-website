@@ -77,22 +77,22 @@ export default function NosotrosPage() {
                                 {[
                                     {
                                         icon: <ShieldCheck size={28} />,
-                                        title: "Legalidad Blindada",
+                                        title: "Legalidad blindada",
                                         desc: "Abogados que no solo revisan papeles, cuidan tus intereses."
                                     },
                                     {
                                         icon: <Award size={28} />,
-                                        title: "Arquitectura Real",
+                                        title: "Arquitectura real",
                                         desc: "Técnicos que dan soluciones, no problemas administrativos."
                                     },
                                     {
                                         icon: <Users size={28} />,
-                                        title: "Gente de Palabra",
+                                        title: "Gente de palabra",
                                         desc: "Profesionales de reformas que cumplen plazos y presupuestos."
                                     },
                                     {
                                         icon: <Handshake size={28} />,
-                                        title: "Cercanía Total",
+                                        title: "Cercanía total",
                                         desc: "Siempre a un café de distancia para resolver cualquier duda."
                                     }
                                 ].map((item, i) => (
@@ -121,13 +121,13 @@ export default function NosotrosPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
                         <div className="space-y-4">
-                            <h4 className="text-xs uppercase tracking-widest text-teal-600 font-bold">Un Compromiso Real</h4>
+                            <h4 className="text-xs uppercase tracking-widest text-teal-600 font-bold">Un compromiso real</h4>
                             <p className="text-slate-600 dark:text-slate-400 font-light leading-relaxed">
                                 Somos una empresa que cree en el valor de la palabra dada. En un sector a menudo deshumanizado, nosotros priorizamos la ética y la transparencia sobre la comisión inmediata.
                             </p>
                         </div>
                         <div className="space-y-4">
-                            <h4 className="text-xs uppercase tracking-widest text-teal-600 font-bold">Post-Venta Diferencial</h4>
+                            <h4 className="text-xs uppercase tracking-widest text-teal-600 font-bold">Post-venta diferencial</h4>
                             <p className="text-slate-600 dark:text-slate-400 font-light leading-relaxed">
                                 Pregúntale a cualquiera de nuestros clientes qué pasa seis meses después de la compra. Seguimos ahí para lo que necesites: desde el cambio de suministros hasta la búsqueda del mejor técnico para una pequeña mejora.
                             </p>
@@ -150,22 +150,22 @@ export default function NosotrosPage() {
                         {[
                             {
                                 icon: <Zap size={32} />,
-                                title: "Gremios Verificados",
+                                title: "Gremios verificados",
                                 desc: "Conexión directa con profesionales de confianza que nosotros mismos hemos puesto a prueba."
                             },
                             {
                                 icon: <FileText size={32} />,
-                                title: "Asesoramiento Continuo",
+                                title: "Asesoramiento continuo",
                                 desc: "Nuestro acompañamiento no termina en la notaría; resolvemos cualquier trámite o duda posterior."
                             },
                             {
                                 icon: <BadgeCheck size={32} />,
-                                title: "Confianza Comprobada",
+                                title: "Confianza comprobada",
                                 desc: "Gestión basada en resultados que hemos verificado personalmente en nuestras propias viviendas."
                             },
                             {
                                 icon: <Link size={32} />,
-                                title: "Red donde Todos Ganan",
+                                title: "Red donde todos ganan",
                                 desc: "Un ecosistema que aporta seguridad total al cliente y tranquilidad al profesional serio."
                             }
                         ].map((item, i) => (
@@ -213,7 +213,7 @@ export default function NosotrosPage() {
             {/* Small Footer Detail */}
             <footer className="py-12 px-6 border-t border-slate-100 dark:border-slate-800 text-center">
                 <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">
-                    Vidahome • Compromiso Ético en Gandía
+                    Vidahome · Compromiso ético en Gandía
                 </p>
             </footer>
 

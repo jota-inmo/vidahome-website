@@ -16,7 +16,7 @@ export default function Home() {
         <div className="max-w-[1600px] mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-8">
             <div className="max-w-2xl">
-              <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Selección de Inmuebles</span>
+              <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Selección de inmuebles</span>
               <h2 className="text-3xl md:text-4xl font-serif text-[#0a192f] dark:text-white leading-tight">
                 Propiedades de Vidahome
               </h2>
@@ -25,7 +25,7 @@ export default function Home() {
               href="/propiedades"
               className="text-[11px] tracking-[0.3em] uppercase font-bold text-[#0a192f] dark:text-white border-b border-[#0a192f] dark:border-white pb-1 hover:opacity-60 transition-all"
             >
-              Ver Todo el Catálogo
+              Ver todo el catálogo
             </Link>
           </div>
 
@@ -82,11 +82,11 @@ export default function Home() {
             </div>
             <div className="p-8 border border-slate-50 dark:border-slate-900 shadow-sm">
               <span className="text-4xl md:text-5xl font-serif text-[#0a192f] dark:text-white block mb-4">+25</span>
-              <span className="text-[10px] tracking-widest uppercase text-slate-400">Años de Experiencia</span>
+              <span className="text-[10px] tracking-widest uppercase text-slate-400">Años de experiencia</span>
             </div>
             <div className="p-8 border border-slate-50 dark:border-slate-900 shadow-sm">
               <span className="text-4xl md:text-5xl font-serif text-[#0a192f] dark:text-white block mb-4">100%</span>
-              <span className="text-[10px] tracking-widest uppercase text-slate-400">Compromiso Ético</span>
+              <span className="text-[10px] tracking-widest uppercase text-slate-400">Compromiso ético</span>
             </div>
           </div>
         </div>

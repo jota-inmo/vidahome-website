@@ -118,7 +118,7 @@ export const LuxuryHero = () => {
                             {/* Center Content */}
                             <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-8 text-center text-white">
                                 <span className="text-[10px] tracking-[0.6em] uppercase font-bold mb-8 block text-teal-400 drop-shadow-xl animate-fade-in opacity-80">
-                                    Explora el Ecosistema Vidahome
+                                    Explora el ecosistema Vidahome
                                 </span>
 
                                 <h1 className="text-3xl sm:text-4xl md:text-8xl font-serif mb-8 md:mb-12 leading-[1.1] md:leading-[1.05] tracking-tight drop-shadow-2xl max-w-5xl transition-all duration-1000">
@@ -155,7 +155,7 @@ export const LuxuryHero = () => {
                             href="/propiedades"
                             className="bg-white text-[#0a192f] px-8 md:px-12 py-4 md:py-5 text-[10px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold hover:bg-teal-500 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm active:scale-95"
                         >
-                            Ver Catálogo
+                            Ver catálogo
                         </Link>
                     </div>
                 </div>

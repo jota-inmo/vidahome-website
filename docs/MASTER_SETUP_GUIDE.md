@@ -28,8 +28,8 @@ Ubicado en el servidor de Arsys en `/api/inmovilla-proxy.php`.
 ## 3. Integración Inmovilla Web API
 Se ha implementado un cliente profesional (`src/lib/api/web-client.ts`) que maneja:
 *   **Credenciales**: 
-    *   Agencia: `13031`
-    *   Sucursal: `_244_ext`
+    *   Agencia: `ID_AGENCIA`
+    *   Sucursal: `ID_SUCURSAL`
     *   Dominio registrado: `vidahome.es`
 *   **Seguridad**: Validación de tipos de datos y saneamiento de entradas para evitar inyecciones.
 *   **Ordenación**: Configurado para mostrar siempre lo más reciente primero (`cod_ofer DESC`). Esto es un requisito de negocio crítico para garantizar que las últimas captaciones encabecen el catálogo.
@@ -105,6 +105,7 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 | `ARSYS_PROXY_SECRET` | Clave secreta aleatoria (debe coincidir con `PROXY_SECRET` en el PHP de Arsys) |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL de tu proyecto Supabase (panel de Supabase → Settings → API) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anónima de Supabase (panel de Supabase → Settings → API) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **CRÍTICO**: Clave de servicio para operaciones admin (panel de Supabase → Settings → API) |
 | `ADMIN_PASSWORD` | Contraseña elegida para acceder a `/admin/login` (mínimo 12 caracteres) |
 
 ---
@@ -215,9 +216,9 @@ El proyecto incluye una infraestructura de tests automatizados para asegurar la 
 1.  **Cumplimiento Legal (Cookies & GDPR)**: ✅ **Completado**
     *   Implementado banner de consentimiento, páginas legales y headers de seguridad.
 2.  **Estrategia SEO & GEO (Posicionamiento Local)**:
-    *   **GEO-SEO**: Optimización profunda para Gandia y La Safor.
-    *   **Rich Snippets**: Marcado Schema.org (JSON-LD) para propiedades (precio, fotos, estrellas en Google).
-    *   **Social Graph**: Optimización de OpenGraph para compartición enriquecida en WhatsApp/Redes.
+    *   **GEO-SEO**: optimización profunda para Gandía y la Safor.
+    *   **Rich Snippets**: marcado Schema.org (JSON-LD) para propiedades (precio, fotos, estrellas en Google).
+    *   **Social Graph**: optimización de OpenGraph para compartición enriquecida en WhatsApp y redes sociales.
 
 ---
 ---

@@ -19,7 +19,7 @@ export default function ContactoPage() {
                     {/* Información de Contacto */}
                     <div className="space-y-12">
                         <div>
-                            <h2 className="text-3xl font-serif text-slate-900 dark:text-white mb-8">Nuestra Oficina</h2>
+                            <h2 className="text-3xl font-serif text-slate-900 dark:text-white mb-8">Nuestra oficina</h2>
                             <p className="text-slate-500 dark:text-slate-400 font-light leading-relaxed text-lg max-w-md">
                                 Visítanos en nuestra oficina en el Grau de Gandia para una atención personalizada sobre tu próxima gestión inmobiliaria.
                             </p>

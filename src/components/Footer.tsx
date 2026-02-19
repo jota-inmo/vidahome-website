@@ -6,7 +6,7 @@ export function Footer() {
         <footer className="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 px-8">
             <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
                 <div>
-                    <h4 className="font-serif text-xl mb-6">Nuestra Sede</h4>
+                    <h4 className="font-serif text-xl mb-6">Nuestra sede</h4>
                     <a
                         href="https://www.google.com/maps/search/?api=1&query=Vidahome+Gandia+Carrer+Joan+XXIII+1"
                         target="_blank"
@@ -18,7 +18,7 @@ export function Footer() {
                     </a>
                 </div>
                 <div>
-                    <h4 className="font-serif text-xl mb-6">Contacto Directo</h4>
+                    <h4 className="font-serif text-xl mb-6">Contacto directo</h4>
                     <div className="flex flex-col gap-2">
                         <a href="tel:+34659027512" className="text-sm text-slate-500 leading-relaxed font-light hover:text-[#0a192f] dark:hover:text-white transition-all">
                             Llamar: (+34) 659 02 75 12
@@ -29,7 +29,7 @@ export function Footer() {
                     </div>
                 </div>
                 <div>
-                    <h4 className="font-serif text-xl mb-6">Horario de Agencia</h4>
+                    <h4 className="font-serif text-xl mb-6">Horario de agencia</h4>
                     <p className="text-sm text-slate-500 leading-relaxed font-light">
                         Lunes - Viernes: 09:00 - 14:00 y 17:00 - 20:00<br />
                         Sábado: 09:30 - 13:30<br />
@@ -37,7 +37,7 @@ export function Footer() {
                     </p>
                 </div>
                 <div>
-                    <h4 className="font-serif text-xl mb-6">Información Legal</h4>
+                    <h4 className="font-serif text-xl mb-6">Información legal</h4>
                     <div className="flex flex-col gap-2">
                         <Link href="/legal/aviso-legal" className="text-sm text-slate-500 leading-relaxed font-light hover:text-[#0a192f] dark:hover:text-white transition-all">
                             Aviso Legal

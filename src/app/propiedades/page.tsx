@@ -51,8 +51,8 @@ export default async function PropiedadesPage() {
                         © 2026 Vidahome Premium Experience - Acompañamiento Profesional y Completo
                     </div>
                     <div className="flex gap-12 text-[10px] tracking-[0.2em] uppercase font-medium">
-                        <a href="#" className="hover:opacity-50 transition-all">Condiciones de Venta</a>
-                        <a href="#" className="hover:opacity-50 transition-all">Política de Privacidad</a>
+                        <a href="/legal/aviso-legal" className="hover:opacity-50 transition-all">Aviso legal</a>
+                        <a href="/legal/privacidad" className="hover:opacity-50 transition-all">Política de privacidad</a>
                     </div>
                 </div>
             </footer>
