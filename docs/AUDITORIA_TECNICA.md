@@ -148,14 +148,10 @@ En producción (Vercel), `/api/debug/ip` ahora devuelve un genérico `404 Not fo
 
 ---
 
-#### 🟡 MEDIO — Sanitización de texto demasiado agresiva
-**Archivo:** `src/lib/api/web-client.ts` (línea 110)
+#### ✅ RESUELTO — Sanitización de texto demasiado agresiva
+**Archivo:** `src/lib/api/web-client.ts`
 
-```typescript
-const hasSuspiciousQuotes = /(['\"])[^'\"]*\1/.test(sanitized) || /['\"]/.test(sanitized);
-```
-
-Esta regex bloquea cualquier texto que contenga comillas simples o dobles, incluyendo nombres propios legítimos como `O'Brien` o `D'Angelo`.
+**Cambio aplicado:** Se refinó la regex de detección de comillas para permitir apóstrofes individuales (ej: `O'Brien`) mientras se mantienen bloqueos contra patrones de inyección SQL balanceados y operadores peligrosos.
 
 ---
 
@@ -191,8 +187,8 @@ El archivo tiene 417 líneas y mezcla responsabilidades muy diferentes. Debería
 #### ⚠️ PENDIENTE — Página `/vender` con >1000 líneas
 El componente `VenderPage` es un megacomponente. Debería dividirse en subcomponentes: `PropertySearchForm`, `PropertyDetails`, `ValuationEstimation`, `ContactStep`.
 
-#### ⚠️ PENDIENTE — Inconsistencia en rutas del admin
-La ruta `/admin-hero` es inconsistente con el resto del panel (que vive bajo `/admin/*`). Aunque ya está protegida por el middleware, sería más limpio moverla a `/admin/hero-banner`.
+#### ✅ RESUELTO — Inconsistencia en rutas del admin
+La ruta `/admin-hero` ha sido movida a `/admin/hero` para mantener la coherencia con el resto del ecosistema administrativo (`/admin/*`). El middleware y los enlaces internos han sido actualizados en consecuencia.
 
 ---
 
@@ -260,7 +256,7 @@ La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplaz
 | 9 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | ✅ **Resuelto** — Movido a servidor |
 | 10 | 🟡 Medio | Sin rate limiting en formularios públicos | ✅ **Resuelto** — Persistent Rate Limit + Honeypot |
 | 11 | 🟡 Medio | Sin Schema.org ni sitemap.xml | ✅ **Resuelto** — Sitemap, Robots & JSON-LD implementados |
-| 12 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | 🟡 Pendiente |
+| 12 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | ✅ **Resuelto** — Migración a `next/image` completada |
 | 13 | 🟢 Bajo | `actions.ts` monolítico (417 líneas) | ✅ **Resuelto** — Modularizado en `src/app/actions/` |
 | 14 | 🟢 Bajo | `VenderPage` megacomponente (>1000 líneas) | ✅ **Resuelto** — Componentizado en `src/app/vender/components/` |
 | 15 | 🟢 Bajo | Sin tests automatizados | ✅ **Resuelto** — Vitest + React Testing Library |

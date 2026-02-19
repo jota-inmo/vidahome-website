@@ -12,6 +12,8 @@ import { supabase } from '@/lib/supabase';
 import 'swiper/css';
 import 'swiper/css/effect-fade';
 
+import Image from 'next/image';
+
 const DEFAULT_SLIDES: any[] = [
     {
         id: '1',
@@ -78,7 +80,7 @@ export const LuxuryHero = () => {
                 loop={slides.length > 1}
                 className="absolute inset-0 w-full h-full"
             >
-                {slides.map((slide) => (
+                {slides.map((slide, index) => (
                     <SwiperSlide key={slide.id} className="relative w-full h-full overflow-hidden">
                         {/* Slide Link Wrapper */}
                         <a
@@ -93,15 +95,18 @@ export const LuxuryHero = () => {
                                         muted
                                         loop
                                         playsInline
-                                        poster={slide.poster}
+                                        poster={slide.poster ? getRealUrl(slide.poster) : undefined}
                                         src={getRealUrl(slide.video_path)}
                                         className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[10000ms] ease-linear"
                                     />
                                 ) : (
-                                    <img
+                                    <Image
                                         src={getRealUrl(slide.video_path)}
-                                        alt={slide.title}
-                                        className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[10000ms] ease-linear"
+                                        alt={slide.title || 'Vidahome Hero'}
+                                        fill
+                                        priority={index === 0}
+                                        sizes="100vw"
+                                        className="object-cover scale-100 group-hover:scale-105 transition-transform duration-[10000ms] ease-linear"
                                     />
                                 )}
                             </div>

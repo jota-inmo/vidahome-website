@@ -98,11 +98,13 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
                     >
                         {images.map((img, index) => (
                             <SwiperSlide key={index} className="flex items-center justify-center bg-black">
-                                <div className="relative w-full h-full flex items-center justify-center">
-                                    <img
+                                <div className="relative w-[90vw] h-[90vh]">
+                                    <Image
                                         src={img}
                                         alt={`Full screen ${index}`}
-                                        className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
+                                        fill
+                                        className="object-contain shadow-2xl"
+                                        sizes="90vw"
                                     />
                                 </div>
                             </SwiperSlide>

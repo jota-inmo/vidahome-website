@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import Image from 'next/image';
 import { ShieldCheck, Users, Handshake, HeartHandshake, Coffee, Award, Star, ArrowRight, Zap, FileText, BadgeCheck, Link } from 'lucide-react';
 
 export default function NosotrosPage() {
@@ -29,11 +29,13 @@ export default function NosotrosPage() {
                         </p>
                     </div>
                     <div className="flex-1 w-full max-w-md animate-fade-in delay-200">
-                        <div className="aspect-[4/5] rounded-sm overflow-hidden shadow-2xl md:rotate-2 hover:rotate-0 transition-transform duration-700">
-                            <img
+                        <div className="relative aspect-[4/5] rounded-sm overflow-hidden shadow-2xl md:rotate-2 hover:rotate-0 transition-transform duration-700">
+                            <Image
                                 src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800"
                                 alt="Mediterranean Architecture"
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                priority
                             />
                         </div>
                     </div>
@@ -63,11 +65,12 @@ export default function NosotrosPage() {
                         </div>
 
                         <div className="order-1 lg:order-2 space-y-8">
-                            <div className="aspect-video rounded-sm overflow-hidden shadow-lg">
-                                <img
+                            <div className="relative aspect-video rounded-sm overflow-hidden shadow-lg">
+                                <Image
                                     src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800"
                                     alt="Professional meeting"
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    className="object-cover"
                                 />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -183,10 +186,11 @@ export default function NosotrosPage() {
             {/* Soft CTA or Closing Quote */}
             <section className="py-24 px-6 bg-slate-900 text-white relative overflow-hidden">
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
-                    <img
+                    <Image
                         src="https://images.unsplash.com/photo-1521791136364-798a7bc0d267?auto=format&fit=crop&q=80&w=1200"
                         alt="Handshake"
-                        className="w-full h-full object-cover grayscale"
+                        fill
+                        className="object-cover grayscale"
                     />
                     <div className="absolute inset-0 bg-slate-900/80" />
                 </div>

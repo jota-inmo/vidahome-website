@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+  },
   async redirects() {
     return [
       // Redirecciones de Inmovilla (comunes) para no perder SEO

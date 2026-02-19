@@ -8,7 +8,7 @@ export async function uploadMediaAction(formData: FormData) {
 
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`; // Subir a la raíz del bucket 'videos' para simplificar
+        const filePath = `${fileName}`; // Subir a la raíz del bucket 'media' para simplificar
 
         // Convert File to Buffer/ArrayBuffer for more stable upload in some environments
         const arrayBuffer = await file.arrayBuffer();

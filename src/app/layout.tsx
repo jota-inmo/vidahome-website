@@ -24,6 +24,28 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Vidahome | Experiencia Inmobiliaria de Lujo en Gandia",
   description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores. Tu confianza, nuestra prioridad.",
+  openGraph: {
+    title: "Vidahome | Experiencia Inmobiliaria de Lujo en Gandia",
+    description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores.",
+    url: "https://vidahome.es",
+    siteName: "Vidahome",
+    images: [
+      {
+        url: "/MARCA OK.png",
+        width: 1200,
+        height: 630,
+        alt: "Vidahome Logo",
+      },
+    ],
+    locale: "es_ES",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vidahome | Experiencia Inmobiliaria de Lujo en Gandia",
+    description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores.",
+    images: ["/MARCA OK.png"],
+  },
 };
 
 export default function RootLayout({

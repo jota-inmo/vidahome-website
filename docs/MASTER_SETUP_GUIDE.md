@@ -188,12 +188,13 @@ CREATE TABLE hero_slides (
 -- Habilitar RLS y Políticas
 ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Lectura pública" ON hero_slides FOR SELECT USING (true);
-CREATE POLICY "Gestión Admin" ON hero_slides FOR ALL USING (true); 
+-- Nota: Las operaciones de escritura se realizan mediante Service Role (supabaseAdmin)
+-- lo que garantiza seguridad total sin necesidad de políticas de escritura públicas.
 ```
 **Requisito de Storage**: Crear bucket público llamado **`media`**.
 
 ### Panel de Control Centralizado (Admin Hub)
-*   **Gestión Unificada**: Se ha creado un centro de mando en `/admin` que permite gestionar el **Banner Principal** (`/admin-hero`) o las **Propiedades Destacadas**.
+*   **Gestión Unificada**: Se ha creado un centro de mando en `/admin` que permite gestionar el **Banner Principal** (`/admin/hero`) o las **Propiedades Destacadas**.
 *   **Hero Admin PRO**: Panel avanzado con previsualización de vídeo en tiempo real, subida directa al storage y gestión de orden/visibilidad.
 
 ### 8. Arquitectura Modular (Refactorización 2026)

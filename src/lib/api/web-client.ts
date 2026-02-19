@@ -105,10 +105,16 @@ export class InmovillaWebClient {
             new RegExp(`\\b${cmd}\\b`, 'gi').test(sanitized)
         );
 
-        // 3. Nested parentheses and multiple quotes validation
+        // 3. Nested parentheses and SQL injection patterns
         const hasNestedParens = /\([^)]*\([^)]*\)/.test(sanitized);
-        const hasSuspiciousQuotes = /(['"])[^'"]*\1/.test(sanitized) || /['"]/.test(sanitized);
-        const hasDangerousChars = /[;\\*]/.test(sanitized);
+
+        // Permite comillas simples individuales (ej: O'Brien) pero bloquea patrones sospechosos de escape
+        // como comillas seguidas de espacios y operadores, o comillas balanceadas rodeando texto sospechoso.
+        const hasSuspiciousQuotes =
+            /['"][ \t]*(?:OR|AND|UNION|SELECT|--|#)/i.test(sanitized) || // Comilla + operador/comentario
+            /['"].*['"]/.test(sanitized) && sanitized.match(/['"]/g)!.length >= 2; // Más de una comilla (bloqueo preventivo de strings balanceados)
+
+        const hasDangerousChars = /[;\\*]|--/.test(sanitized);
 
         if (hasForbidden || hasNestedParens || hasSuspiciousQuotes || hasDangerousChars) {
             console.error(`[InmovillaWebClient] Security Block: Malicious pattern detected in text: "${sanitized}"`);
