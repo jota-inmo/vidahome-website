@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { Bed, Bath, Square } from 'lucide-react';
+import { cleanDescription } from '@/lib/utils/text-cleaner';
+
 
 interface LuxuryPropertyCardProps {
     property: PropertyListEntry;
@@ -67,7 +69,9 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     </div>
 
                     <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8 flex-grow line-clamp-3">
-                        {property.descripciones || 'Una propiedad única que personifica la elegancia atemporal y el diseño contemporáneo.'}
+                        {property.descripciones
+                            ? cleanDescription(property.descripciones)
+                            : 'Una propiedad única que personifica la elegancia atemporal y el diseño contemporáneo.'}
                     </p>
 
                     <div className="pt-8 border-t border-slate-100 dark:border-slate-900 flex justify-between items-center">

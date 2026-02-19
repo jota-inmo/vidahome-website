@@ -18,6 +18,8 @@ import {
     Share2
 } from 'lucide-react';
 import Link from 'next/link';
+import { cleanDescription } from '@/lib/utils/text-cleaner';
+
 
 interface PropertyDetailClientProps {
     property: PropertyDetails;
@@ -93,7 +95,9 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
 
                         <div className="prose prose-slate dark:prose-invert max-w-none mb-20">
                             <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg font-light whitespace-pre-line">
-                                {property.descripciones ? property.descripciones.split('~~')[0] : 'Esta residencia excepcional representa la excelencia en el servicio inmobiliario y el diseño contemporáneo.'}
+                                {property.descripciones
+                                    ? cleanDescription(property.descripciones)
+                                    : 'Esta residencia excepcional representa la excelencia en el servicio inmobiliario y el diseño contemporáneo.'}
                             </p>
                         </div>
 
