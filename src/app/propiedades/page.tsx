@@ -1,69 +1,23 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
-import { PropertyListEntry } from '@/types/inmovilla';
+import React from 'react';
+import { Metadata } from 'next';
 import { fetchPropertiesAction } from '../actions';
-import { PropertySearch, SearchFilters } from '@/components/PropertySearch';
-import { LuxuryPropertyCard } from '@/components/LuxuryPropertyCard';
-import { PropertySkeleton } from '@/components/LuxuryPropertySkeleton';
+import { PropertyCatalogClient } from './PropertyCatalogClient';
 
-export default function PropiedadesPage() {
-    const [allProperties, setAllProperties] = useState<PropertyListEntry[]>([]);
-    const [filteredProperties, setFilteredProperties] = useState<PropertyListEntry[]>([]);
-    const [populations, setPopulations] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export const metadata: Metadata = {
+    title: 'Catálogo de Propiedades Exclusivas en Gandia | Vidahome',
+    description: 'Encuentra tu próximo hogar en La Safor. Selección de apartamentos, villas y casas exclusivas en Gandia, Oliva y alrededores.',
+    openGraph: {
+        title: 'Catálogo de Propiedades en Gandia | Vidahome',
+        description: 'Venta y alquiler de propiedades exclusivas en la zona de La Safor.',
+        type: 'website',
+    }
+};
 
-    useEffect(() => {
-        const loadItems = async () => {
-            try {
-                const result = await fetchPropertiesAction();
-                if (result.success && result.data) {
-                    setAllProperties(result.data);
-                    // Filter by Buy (keyacci: 1) by default
-                    setFilteredProperties(result.data.filter(p => !p.keyacci || p.keyacci === 1));
-                    if ((result as any).meta?.populations) {
-                        setPopulations((result as any).meta.populations);
-                    }
-                }
-                else {
-                    setError(result.error || 'Error al cargar inmuebles');
-                }
-            } catch (err) {
-                setError('Ocurrió un error inesperado');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadItems();
-    }, []);
-
-    const handleSearch = (filters: SearchFilters) => {
-        let filtered = [...allProperties];
-
-        // Filter by Transaction Type (keyacci)
-        // 1 = Venta (Buy), 2 = Alquiler (Rent)
-        const targetAcci = filters.type === 'buy' ? 1 : 2;
-        filtered = filtered.filter(p => !p.keyacci || p.keyacci === targetAcci);
-
-        // Filter by Population
-        if (filters.population) {
-            filtered = filtered.filter(p => p.poblacion === filters.population);
-        }
-
-        // Filter by Text/Ref
-        if (filters.query) {
-            const q = filters.query.toLowerCase();
-            filtered = filtered.filter(p =>
-                p.ref.toLowerCase().includes(q) ||
-                (p.descripciones && p.descripciones.toLowerCase().includes(q)) ||
-                (p.poblacion && p.poblacion.toLowerCase().includes(q))
-            );
-        }
-
-        setFilteredProperties(filtered);
-    };
+export default async function PropiedadesPage() {
+    const result = await fetchPropertiesAction();
+    const properties = result.success ? (result.data || []) : [];
+    const populations = result.meta?.populations || [];
+    const error = result.success ? null : result.error;
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-slate-900 selection:text-white dark:selection:bg-white dark:selection:text-slate-900">
@@ -80,32 +34,16 @@ export default function PropiedadesPage() {
                 </div>
             </header>
 
-            <PropertySearch onSearch={handleSearch} populations={populations} />
-
-            <main className="px-8 max-w-[1600px] mx-auto pb-32">
-                {error && (
+            {error && (
+                <div className="max-w-[1600px] mx-auto px-8 mb-12">
                     <div className="text-center py-20 border border-red-100 bg-red-50/30 rounded-lg">
                         <p className="font-serif text-2xl text-red-800 mb-2">Inconveniente Técnico</p>
                         <p className="text-sm text-red-600 font-light">{error}</p>
                     </div>
-                )}
-
-                {/* Grid de Propiedades */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">
-                    {loading ? (
-                        // Esqueletos de Carga
-                        [1, 2, 4, 5].map((i) => <PropertySkeleton key={i} />)
-                    ) : filteredProperties.length > 0 ? (
-                        filteredProperties.map((prop: PropertyListEntry) => (
-                            <LuxuryPropertyCard key={prop.cod_ofer} property={prop} />
-                        ))
-                    ) : !error && (
-                        <div className="col-span-full py-32 text-center">
-                            <p className="font-serif text-3xl text-slate-300">Sin registros disponibles actualmente.</p>
-                        </div>
-                    )}
                 </div>
-            </main>
+            )}
+
+            <PropertyCatalogClient initialProperties={properties} populations={populations} />
 
             <footer className="px-8 py-20 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-900">
                 <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">

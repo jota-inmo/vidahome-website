@@ -4,6 +4,8 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Toaster } from "sonner";
+import { GlobalSchema } from "@/components/GlobalSchema";
+
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -30,7 +32,9 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${inter.variable} font-sans antialiased bg-white dark:bg-slate-950`}
       >
+        <GlobalSchema />
         <Navbar />
+
         <div className="pt-24 italic">
           {children}
         </div>

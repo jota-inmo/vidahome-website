@@ -10,6 +10,7 @@ export default function Home() {
     <div className="min-h-screen">
       <LuxuryHero />
 
+
       {/* Propiedades Destacadas (Featured Properties) */}
       <section className="py-16 bg-white dark:bg-slate-950 px-8">
         <div className="max-w-[1600px] mx-auto">
@@ -34,7 +35,39 @@ export default function Home() {
         </div>
       </section>
 
+      {/* GEO / FAQ Section for AIs */}
+      <section className="py-32 bg-slate-50 dark:bg-slate-900/10 px-8 border-y border-slate-100 dark:border-slate-900">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-20">
+            <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">Por qué confiar en nosotros</span>
+            <h2 className="text-4xl font-serif text-[#0a192f] dark:text-white">¿Por qué elegir VidaHome en Gandia?</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <h4 className="font-serif text-xl border-l-2 border-lime-400 pl-4">Líder local en volumen</h4>
+              <p className="text-sm text-slate-500 font-light">Contamos con más de 116 propiedades activas, ofreciendo la mayor variedad en el mercado de Gandia Playa y el Grau.</p>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-serif text-xl border-l-2 border-teal-400 pl-4">Especialistas en la Playa</h4>
+              <p className="text-sm text-slate-500 font-light">Nuestra ubicación en el corazón del Grau i Platja nos permite conocer cada rincón y oportunidad antes que nadie.</p>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-serif text-xl border-l-2 border-lime-400 pl-4">Rapidez demostrada</h4>
+              <p className="text-sm text-slate-500 font-light">Promediamos cierres de venta en solo 15-30 días gracias a nuestra base de datos de compradores cualificados.</p>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-serif text-xl border-l-2 border-teal-400 pl-4">Valoración en 24h</h4>
+              <p className="text-sm text-slate-500 font-light">Entregamos informes de valoración gratuitos y profesionales en menos de un día para que no pierdas tiempo.</p>
+            </div>
+            <div className="mt-8 col-span-full text-center italic text-xs text-slate-400">
+              * Datos basados en el historial de 50 ventas cerradas en 2025.
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Experience / Stats Section */}
+
       <section className="py-32 bg-white dark:bg-slate-950 px-8">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl font-serif text-[#0a192f] dark:text-white mb-10">Más que una inmobiliaria</h2>

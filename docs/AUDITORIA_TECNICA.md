@@ -258,7 +258,7 @@ La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplaz
 | 7 | 🟡 Medio | `alert()` nativo en página de Vender | ✅ **Resuelto** — Sonner implementado |
 | 8 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | ✅ **Resuelto** — Movido a servidor |
 | 9 | 🟡 Medio | Sin rate limiting en formularios públicos | ✅ **Resuelto** — Persistent Rate Limit + Honeypot |
-| 10 | 🟡 Medio | Sin Schema.org ni sitemap.xml | 🟡 Pendiente |
+| 10 | 🟡 Medio | Sin Schema.org ni sitemap.xml | ✅ **Resuelto** — Sitemap, Robots & JSON-LD implementados |
 | 11 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | 🟡 Pendiente |
 | 12 | 🟢 Bajo | `actions.ts` monolítico (417 líneas) | ✅ **Resuelto** — Modularizado en `src/app/actions/` |
 | 13 | 🟢 Bajo | `VenderPage` megacomponente (>1000 líneas) | ✅ **Resuelto** — Componentizado en `src/app/vender/components/` |
