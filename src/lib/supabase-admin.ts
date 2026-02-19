@@ -8,7 +8,7 @@ import { createClient } from '@supabase/supabase-js';
  *     total a la base de datos. Solo debe usarse en Server Actions y API Routes.
  *
  * Usar para:
- *  - Operaciones de escritura en hero_videos (admin)
+ *  - Operaciones de escritura en bucket 'media' (admin)
  *  - Cualquier operación que requiera permisos elevados
  *
  * NO usar para:

@@ -1,5 +1,7 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+
 export interface HeroSlide {
     id: string;
     video_path: string;
@@ -37,12 +39,19 @@ export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
     try {
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
 
+        // Limpiar ID si es una cadena vacía para evitar errores de UUID en Postgres
+        const dataToSave = { ...slide };
+        if (dataToSave.id === '') delete dataToSave.id;
+
+        console.log('⏳ Sincronizando Hero Slide en Supabase...', dataToSave);
+
         const { error } = await supabaseAdmin
             .from('hero_slides')
-            .upsert(slide);
+            .upsert(dataToSave);
 
         if (error) throw error;
 
+        revalidatePath('/');
         return { success: true };
     } catch (e: any) {
         console.error('Error saving hero slide:', e);
@@ -59,6 +68,8 @@ export async function deleteHeroSlideAction(id: string) {
             .eq('id', id);
 
         if (error) throw error;
+
+        revalidatePath('/');
         return { success: true };
     } catch (e: any) {
         console.error('Error deleting hero slide:', e);

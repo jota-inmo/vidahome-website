@@ -8,19 +8,32 @@ export async function uploadMediaAction(formData: FormData) {
 
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `hero/${fileName}`;
+        const filePath = `${fileName}`; // Subir a la raíz del bucket 'videos' para simplificar
 
-        // Upload to 'videos' bucket
+        // Convert File to Buffer/ArrayBuffer for more stable upload in some environments
+        const arrayBuffer = await file.arrayBuffer();
+
+        console.log(`⏳ Subiendo archivo ${fileName} a Supabase Storage (bucket: media)...`);
+
+        // Upload to 'media' bucket
         const { data, error } = await supabaseAdmin.storage
-            .from('videos')
-            .upload(filePath, file);
+            .from('media')
+            .upload(filePath, arrayBuffer, {
+                contentType: file.type,
+                upsert: true
+            });
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Error Supabase Storage:', error);
+            throw error;
+        }
 
         // Get Public URL
         const { data: { publicUrl } } = supabaseAdmin.storage
-            .from('videos')
+            .from('media')
             .getPublicUrl(filePath);
+
+        console.log(`✅ Archivo subido con éxito: ${publicUrl}`);
 
         return { success: true, url: publicUrl, path: filePath };
     } catch (e: any) {

@@ -165,7 +165,7 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 
 ### Gestión Dinámica de Banner (Hero Engine PRO)
 *   **Independencia Total**: Sistema optimizado con Swiper.js y Realtime de Supabase.
-*   **Almacenamiento**: Los vídeos se alojan en el bucket **`videos`** (público).
+*   **Almacenamiento**: Los vídeos se alojan en el bucket **`media`** (público).
 *   **Smart Links**: 
     *   **Vacío**: Redirige automáticamente al catálogo (`/propiedades`).
     *   **Sólo número**: Detecta IDs de propiedades (ej: `13031`) y genera el enlace `/propiedades/13031`.
@@ -190,7 +190,7 @@ ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Lectura pública" ON hero_slides FOR SELECT USING (true);
 CREATE POLICY "Gestión Admin" ON hero_slides FOR ALL USING (true); 
 ```
-**Requisito de Storage**: Crear bucket público llamado **`videos`**.
+**Requisito de Storage**: Crear bucket público llamado **`media`**.
 
 ### Panel de Control Centralizado (Admin Hub)
 *   **Gestión Unificada**: Se ha creado un centro de mando en `/admin` que permite gestionar el **Banner Principal** (`/admin-hero`) o las **Propiedades Destacadas**.

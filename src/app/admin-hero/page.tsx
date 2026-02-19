@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Trash2, Plus, Upload, MoveUp, MoveDown, Play, Image as ImageIcon, ExternalLink, Eye, CheckCircle2, Circle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function HeroAdmin() {
     const [slides, setSlides] = useState<HeroSlide[]>([]);
@@ -111,19 +112,10 @@ export default function HeroAdmin() {
         loadSlides();
     };
 
-    const getRealUrl = (path: string) => {
-        if (!path) return '';
-        if (path.startsWith('http') || path.startsWith('/')) return path;
-        return `https://${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1] || ''}/storage/v1/object/public/videos/${path}`;
-    };
-
-    // Better fallback for URL if env is not perfect
     const getStorageUrl = (path: string) => {
         if (!path) return '';
         if (path.startsWith('http') || path.startsWith('/')) return path;
-        // Using the public project structure
-        const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('.')[0].split('//')[1];
-        return `https://${projectRef}.supabase.co/storage/v1/object/public/videos/${path}`;
+        return supabase.storage.from('media').getPublicUrl(path).data.publicUrl;
     };
 
     if (loading) return <div className="p-20 text-center font-serif italic text-slate-400">Cargando gestor de vídeos...</div>;
@@ -258,7 +250,7 @@ export default function HeroAdmin() {
                                                     value={editingSlide.video_path || ''}
                                                     onChange={e => setEditingSlide(prev => ({ ...prev, video_path: e.target.value }))}
                                                     className="flex-grow bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-[10px] font-mono focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
-                                                    placeholder="hero/mi-video.mp4"
+                                                    placeholder="mi-video.mp4"
                                                 />
                                                 <div className="relative">
                                                     <input

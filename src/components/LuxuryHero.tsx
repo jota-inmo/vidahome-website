@@ -55,7 +55,7 @@ export const LuxuryHero = () => {
 
     const getRealUrl = (path: string) => {
         if (path.startsWith('http') || path.startsWith('/')) return path;
-        return supabase.storage.from('videos').getPublicUrl(path).data.publicUrl;
+        return supabase.storage.from('media').getPublicUrl(path).data.publicUrl;
     };
 
     const getSmartLink = (link?: string) => {
