@@ -5,6 +5,10 @@ import { Navbar } from "@/components/Navbar";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Toaster } from "sonner";
 import { GlobalSchema } from "@/components/GlobalSchema";
+import { CookieConsent } from "@/components/CookieConsent";
+import { Footer } from "@/components/Footer";
+
+
 
 
 const playfair = Playfair_Display({
@@ -33,12 +37,16 @@ export default function RootLayout({
         className={`${playfair.variable} ${inter.variable} font-sans antialiased bg-white dark:bg-slate-950`}
       >
         <GlobalSchema />
+        <CookieConsent />
         <Navbar />
+
 
         <div className="pt-24 italic">
           {children}
         </div>
+        <Footer />
         <WhatsAppButton />
+
         <Toaster position="top-right" richColors />
       </body>
     </html>

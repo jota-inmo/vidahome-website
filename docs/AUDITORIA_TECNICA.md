@@ -250,48 +250,29 @@ La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplaz
 | # | Severidad | Issue | Estado |
 |---|-----------|-------|--------|
 | 1 | 🔴 Crítico | Credenciales de Inmovilla en Git/GitHub | ✅ Código corregido — ⚠️ Rotar contraseña + limpiar Git |
-| 2 | 🔴 Crítico | `/admin-hero` sin protección de middleware | ✅ **Resuelto** |
-| 3 | 🔴 Crítico | Contraseña de admin hardcodeada como fallback | ✅ **Resuelto** |
-| 4 | 🟠 Alto | Caché de archivos ineficaz en Vercel | ✅ **Resuelto** — `withNextCache` implementado |
-| 5 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** — Guard de entorno añadido |
-| 6 | 🟠 Alto | RLS de Supabase demasiado permisiva en `hero_slides` | ✅ **Resuelto en código** — Bypass con Service Role |
-| 7 | 🟡 Medio | `alert()` nativo en página de Vender | ✅ **Resuelto** — Sonner implementado |
-| 8 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | ✅ **Resuelto** — Movido a servidor |
-| 9 | 🟡 Medio | Sin rate limiting en formularios públicos | ✅ **Resuelto** — Persistent Rate Limit + Honeypot |
-| 10 | 🟡 Medio | Sin Schema.org ni sitemap.xml | ✅ **Resuelto** — Sitemap, Robots & JSON-LD implementados |
-| 11 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | 🟡 Pendiente |
-| 12 | 🟢 Bajo | `actions.ts` monolítico (417 líneas) | ✅ **Resuelto** — Modularizado en `src/app/actions/` |
-| 13 | 🟢 Bajo | `VenderPage` megacomponente (>1000 líneas) | ✅ **Resuelto** — Componentizado en `src/app/vender/components/` |
-| 14 | 🟢 Bajo | Sin tests automatizados | 🟢 Pendiente |
-| 15 | 🟢 Bajo | Archivos de debug en el repositorio | 🟢 Pendiente |
+| 2 | 🔴 Crítico | Configuración de headers de seguridad (CSP, HSTS) | ✅ **Resuelto** — Implementado en `next.config.ts` |
+| 3 | 🔴 Crítico | Validación de entradas en Inmovilla Client | ✅ **Resuelto** — Sanitización implementada |
+| 4 | 🟠 Alto | No hay persistencia de caché fuera de memoria | ✅ **Resuelto** — `unstable_cache` implementada |
+| 5 | 🟠 Alto | Falta Aviso Legal y Privacidad (LSSI/RGPD) | ✅ **Resuelto** — Páginas legales + Consentimiento |
+| 6 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** — Guard de entorno añadido |
+| 7 | 🟠 Alto | RLS de Supabase demasiado permisiva en `hero_slides` | ✅ **Resuelto en código** — Bypass con Service Role |
+| 8 | 🟡 Medio | `alert()` nativo en página de Vender | ✅ **Resuelto** — Sonner implementado |
+| 9 | 🟡 Medio | `localidades_map.json` (254 KB) en bundle del cliente | ✅ **Resuelto** — Movido a servidor |
+| 10 | 🟡 Medio | Sin rate limiting en formularios públicos | ✅ **Resuelto** — Persistent Rate Limit + Honeypot |
+| 11 | 🟡 Medio | Sin Schema.org ni sitemap.xml | ✅ **Resuelto** — Sitemap, Robots & JSON-LD implementados |
+| 12 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | 🟡 Pendiente |
+| 13 | 🟢 Bajo | `actions.ts` monolítico (417 líneas) | ✅ **Resuelto** — Modularizado en `src/app/actions/` |
+| 14 | 🟢 Bajo | `VenderPage` megacomponente (>1000 líneas) | ✅ **Resuelto** — Componentizado en `src/app/vender/components/` |
+| 15 | 🟢 Bajo | Sin tests automatizados | 🟢 Pendiente |
+| 16 | 🟢 Bajo | Archivos de debug en el repositorio | 🟢 Pendiente |
 
 ---
 
 ## 4. Próximos Pasos Recomendados
-
-### 🚨 Inmediato (Hoy)
-
 1. **Rotar contraseña de Inmovilla** — Contactar con soporte de Inmovilla.
 2. **Verificar y limpiar historial de Git** — Ver instrucciones en sección 2.1.
-3. **Verificar que `ADMIN_PASSWORD` está configurado en Vercel** — El login fallará si no está.
-4. **Hacer deploy a Vercel** — Los cambios de middleware y caché ya están listos.
-
-### Esta semana
-
-5. **Eliminar o proteger `/api/debug/ip`** — Añadir guard de entorno.
-6. **Corregir RLS de Supabase** — Cambiar política en el panel de Supabase.
-
-### Próximas 2 semanas
-
-7. **Reemplazar `alert()` por toast notifications** — `react-hot-toast` o similar.
-8. **Mover `localidades_map.json` al servidor** — Reducir bundle del cliente.
-9. **Añadir rate limiting** — Vercel Rate Limiting o `@upstash/ratelimit`.
-
-### Próximo mes
-
-10. **Schema.org + sitemap.xml** — Impacto SEO muy alto.
-11. **Optimizar imágenes con `<Image>` de Next.js**.
-12. **Cumplimiento GDPR** — Banner de cookies con consentimiento granular.
+3. **Optimizar imágenes con `<Image>` de Next.js** — Cambiar `<img>` por el componente nativo de Next.
+4. **Implementar Tests E2E** — Asegurar que los flujos de contacto no fallen en el tiempo.
 
 ---
 
@@ -312,4 +293,4 @@ La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplaz
 
 ---
 
-*Documento actualizado el 18/02/2026 — Auditoría con correcciones aplicadas.*
+*Documento actualizado el 19/02/2026 — Auditoría con correcciones integrales aplicadas.*

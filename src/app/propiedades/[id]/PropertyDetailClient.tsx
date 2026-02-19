@@ -148,12 +148,6 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                     </div>
                 </div>
             </main>
-
-            <footer className="px-8 py-20 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-900 mt-20">
-                <div className="max-w-7xl mx-auto text-center">
-                    <p className="text-[10px] tracking-[0.4em] uppercase text-slate-400">© 2026 Vidahome Premium Experience - Acompañamiento Profesional y Completo</p>
-                </div>
-            </footer>
         </div>
     );
 }
