@@ -116,7 +116,7 @@ export const LuxuryHero = () => {
                                     Explora el Ecosistema Vidahome
                                 </span>
 
-                                <h1 className="text-5xl md:text-8xl font-serif mb-12 leading-[1.05] tracking-tight drop-shadow-2xl max-w-5xl transition-all duration-1000">
+                                <h1 className="text-3xl sm:text-4xl md:text-8xl font-serif mb-8 md:mb-12 leading-[1.1] md:leading-[1.05] tracking-tight drop-shadow-2xl max-w-5xl transition-all duration-1000">
                                     {(slide.title || '').split(', ').map((text, i) => (
                                         <React.Fragment key={i}>
                                             {i > 0 && <br className="hidden md:block" />}
@@ -134,21 +134,21 @@ export const LuxuryHero = () => {
 
 
             {/* Static Search Overlay - Outside Swiper to stay fixed */}
-            <div className={`absolute bottom-24 left-0 right-0 z-20 transition-all duration-1000 px-8 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            <div className={`absolute bottom-16 md:bottom-24 left-0 right-0 z-20 transition-all duration-1000 px-6 md:px-8 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <div className="max-w-4xl mx-auto group">
-                    <div className="bg-white/5 backdrop-blur-2xl p-1.5 rounded-sm border border-white/10 shadow-3xl flex flex-col md:flex-row items-stretch gap-2 hover:bg-white/10 transition-colors duration-500">
+                    <div className="bg-white/5 backdrop-blur-2xl p-2 md:p-1.5 rounded-sm border border-white/10 shadow-3xl flex flex-col md:flex-row items-stretch gap-2 hover:bg-white/10 transition-colors duration-500">
                         <div className="flex-grow relative">
                             <input
                                 type="text"
-                                placeholder="¿Donde quieres vivir? Gandia, Oliva, Playa..."
-                                className="w-full bg-white/5 border-none text-white placeholder:text-white/40 text-xs py-5 px-10 focus:ring-1 focus:ring-teal-500/50 rounded-sm transition-all uppercase tracking-[0.2em] font-medium"
+                                placeholder="Gandia, Oliva, Playa..."
+                                className="w-full bg-white/5 border-none text-white placeholder:text-white/40 text-[10px] md:text-xs py-4 md:py-5 px-10 focus:ring-1 focus:ring-teal-500/50 rounded-sm transition-all uppercase tracking-[0.2em] font-medium"
                             />
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/30" size={18} />
+                            <Search className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-white/30" size={16} />
                         </div>
 
                         <Link
                             href="/propiedades"
-                            className="bg-white text-[#0a192f] px-12 py-5 text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-teal-500 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm active:scale-95"
+                            className="bg-white text-[#0a192f] px-8 md:px-12 py-4 md:py-5 text-[10px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold hover:bg-teal-500 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm active:scale-95"
                         >
                             Ver Catálogo
                         </Link>

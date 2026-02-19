@@ -7,10 +7,10 @@ export default function NosotrosPage() {
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-teal-100 selection:text-teal-900">
             {/* Hero Section */}
-            <section className="relative pt-32 pb-20 px-6 overflow-hidden">
+            <section className="relative pt-32 pb-16 md:pb-20 px-6 overflow-hidden">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[700px] bg-gradient-to-b from-slate-50 to-transparent dark:from-slate-900/50 -z-10" />
 
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-16">
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-16">
                     <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
                             <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-800 text-teal-600 dark:text-teal-400 text-[10px] font-bold uppercase tracking-[0.2em] animate-fade-in">
@@ -20,16 +20,16 @@ export default function NosotrosPage() {
                                 APIVA asociados nº0236
                             </span>
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-serif mb-8 leading-[1.1] animate-slide-up">
+                        <h1 className="text-4xl md:text-7xl font-serif mb-8 leading-[1.1] animate-slide-up">
                             Construyendo relaciones <br />
                             <span className="italic font-normal text-teal-600 dark:text-teal-400">más allá de la venta.</span>
                         </h1>
-                        <p className="text-xl text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl mx-auto md:mx-0 animate-slide-up delay-100">
+                        <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl mx-auto md:mx-0 animate-slide-up delay-100">
                             En Vidahome, no vendemos metros cuadrados. Gestionamos la tranquilidad de las personas a través de la confianza y el compromiso.
                         </p>
                     </div>
                     <div className="flex-1 w-full max-w-md animate-fade-in delay-200">
-                        <div className="aspect-[4/5] rounded-sm overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
+                        <div className="aspect-[4/5] rounded-sm overflow-hidden shadow-2xl md:rotate-2 hover:rotate-0 transition-transform duration-700">
                             <img
                                 src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800"
                                 alt="Mediterranean Architecture"
@@ -41,13 +41,13 @@ export default function NosotrosPage() {
             </section>
 
             {/* Concept: Ecosistema Virtuoso */}
-            <section className="py-24 px-6 bg-slate-50 dark:bg-slate-900/30">
+            <section className="py-20 md:py-24 px-6 bg-slate-50 dark:bg-slate-900/30">
                 <div className="max-w-6xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 items-center">
                         <div className="space-y-8 order-2 lg:order-1">
-                            <h2 className="text-4xl font-serif leading-snug">
+                            <h2 className="text-3xl md:text-4xl font-serif leading-snug">
                                 El concepto de <br />
-                                <span className="text-teal-600 dark:text-teal-400 text-5xl">Ecosistema Virtuoso</span>
+                                <span className="text-teal-600 dark:text-teal-400 text-4xl md:text-5xl">Ecosistema Virtuoso</span>
                             </h2>
                             <div className="space-y-6 text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-light">
                                 <p>

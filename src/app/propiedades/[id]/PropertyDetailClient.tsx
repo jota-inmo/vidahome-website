@@ -64,27 +64,27 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
             {/* Botón Volver */}
             <Link
                 href="/propiedades"
-                className="fixed top-8 left-8 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-3 rounded-full shadow-lg hover:scale-110 transition-all border border-slate-100 dark:border-slate-800"
+                className="fixed top-28 left-6 md:top-8 md:left-8 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-2.5 md:p-3 rounded-full shadow-lg hover:scale-110 transition-all border border-slate-100 dark:border-slate-800"
             >
-                <ArrowLeft size={20} className="text-slate-900 dark:text-white" />
+                <ArrowLeft size={18} className="text-slate-900 dark:text-white" />
             </Link>
 
             <PropertyGallery images={property.fotos_lista || []} />
 
-            <main className="max-w-7xl mx-auto px-8 py-24">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-24">
+            <main className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 lg:gap-24">
                     {/* Detalles Principales */}
                     <div className="lg:col-span-2">
-                        <header className="mb-16">
+                        <header className="mb-12 md:mb-16">
                             <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">Referencia: {property.ref}</span>
-                            <h1 className="text-5xl md:text-7xl font-serif text-slate-900 dark:text-white mb-8 leading-tight">
-                                Privacidad y <br /> Elegancia en {property.tipo_nombre || 'Residencia'} en {property.poblacion || 'Ubicación Premium'}
+                            <h1 className="text-3xl md:text-7xl font-serif text-slate-900 dark:text-white mb-8 leading-tight">
+                                Privacidad y Elegancia en {property.tipo_nombre || 'Residencia'} en {property.poblacion || 'Ubicación Premium'}
                             </h1>
-                            <div className="flex flex-wrap gap-12 text-slate-900 dark:text-white">
+                            <div className="flex flex-wrap gap-8 md:gap-12 text-slate-900 dark:text-white">
                                 {features.map((f, i) => (
                                     <div key={i} className="flex flex-col gap-2">
                                         <span className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">{f.label}</span>
-                                        <span className="text-2xl font-serif flex items-center gap-3">
+                                        <span className="text-xl md:text-2xl font-serif flex items-center gap-3">
                                             <span className="text-slate-300">{f.icon}</span>
                                             {f.value}
                                         </span>

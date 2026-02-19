@@ -1,20 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-
 import { Logo } from '@/components/Logo';
+import { Menu, X } from 'lucide-react';
 
 export const Navbar = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
     return (
-        <nav className="fixed top-0 left-0 right-0 z-[100] bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 transition-all">
-            <div className="max-w-[1600px] mx-auto px-8 h-28 flex items-center justify-between">
+        <nav className="fixed top-0 left-0 right-0 z-[100] bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 transition-all">
+            <div className="max-w-[1600px] mx-auto px-6 h-24 md:h-28 flex items-center justify-between">
                 {/* Logo Vidahome */}
-                <Link href="/" className="group">
+                <Link href="/" className="group" onClick={() => setIsOpen(false)}>
                     <Logo />
                 </Link>
 
-                {/* Navegación */}
+                {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-12">
                     <Link href="/propiedades" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
                         Propiedades
@@ -30,6 +32,37 @@ export const Navbar = () => {
                         className="px-6 py-3 bg-[#0a192f] text-white text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gradient-to-r hover:from-lime-400 hover:to-teal-500 hover:text-[#0a192f] transition-all rounded-sm"
                     >
                         Contacto
+                    </Link>
+                </div>
+
+                {/* Mobile Tablet Menu Toggle */}
+                <button
+                    className="md:hidden p-2 text-slate-900 dark:text-white transition-all active:scale-95"
+                    onClick={() => setIsOpen(!isOpen)}
+                    aria-label="Menu"
+                >
+                    {isOpen ? <X size={28} strokeWidth={1.5} /> : <Menu size={28} strokeWidth={1.5} />}
+                </button>
+            </div>
+
+            {/* Mobile Menu Overlay */}
+            <div className={`md:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 transition-all duration-300 ${isOpen ? 'opacity-100 translate-y-0 visible' : 'opacity-0 -translate-y-4 invisible'}`}>
+                <div className="p-8 flex flex-col gap-6">
+                    <Link href="/propiedades" onClick={() => setIsOpen(false)} className="text-[12px] uppercase tracking-[0.2em] font-medium text-slate-500 border-b border-slate-50 dark:border-slate-900 pb-4">
+                        Propiedades
+                    </Link>
+                    <Link href="/vender" onClick={() => setIsOpen(false)} className="text-[12px] uppercase tracking-[0.2em] font-medium text-slate-500 border-b border-slate-50 dark:border-slate-900 pb-4">
+                        Vender
+                    </Link>
+                    <Link href="/nosotros" onClick={() => setIsOpen(false)} className="text-[12px] uppercase tracking-[0.2em] font-medium text-slate-500 border-b border-slate-50 dark:border-slate-900 pb-4">
+                        Nosotros
+                    </Link>
+                    <Link
+                        href="/contacto"
+                        onClick={() => setIsOpen(false)}
+                        className="w-full text-center px-6 py-4 bg-[#0a192f] text-white text-[12px] uppercase tracking-[0.3em] font-bold hover:bg-slate-800 transition-all rounded-sm"
+                    >
+                        Ponte en contacto
                     </Link>
                 </div>
             </div>
