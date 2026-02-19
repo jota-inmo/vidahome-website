@@ -2,19 +2,24 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 **Nota de Desarrollo**: Para ver los cambios y mejoras realizados en la integración con la **API del Catastro**, consulta el archivo [CHANGELOG.md](./CHANGELOG.md).
 
-## ⚠️ Importante: Integración con Inmovilla API
+## 🚀 Calidad y Pruebas
+Este proyecto cuenta con una suite de tests automatizados con **Vitest**:
 
-Si estás desplegando en **Vercel**, necesitas configurar el proxy de Arsys para evitar problemas con IPs dinámicas:
-
-📖 **Lee primero**: [RESUMEN_SOLUCION.md](./RESUMEN_SOLUCION.md)  
-🚀 **Guía rápida**: [SOLUCION_IP_ARSYS.md](./SOLUCION_IP_ARSYS.md)  
-📚 **Documentación completa**: [docs/ARSYS_PROXY_SETUP.md](./docs/ARSYS_PROXY_SETUP.md)
-
-**Herramienta de ayuda:**
 ```bash
-node setup-helper.js secret   # Generar secreto
-node setup-helper.js check    # Verificar configuración
-node setup-helper.js test     # Probar proxy
+npm run test          # Ejecutar todos los tests
+npm run test:watch    # Modo interactivo
+npm run lint          # Análisis estático
+```
+
+## 🛠️ Integración con Inmovilla
+Para conectar con la API de Inmovilla desde Vercel, el sistema utiliza un **Arsys Proxy Layer** (debido a restricciones de IP).
+
+📖 **Guía de Configuración**: [docs/ARSYS_PROXY_SETUP.md](./docs/ARSYS_PROXY_SETUP.md)  
+📚 **Guía Maestra de Setup**: [docs/MASTER_SETUP_GUIDE.md](./docs/MASTER_SETUP_GUIDE.md)  
+
+Para verificar la conexión manual con la API:
+```bash
+npm run api:test
 ```
 
 ## Getting Started

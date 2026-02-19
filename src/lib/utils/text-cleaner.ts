@@ -9,20 +9,23 @@ export function cleanDescription(text: string | undefined | null): string {
     let cleaned = text;
 
     // 1. Eliminar marcadores de sección de Inmovilla (~~) 
-    // y sustituirlos por un espacio o salto de línea limpio
     cleaned = cleaned.replace(/~~+/g, '\n\n');
 
     // 2. Eliminar asteriscos de formato de portales (** o *) 
-    // que ensucian la tipografía premium
     cleaned = cleaned.replace(/\*\*/g, '');
     cleaned = cleaned.replace(/\*/g, '');
 
-    // 3. Limpiar emoticonos excesivos o "chillones"
-    // Mantiene el texto puramente profesional.
-    // Esta regex cubre la mayoría de emojis comunes.
-    cleaned = cleaned.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+    // 3. Eliminar artefactos de portales como [portal] o similar
+    cleaned = cleaned.replace(/\[.*?\]/g, '');
 
-    // 4. Normalizar espacios y saltos de línea múltiples
+    // 4. Limpiar emoticonos excesivos o "chillones"
+    // Regex mejorada para cubrir más rangos de emojis incluyendo casas y símbolos varios
+    cleaned = cleaned.replace(/[\u{1F300}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{27BF}]/gu, '');
+
+    // 5. Normalizar espacios en blanco (colapsar múltiples espacios a uno solo)
+    cleaned = cleaned.replace(/[ ]{2,}/g, ' ');
+
+    // 6. Normalizar saltos de línea múltiples
     cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
     cleaned = cleaned.trim();
 

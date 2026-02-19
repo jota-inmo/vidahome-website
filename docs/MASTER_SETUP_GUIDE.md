@@ -202,10 +202,17 @@ Para mejorar la mantenibilidad, el proyecto ha sido desacoplado:
 2.  **Componentización de Páginas**: Las páginas complejas (como `/vender`) se han fragmentado en componentes especializados dentro de sus directorios locales (`/components`).
 3.  **Barrel Files**: Uso de `actions.ts` como punto de exportación límpio para facilitar las importaciones en el frontend.
 
+### 9. Calidad y Testing (Vitest)
+El proyecto incluye una infraestructura de tests automatizados para asegurar la integridad de las funciones críticas:
+- **Estructura**: Los tests se ubican junto a los archivos que evalúan (ej: `text-cleaner.test.ts`).
+- **Ejecución**:
+    - `npm run test`: Ejecuta todos los tests una sola vez.
+    - `npm run test:watch`: Mantiene los tests activos mientras desarrollas.
+- **Configuración**: Gestionada a través de `vitest.config.ts` y el setup en `src/test/setup.ts`.
+
 ### Próximos Pasos (Roadmap)
-1.  **Cumplimiento Legal (Cookies & GDPR)**:
-    *   Implementar banner de consentimiento granular (LSSI-CE / RGPD).
-    *   Configurar Consent Mode para scripts analíticos y de marketing.
+1.  **Cumplimiento Legal (Cookies & GDPR)**: ✅ **Completado**
+    *   Implementado banner de consentimiento, páginas legales y headers de seguridad.
 2.  **Estrategia SEO & GEO (Posicionamiento Local)**:
     *   **GEO-SEO**: Optimización profunda para Gandia y La Safor.
     *   **Rich Snippets**: Marcado Schema.org (JSON-LD) para propiedades (precio, fotos, estrellas en Google).

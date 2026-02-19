@@ -263,8 +263,8 @@ La llamada `apiCache.remove('property_list_v6')` (clave incorrecta) fue reemplaz
 | 12 | 🟡 Medio | Imágenes con `<img>` en lugar de `<Image>` de Next.js | 🟡 Pendiente |
 | 13 | 🟢 Bajo | `actions.ts` monolítico (417 líneas) | ✅ **Resuelto** — Modularizado en `src/app/actions/` |
 | 14 | 🟢 Bajo | `VenderPage` megacomponente (>1000 líneas) | ✅ **Resuelto** — Componentizado en `src/app/vender/components/` |
-| 15 | 🟢 Bajo | Sin tests automatizados | 🟢 Pendiente |
-| 16 | 🟢 Bajo | Archivos de debug en el repositorio | 🟢 Pendiente |
+| 15 | 🟢 Bajo | Sin tests automatizados | ✅ **Resuelto** — Vitest + React Testing Library |
+| 16 | 🟢 Bajo | Archivos de debug en el repositorio | ✅ **Resuelto** — Limpieza de scripts raíz realizada |
 
 ---
 
