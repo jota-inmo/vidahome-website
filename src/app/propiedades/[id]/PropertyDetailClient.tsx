@@ -92,7 +92,6 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                         </header>
 
                         <div className="prose prose-slate dark:prose-invert max-w-none mb-20">
-                            <h2 className="font-serif text-3xl mb-8">Acerca de esta propiedad</h2>
                             <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg font-light whitespace-pre-line">
                                 {property.descripciones ? property.descripciones.split('~~')[0] : 'Esta residencia excepcional representa la excelencia en el servicio inmobiliario y el diseño contemporáneo.'}
                             </p>

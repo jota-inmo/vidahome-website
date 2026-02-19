@@ -145,8 +145,10 @@ Para que el sistema funcione, estas variables deben estar configuradas en el pan
 
 ### Refinamiento y Compartir
 *   **Limpieza de Terminología**: Se ha eliminado el adjetivo "Exclusiva" de los botones y textos para un tono más profesional y menos redundante.
+*   **Minimalismo en Ficha**: Eliminación del encabezado "Acerca de esta propiedad" para que la descripción fluya naturalmente sin etiquetas innecesarias, mejorando la estética editorial.
 *   **Lógica de Precio**: Se ha ocultado el texto "Precio bajo consulta" cuando la propiedad tiene un precio definido.
 *   **Función Compartir**: Implementación del botón de compartición nativa (Web Share API) con fallback a WhatsApp para facilitar la difusión de las propiedades.
+*   **WhatsApp Minimal**: El botón de contacto se ha rediseñado como un icono flotante sin fondo circular sólido, integrándose de forma más sutil y premium en la esquina de la pantalla.
 
 ### Expansión de Layout (Efecto de Vista Panorámica)
 *   **Contenedores Ampliados**: Se ha aumentado el ancho máximo de los contenedores de `1280px` (7xl) a **`1600px`**. Esto simula el efecto visual de un zoom al 80%, permitiendo que el usuario vea más información y más propiedades simultáneamente sin perder impacto visual.
@@ -211,5 +213,5 @@ Para mejorar la mantenibilidad, el proyecto ha sido desacoplado:
 
 ---
 ---
-*Documento actualizado el 18/02/2026 por Antigravity AI (Roadmap Estratégico).*
+*Documento actualizado el 19/02/2026 por Antigravity AI (Refinamientos Visuales).*
 
