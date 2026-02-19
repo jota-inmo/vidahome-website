@@ -53,7 +53,7 @@ export function Footer() {
             </div>
             <div className="max-w-[1600px] mx-auto mt-20 pt-8 border-t border-slate-100 dark:border-slate-800 text-center flex flex-col md:flex-row justify-between items-center gap-4">
                 <p className="text-[10px] tracking-[0.3em] uppercase text-slate-400">
-                    © 2026 Vidahome Premium Experience - Acompañamiento Profesional y Completo
+                    © 2026 Vidahome Premium Experience — APIVA asociados nº0236
                 </p>
                 <div className="flex gap-6">
                     <a href="https://www.instagram.com/vidahome/" target="_blank" rel="noopener noreferrer" className="text-[10px] tracking-[0.2em] uppercase text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Instagram</a>

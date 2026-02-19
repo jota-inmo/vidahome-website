@@ -72,7 +72,8 @@ export default function Home() {
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl font-serif text-[#0a192f] dark:text-white mb-10">Más que una inmobiliaria</h2>
           <p className="text-lg text-slate-500 font-light leading-relaxed mb-16">
-            En <strong className="text-[#0a192f] dark:text-blue-400">Vidahome</strong>, entendemos que una casa no es solo ladrillo y cemento, sino el escenario donde transcurre tu vida. Nuestro equipo en el Grau de Gandia se dedica a transformar la compraventa en una experiencia transparente, profesional y sin estrés.
+            En <strong className="text-[#0a192f] dark:text-blue-400">Vidahome</strong>, entendemos que una casa no es solo ladrillo y cemento, sino el escenario donde transcurre tu vida. Nuestro equipo en el Grau de Gandia se dedica a transformar la compraventa en una experiencia transparente, profesional y sin estrés. <br />
+            <span className="text-xs uppercase tracking-widest text-slate-400 mt-4 block italic">Agentes de la Propiedad Inmobiliaria — APIVA asociados nº0236</span>
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="p-8 border border-slate-50 dark:border-slate-900 shadow-sm">

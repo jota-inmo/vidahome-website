@@ -12,9 +12,14 @@ export default function NosotrosPage() {
 
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-16">
                     <div className="flex-1 text-center md:text-left">
-                        <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-800 text-teal-600 dark:text-teal-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-8 animate-fade-in">
-                            Más que una inmobiliaria
-                        </span>
+                        <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
+                            <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-800 text-teal-600 dark:text-teal-400 text-[10px] font-bold uppercase tracking-[0.2em] animate-fade-in">
+                                Más que una inmobiliaria
+                            </span>
+                            <span className="inline-block py-1 px-3 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] animate-fade-in">
+                                APIVA asociados nº0236
+                            </span>
+                        </div>
                         <h1 className="text-5xl md:text-7xl font-serif mb-8 leading-[1.1] animate-slide-up">
                             Construyendo relaciones <br />
                             <span className="italic font-normal text-teal-600 dark:text-teal-400">más allá de la venta.</span>
@@ -49,7 +54,7 @@ export default function NosotrosPage() {
                                     Sabemos que comprar o vender una vivienda es solo el principio de una serie de necesidades: reformas, trámites legales, gestiones técnicas...
                                 </p>
                                 <p>
-                                    En Vidahome no solo "pasamos un contacto". Hemos construido un equipo de profesionales externos (abogados, técnicos, arquitectos) seleccionados bajo un criterio inamovible: **nuestra propia experiencia trabajando con ellos.**
+                                    En Vidahome no solo "pasamos un contacto". Hemos construido un equipo de profesionales externos (abogados, técnicos, arquitectos) seleccionados bajo un criterio inamovible: nuestra propia experiencia trabajando con ellos.
                                 </p>
                                 <p className="font-medium text-slate-800 dark:text-slate-200 italic border-l-2 border-teal-500 pl-6 py-2">
                                     "Nuestra labor consiste en conectar a buena gente con buenos profesionales, eliminando toda fricción y preocupación para el cliente."
@@ -107,7 +112,7 @@ export default function NosotrosPage() {
                         <HeartHandshake size={48} className="mx-auto text-teal-600 dark:text-teal-400 mb-8 opacity-50" />
                         <h2 className="text-4xl font-serif italic">Nuestra medida de éxito</h2>
                         <p className="text-xl text-slate-600 dark:text-slate-400 font-light leading-relaxed">
-                            No medimos nuestro éxito por el número de firmas ante notario, sino por la recurrencia de nuestros clientes. Para nosotros, una venta cerrada es **el inicio de una relación de por vida.**
+                            No medimos nuestro éxito por el número de firmas ante notario, sino por la recurrencia de nuestros clientes. Para nosotros, una venta cerrada es el inicio de una relación de por vida.
                         </p>
                     </div>
 
