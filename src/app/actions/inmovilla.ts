@@ -109,15 +109,6 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
         if (!details) return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
 
-        if (details && details.key_loca && !details.poblacion) {
-            try {
-                const localidadMap = require('@/lib/api/localidades_map.json');
-                details.poblacion = localidadMap[details.key_loca] || '';
-            } catch (e) {
-                console.warn('[Inmovilla Action] Localidad map loading failed:', e);
-            }
-        }
-
         apiCache.set(cacheKey, details);
         return { success: true, data: details };
     } catch (error: any) {

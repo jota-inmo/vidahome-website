@@ -41,7 +41,9 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
 
                 <div className="p-8 flex flex-col flex-grow">
                     <h3 className="text-xl font-serif text-slate-900 dark:text-slate-100 leading-tight mb-4">
-                        {property.poblacion ? `${property.tipo_nombre || 'Propiedad'} en ${property.poblacion}` : `Referencia ${property.ref}`}
+                        {property.tipo_nombre
+                            ? (property.poblacion ? `${property.tipo_nombre} en ${property.poblacion}` : property.tipo_nombre)
+                            : (property.poblacion ? `Propiedad en ${property.poblacion}` : `Referencia ${property.ref}`)}
                     </h3>
 
                     <div className="flex items-center gap-8 mb-6 text-slate-400">

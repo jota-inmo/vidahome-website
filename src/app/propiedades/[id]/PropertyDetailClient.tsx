@@ -78,7 +78,8 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                         <header className="mb-12 md:mb-16">
                             <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">Referencia: {property.ref}</span>
                             <h1 className="text-3xl md:text-7xl font-serif text-slate-900 dark:text-white mb-8 leading-tight">
-                                Privacidad y Elegancia en {property.poblacion || 'Ubicación Premium'}
+                                {property.tipo_nombre || 'Propiedad'} <br className="hidden md:block" />
+                                <span className="text-slate-400 font-light">en {property.poblacion || 'La Safor'}</span>
                             </h1>
                             <div className="flex flex-wrap gap-8 md:gap-12 text-slate-900 dark:text-white">
                                 {features.map((f, i) => (

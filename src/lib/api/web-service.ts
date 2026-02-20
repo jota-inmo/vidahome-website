@@ -6,6 +6,17 @@
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
 import { createInmovillaWebClient } from './web-client';
 
+// Load mapping files for enrichment
+let tiposMap: Record<string, string> = {};
+let localidadesMap: Record<string, string> = {};
+
+try {
+    tiposMap = require('./tipos_map.json');
+    localidadesMap = require('./localidades_map.json');
+} catch (e) {
+    console.warn('[Inmovilla Web Service] Failed to load mapping files:', e);
+}
+
 interface WebApiPropertyResponse {
     cod_ofer: string;
     ref: string;
@@ -86,6 +97,17 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
         }
     }
 
+    // Enrich missing fields using maps
+    let tipoNombre = webProp.tipo_nombre || '';
+    if (!tipoNombre && webProp.key_tipo) {
+        tipoNombre = tiposMap[webProp.key_tipo] || '';
+    }
+
+    let poblacion = webProp.poblacion || '';
+    if (!poblacion && webProp.key_loca) {
+        poblacion = localidadesMap[webProp.key_loca] || '';
+    }
+
     return {
         cod_ofer: codOfer,
         ref: webProp.ref || '',
@@ -103,8 +125,8 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
         nodisponible: webProp.nodisponible === '1' || webProp.nodisponible === 1,
         prospecto: webProp.prospecto === '1' || webProp.prospecto === 1,
         fechaact: '', // Not provided by Web API
-        poblacion: webProp.poblacion || '',
-        tipo_nombre: webProp.tipo_nombre || '',
+        poblacion: poblacion,
+        tipo_nombre: tipoNombre,
         mainImage
     };
 }
@@ -185,6 +207,17 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
         }
     }
 
+    // Enrich missing fields using maps
+    let tipoNombre = webProp.tipo_nombre || '';
+    if (!tipoNombre && webProp.key_tipo) {
+        tipoNombre = tiposMap[webProp.key_tipo] || '';
+    }
+
+    let poblacion = webProp.poblacion || '';
+    if (!poblacion && webProp.key_loca) {
+        poblacion = localidadesMap[webProp.key_loca] || '';
+    }
+
     return {
         cod_ofer: codOfer,
         ref: webProp.ref || '',
@@ -218,8 +251,8 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
         numfotos: webProp.numfotos,
         fotoletra: fotoLetra,
         habitaciones: totalHabitaciones || undefined,
-        poblacion: webProp.poblacion || '',
-        tipo_nombre: webProp.tipo_nombre || ''
+        poblacion: poblacion,
+        tipo_nombre: tipoNombre
     };
 }
 
