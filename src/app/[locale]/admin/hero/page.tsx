@@ -8,9 +8,9 @@ import {
     uploadMediaAction,
     logoutAction,
     HeroSlide
-} from '../../actions';
+} from '@/app/actions';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { Trash2, Plus, Upload, MoveUp, MoveDown, Play, Image as ImageIcon, ExternalLink, CheckCircle2, Circle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';

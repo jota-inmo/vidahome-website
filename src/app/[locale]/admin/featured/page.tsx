@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { fetchPropertiesAction, getFeaturedPropertiesAction, updateFeaturedPropertiesAction, logoutAction } from '../../actions';
+import { fetchPropertiesAction, getFeaturedPropertiesAction, updateFeaturedPropertiesAction, logoutAction } from '@/app/actions';
 import { useRouter } from 'next/navigation';
 import { PropertyListEntry } from '@/types/inmovilla';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 
 export default function FeaturedAdmin() {
     const [properties, setProperties] = useState<PropertyListEntry[]>([]);

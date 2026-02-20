@@ -146,4 +146,34 @@ Para superar la restricción de Inmovilla que omite descripciones en el catálog
 
 ---
 
+## 8. Soporte Multi-idioma (i18n)
+
+La aplicación utiliza `next-intl` para la internacionalización, soportando Español (`es`) como idioma por defecto e Inglés (`en`).
+
+### Arquitectura
+- **Enrutamiento**: Los locales se gestionan mediante rutas localizadas (`/[locale]/...`). Un middleware personalizado maneja la detección de idioma y la redirección de rutas.
+- **Mensajes**: Las traducciones se almacenan en `messages/{locale}.json`.
+- **Infraestructura**:
+  - `src/i18n/routing.ts`: Configuración de locales soportados y estrategia de rutas.
+  - `src/i18n/request.ts`: Configuración de servidor para cargar los mensajes.
+  - `next.config.ts`: Integrado con el plugin de `next-intl`.
+
+### Componentes y Hooks
+- **Client Components**: Utilizan `useTranslations('Namespace')` y `useLocale()`.
+- **Server Components**: Utilizan `await getTranslations('Namespace')` de `next-intl/server`.
+- **Navegación**: Se utiliza el `Link`, `usePathname` y `useRouter` localizados desde `@/i18n/routing` para preservar el idioma actual.
+
+### Gestión de Traducciones
+Para añadir o modificar textos:
+1. Actualizar `messages/es.json` con la nueva clave.
+2. Actualizar `messages/en.json` con la traducción correspondiente.
+3. Acceder al texto en el código usando el namespace (ej. `t('key')`).
+
+### Integración API Inmovilla
+Las peticiones a la API de Inmovilla dependen del idioma detectado. El parámetro `inmoLang` se mapea automáticamente:
+- `es` -> `1` (Español)
+- `en` -> `2` (Inglés)
+
+---
+
 *Documento actualizado el 20/02/2026 por Antigravity AI.*
