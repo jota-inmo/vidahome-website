@@ -37,7 +37,7 @@ interface WebApiPropertyResponse {
  * Convert Web API property to PropertyListEntry format
  * Supports parallel arrays like $descripciones[cod_ofer][idioma]
  */
-function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyListEntry {
+function convertToPropertyListEntry(webProp: any, fullResponse?: any, languageId: number = 1): PropertyListEntry {
     const codOfer = parseInt(webProp.cod_ofer);
     const numFotos = parseInt(webProp.numfotos || '0');
 
@@ -65,8 +65,9 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
             if (typeof descGroup === 'string') {
                 description = descGroup;
             } else {
-                // Try language keys (1=ES, 2=VA, etc.)
-                const langData = descGroup['1'] || descGroup[1] || descGroup['es'];
+                // Try the requested languageId, then fallback to '1' (ES), then to any language
+                const langData = descGroup[String(languageId)] || descGroup[languageId] || descGroup['1'] || descGroup[1] || descGroup['es'];
+
                 if (langData && typeof langData === 'object') {
                     description = (langData as any).descrip || (langData as any).descripcion || (langData as any).texto || '';
                 } else if (!description) {
@@ -84,7 +85,7 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
     if (!description) {
         const internalDesc = webProp.descripciones || webProp.descripcion || webProp.texto || webProp.observaciones || webProp.comentarios || (webProp.web && typeof webProp.web === 'object' && webProp.web.descripcion);
         if (typeof internalDesc === 'object' && internalDesc !== null) {
-            description = internalDesc['1'] || internalDesc[1] || internalDesc['es'] || '';
+            description = internalDesc[String(languageId)] || internalDesc[languageId] || internalDesc['1'] || internalDesc[1] || internalDesc['es'] || '';
         } else {
             description = String(internalDesc || '');
         }
@@ -130,7 +131,7 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
  * Convert Web API property to PropertyDetails format
  * Supports parallel arrays like $descripciones[cod_ofer][idioma]
  */
-function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDetails {
+function convertToPropertyDetails(webProp: any, fullResponse?: any, languageId: number = 1): PropertyDetails {
     // Detect ID from multiple possible locations
     const codOfer = parseInt(webProp.cod_ofer || webProp.codofer || webProp.key || webProp.cod || '0');
 
@@ -180,7 +181,7 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
             if (typeof descGroup === 'string') {
                 description = descGroup;
             } else {
-                const langData = descGroup['1'] || descGroup[1] || descGroup['es'];
+                const langData = descGroup[String(languageId)] || descGroup[languageId] || descGroup['1'] || descGroup[1] || descGroup['es'];
                 if (langData && typeof langData === 'object') {
                     description = (langData as any).descrip || (langData as any).descripcion || (langData as any).texto || '';
                 } else {
@@ -196,7 +197,7 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
     if (!description) {
         const internalDesc = webProp.descripciones || webProp.descripcion || webProp.texto || (webProp.web && webProp.web.descripcion);
         if (typeof internalDesc === 'object' && internalDesc !== null) {
-            description = internalDesc['1'] || internalDesc[1] || internalDesc['es'] || '';
+            description = internalDesc[String(languageId)] || internalDesc[languageId] || internalDesc['1'] || internalDesc[1] || internalDesc['es'] || '';
         } else {
             description = String(internalDesc || '');
         }
@@ -259,8 +260,10 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
  */
 export class InmovillaWebApiService {
     private client: ReturnType<typeof createInmovillaWebClient>;
+    private idioma: number;
 
     constructor(numagencia: string, password: string, addnumagencia: string = '', idioma: number = 1, ip: string = '', domain: string = '') {
+        this.idioma = idioma;
         this.client = createInmovillaWebClient({
             numagencia,
             addnumagencia,
@@ -294,7 +297,7 @@ export class InmovillaWebApiService {
 
             return properties
                 .filter((p: any) => p && typeof p === 'object' && p.cod_ofer)
-                .map((p: any) => convertToPropertyListEntry(p, response));
+                .map((p: any) => convertToPropertyListEntry(p, response, this.idioma));
         } catch (error) {
             console.error('Error fetching properties from Web API:', error);
             throw error;
@@ -327,7 +330,7 @@ export class InmovillaWebApiService {
             const combined = { ...listData, ...detailData };
 
             // Pass the full result as well so we can find the parallel $descripciones array
-            return convertToPropertyDetails(combined, result);
+            return convertToPropertyDetails(combined, result, this.idioma);
         } catch (error) {
             console.error(`Error fetching property ${id}:`, error);
             throw error;
@@ -349,7 +352,7 @@ export class InmovillaWebApiService {
                 ? response.destacados
                 : [response.destacados];
 
-            return properties.map((p: any) => convertToPropertyListEntry(p, response));
+            return properties.map((p: any) => convertToPropertyListEntry(p, response, this.idioma));
         } catch (error) {
             console.error('Error fetching featured properties from Web API:', error);
             throw error;
