@@ -65,7 +65,27 @@ export async function fetchPropertiesAction(): Promise<{
     }
 
     try {
-        const properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain);
+        let properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain);
+
+        // --- Enrichment with Supabase Metadata starts here ---
+        try {
+            const { supabase } = await import('@/lib/supabase');
+            const { data: metadata } = await supabase
+                .from('property_metadata')
+                .select('cod_ofer, description');
+
+            if (metadata && metadata.length > 0) {
+                const metaMap = new Map(metadata.map(m => [m.cod_ofer, m.description]));
+                properties = properties.map(p => ({
+                    ...p,
+                    descripciones: metaMap.has(p.cod_ofer) ? metaMap.get(p.cod_ofer) : p.descripciones
+                }));
+            }
+        } catch (supaError) {
+            console.warn('[Actions] Supabase metadata enrichment failed:', supaError);
+        }
+        // --- Enrichment ends here ---
+
         const populations = [...new Set(properties.map(p => p.poblacion).filter(Boolean))].sort() as string[];
 
         return { success: true, data: properties, isConfigured: true, meta: { populations } };
@@ -108,6 +128,22 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         const details = await api.getPropertyDetails(id);
 
         if (!details) return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
+
+        // --- Auto-Learn: Sync description to Supabase for the catalog starts here ---
+        if (details.descripciones && details.descripciones.length > 20) {
+            try {
+                const { supabaseAdmin } = await import('@/lib/supabase-admin');
+                await supabaseAdmin.from('property_metadata').upsert({
+                    cod_ofer: details.cod_ofer,
+                    ref: details.ref,
+                    description: details.descripciones,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'cod_ofer' });
+            } catch (supaError) {
+                console.warn('[Actions] Auto-sync metadata failed:', supaError);
+            }
+        }
+        // --- Auto-Learn ends here ---
 
         apiCache.set(cacheKey, details);
         return { success: true, data: details };

@@ -33,3 +33,20 @@ CREATE POLICY "Allow public read featured" ON featured_properties FOR SELECT USI
 
 -- For simplicity in this demo, allow all for now (in production you'd add auth)
 CREATE POLICY "Allow all for management" ON featured_properties FOR ALL USING (true);
+
+-- Table for property metadata caching (to store descriptions for the catalog)
+CREATE TABLE IF NOT EXISTS property_metadata (
+    cod_ofer INTEGER PRIMARY KEY,
+    ref TEXT,
+    description TEXT,
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE property_metadata ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read for catalog enrichment
+CREATE POLICY "Allow public read metadata" ON property_metadata FOR SELECT USING (true);
+
+-- Allow all for system updates (simplification for the demo)
+CREATE POLICY "Allow all for system" ON property_metadata FOR ALL USING (true);
