@@ -88,22 +88,25 @@ export async function fetchPropertiesAction(): Promise<{
         let properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain, inmoLang);
 
         // --- Enrichment with Supabase Metadata starts here ---
-        // (Nota: Las descripciones de Supabase son fijas en un idioma por ahora)
-        try {
-            const { supabase } = await import('@/lib/supabase');
-            const { data: metadata } = await supabase
-                .from('property_metadata')
-                .select('cod_ofer, description');
+        // Solo enriquecemos desde Supabase si el idioma es Español ('es').
+        // Para otros idiomas, confiamos plenamente en las traducciones que devuelve la API de Inmovilla.
+        if (locale === 'es') {
+            try {
+                const { supabase } = await import('@/lib/supabase');
+                const { data: metadata } = await supabase
+                    .from('property_metadata')
+                    .select('cod_ofer, description');
 
-            if (metadata && metadata.length > 0) {
-                const metaMap = new Map(metadata.map(m => [m.cod_ofer, m.description]));
-                properties = properties.map(p => ({
-                    ...p,
-                    descripciones: metaMap.has(p.cod_ofer) ? metaMap.get(p.cod_ofer) : p.descripciones
-                }));
+                if (metadata && metadata.length > 0) {
+                    const metaMap = new Map(metadata.map(m => [m.cod_ofer, m.description]));
+                    properties = properties.map(p => ({
+                        ...p,
+                        descripciones: metaMap.has(p.cod_ofer) ? metaMap.get(p.cod_ofer) : p.descripciones
+                    }));
+                }
+            } catch (supaError) {
+                console.warn('[Actions] Supabase metadata enrichment failed:', supaError);
             }
-        } catch (supaError) {
-            console.warn('[Actions] Supabase metadata enrichment failed:', supaError);
         }
         // --- Enrichment ends here ---
 
@@ -156,7 +159,8 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         }
 
         // --- Auto-Learn: Sync description to Supabase for the catalog starts here ---
-        if (details.descripciones && details.descripciones.length > 20) {
+        // Solo sincronizamos con Supabase si estamos en Español para evitar corromper la DB con otros idiomas.
+        if (locale === 'es' && details.descripciones && details.descripciones.length > 20) {
             try {
                 const { supabaseAdmin } = await import('@/lib/supabase-admin');
                 await supabaseAdmin.from('property_metadata').upsert({
