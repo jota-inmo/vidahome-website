@@ -135,19 +135,19 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
 
                             <ContactForm cod_ofer={property.cod_ofer} />
 
-                            <div className="mt-12 p-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-100 dark:border-slate-800/50 flex items-center gap-10 transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] dark:hover:shadow-none rounded-2xl group relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-slate-50/30 dark:to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                            <div className="mt-12 p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-100 dark:border-slate-800/60 flex items-center gap-6 rounded-2xl transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/10 dark:hover:shadow-none group relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                                <div className="shrink-0 transition-all duration-700 group-hover:scale-105 group-hover:-rotate-2 relative z-10">
-                                    <Logo variant="icon" className="h-12 w-auto drop-shadow-sm" plain />
+                                <div className="shrink-0 p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-50 dark:border-slate-800 group-hover:scale-105 transition-transform duration-500 relative z-10">
+                                    <Logo variant="icon" className="h-6 w-auto" plain />
                                 </div>
 
-                                <div className="h-12 w-px bg-gradient-to-b from-transparent via-slate-200 dark:via-slate-700 to-transparent relative z-10" />
+                                <div className="h-10 w-px bg-gradient-to-b from-transparent via-slate-200 dark:via-slate-700 to-transparent relative z-10" />
 
-                                <div className="flex flex-col gap-1 relative z-10">
-                                    <h4 className="font-serif text-2xl text-slate-900 dark:text-white leading-tight tracking-[0.02em]">Vidahome</h4>
-                                    <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-[0.5em] font-bold">
-                                        Especialista en <span className="text-slate-600 dark:text-slate-300">La Safor</span>
+                                <div className="flex flex-col gap-0.5 relative z-10 min-w-0">
+                                    <h4 className="font-serif text-lg text-slate-900 dark:text-white leading-tight truncate">Vidahome</h4>
+                                    <p className="text-[7.5px] text-slate-400 dark:text-slate-500 uppercase tracking-[0.45em] font-bold truncate">
+                                        Especialista <span className="text-[#2dd4bf]">La Safor</span>
                                     </p>
                                 </div>
                             </div>
