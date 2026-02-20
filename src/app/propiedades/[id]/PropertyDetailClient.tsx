@@ -28,7 +28,7 @@ interface PropertyDetailClientProps {
 export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
     const handleShare = async () => {
         const shareData = {
-            title: `Residencia en ${property.poblacion} | Vidahome`,
+            title: `${property.tipo_nombre || 'Propiedad'} en ${property.poblacion} | Vidahome`,
             text: `Mira esta propiedad en Vidahome: ${property.tipo_nombre} en ${property.poblacion}`,
             url: window.location.href,
         };
@@ -78,7 +78,7 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                         <header className="mb-12 md:mb-16">
                             <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">Referencia: {property.ref}</span>
                             <h1 className="text-3xl md:text-7xl font-serif text-slate-900 dark:text-white mb-8 leading-tight">
-                                Privacidad y Elegancia en {property.tipo_nombre || 'Residencia'} en {property.poblacion || 'Ubicación Premium'}
+                                Privacidad y Elegancia en {property.poblacion || 'Ubicación Premium'}
                             </h1>
                             <div className="flex flex-wrap gap-8 md:gap-12 text-slate-900 dark:text-white">
                                 {features.map((f, i) => (
@@ -97,7 +97,7 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                             <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg font-light whitespace-pre-line">
                                 {property.descripciones
                                     ? cleanDescription(property.descripciones)
-                                    : 'Esta residencia excepcional representa la excelencia en el servicio inmobiliario y el diseño contemporáneo.'}
+                                    : 'Esta propiedad excepcional representa la excelencia en el servicio inmobiliario y el diseño contemporáneo.'}
                             </p>
                         </div>
 
