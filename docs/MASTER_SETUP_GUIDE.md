@@ -35,7 +35,7 @@ Se ha implementado un cliente profesional (`src/lib/api/web-client.ts`) que mane
 *   **Ordenación**: Configurado para mostrar siempre lo más reciente primero (`cod_ofer DESC`). Esto es un requisito de negocio crítico para garantizar que las últimas captaciones encabecen el catálogo.
 *   **Estructura del Header**: La API Web es extremadamente sensible. El header **DEBE** incluir `;lostipos` al final de la cadena de autenticación inicial: `$agencia$sucursal;$password;$idioma;lostipos`. Sin este campo fijo, Inmovilla devuelve errores de PHP (`Error tipo consulta`).
 *   **Estrategia "Dual-Fetch" (Ficha + Paginación)**: Para maximizar la fiabilidad, la web solicita simultáneamente el proceso `ficha` (para descripciones ricas) y `paginacion` (para campos básicos y fotos). Los datos se fusionan para asegurar que nunca falten imágenes o precios si un proceso falla.
-*   **Mapeo de Descripciones**: Se ha descubierto que Inmovilla envía las descripciones en un array paralelo de nivel raíz `$descripciones[id][idioma]['descrip']`. El adaptador de la web está programado para localizar estos datos dinámicamente, solucionando el problema de los textos genéricos.
+*   **Mapeo de Descripciones PRO**: Se ha descubierto que Inmovilla envía las descripciones en un array paralelo de nivel raíz `$descripciones`. El motor ahora utiliza una estrategia de búsqueda por `cod_ofer` dentro de este array (soporta tanto objetos con claves ID como arrays planos con objetos), extrayendo específicamente el idioma español (`idioma=1`) y evitando fallbacks genéricos si hay datos reales disponibles.
 
 ---
 

@@ -32,8 +32,8 @@ El proyecto Vidahome es una aplicación web inmobiliaria construida con un stack
 
 ### 2.1 Seguridad
 
-#### 🔴 NUEVO — Cookie de admin sin firma criptográfica
-**Archivo:** `src/app/actions/auth.ts`
+#### ✅ RESUELTO — Cookie de admin sin firma criptográfica
+**Archivo:** `src/app/actions/auth.ts` y `src/middleware.ts`
 
 **Problema:** La cookie `admin_session` se establece con el valor literal `'active'`. Cualquier persona que conozca el nombre de la cookie puede crearla manualmente en el navegador (`document.cookie = "admin_session=active"`) y acceder a todo el panel de administración sin conocer la contraseña.
 
@@ -159,7 +159,7 @@ Se permite ahora apóstrofes individuales (ej: `O'Brien`) mientras se mantienen 
 
 ### 2.2 Subida de Archivos
 
-#### 🟠 NUEVO — Sin validación de tipo ni tamaño de archivo en `uploadMediaAction`
+#### ✅ RESUELTO — Validación de tipo y tamaño de archivo en `uploadMediaAction`
 **Archivo:** `src/app/actions/media.ts`
 
 **Problema:** La función acepta cualquier archivo que el navegador envíe. No hay validación de:
@@ -210,7 +210,7 @@ La ruta `/admin-hero` ha sido movida a `/admin/hero` bajo el ecosistema unificad
 
 ---
 
-#### 🟠 NUEVO — Sin `error.tsx` ni `loading.tsx` globales
+#### ✅ RESUELTO — Pantallas `error.tsx` y `loading.tsx` globales
 **Directorio:** `src/app/`
 
 **Problema:** No existen archivos `error.tsx` ni `loading.tsx` en la raíz de la aplicación. Esto significa que:
@@ -224,10 +224,10 @@ La ruta `/admin-hero` ha sido movida a `/admin/hero` bajo el ecosistema unificad
 
 ### 2.4 Manejo de Errores
 
-#### ⚠️ PARCIALMENTE PENDIENTE — Errores silenciados en acciones
+#### ✅ RESUELTO — Errores silenciados en acciones
 **Archivo:** `src/app/actions/inmovilla.ts`
 
-Se detectan **4 bloques `catch` vacíos** (`catch (e) { }`) en las funciones de IP y localidades. Estos fallos silenciosos dificultan enormemente la depuración en producción.
+Se han corregido los bloques `catch` vacíos. Ahora incluyen `console.warn` con contexto del error para facilitar la depuración sin romper el flujo del usuario.
 
 **Bloques afectados (líneas):** 56, 98, 112 (IP fallback), y más.
 
@@ -368,15 +368,15 @@ ON CONFLICT (key) DO NOTHING;
 | # | Severidad | Issue | Estado |
 |---|-----------|-------|--------|
 | 1 | 🔴 Crítico | Credenciales en historial Git | ⚠️ Acción manual pendiente |
-| 2 | 🔴 Crítico | Cookie admin sin firma criptográfica | 🔴 **Pendiente** |
-| 3 | 🟠 Alto | Sin validación de archivos en upload | 🟠 **Pendiente** |
-| 4 | 🟠 Alto | Sin `error.tsx` / `loading.tsx` globales | 🟠 **Pendiente** |
+| 2 | 🔴 Crítico | Cookie admin sin firma criptográfica | ✅ Resuelto |
+| 3 | 🟠 Alto | Sin validación de archivos en upload | ✅ Resuelto |
+| 4 | 🟠 Alto | Sin `error.tsx` / `loading.tsx` globales | ✅ Resuelto |
 | 5 | 🟠 Alto | Headers de seguridad (CSP, HSTS) | ✅ Resuelto |
 | 6 | 🟠 Alto | Validación de entradas en API Client | ✅ Resuelto |
 | 7 | 🟠 Alto | Caché incompatible con Vercel | ✅ Resuelto |
 | 8 | 🟠 Alto | LSSI/RGPD: aviso legal y privacidad | ✅ Resuelto |
 | 9 | 🟠 Alto | Endpoint debug expuesto en producción | ✅ Resuelto |
-| 10 | 🟡 Medio | Errores silenciados en catch vacíos | ⚠️ Parcialmente pendiente |
+| 10 | 🟡 Medio | Errores silenciados en catch vacíos | ✅ Resuelto |
 | 11 | 🟡 Medio | `alert()` nativo en formularios | ✅ Resuelto |
 | 12 | 🟡 Medio | Schema.org, sitemap, robots | ✅ Resuelto |
 | 13 | 🟡 Medio | Imágenes con `<img>` sin optimizar | ✅ Resuelto |
@@ -390,17 +390,12 @@ ON CONFLICT (key) DO NOTHING;
 ## 6. Próximos Pasos Recomendados (Prioridad)
 
 ### Inmediatos (Seguridad)
-1. **Rotar contraseña de Inmovilla** — Contactar con soporte.
-2. **Firmar cookie de sesión admin** — Evitar falsificación manual.
-3. **Validar archivos en `uploadMediaAction`** — Tipo MIME y tamaño máximo.
-
-### Corto Plazo (UX Producción)
-4. **Crear `error.tsx` y `loading.tsx`** — Experiencia visual coherente ante errores.
-5. **Reemplazar `catch {}` vacíos** — Logging mínimo para depuración.
+1. **Rotar contraseña de Inmovilla** — Contactar con soporte (Acción manual requerida).
+2. **Limpiar historial Git** — Usar BFG o filter-repo para eliminar credenciales expuestas.
 
 ### Medio Plazo (Calidad)
-6. **Ampliar cobertura de tests** — Server Actions y flujos críticos.
-7. **Implementar Tests E2E** — Flujos de contacto y admin.
+3. **Ampliar cobertura de tests** — Server Actions y flujos críticos.
+4. **Implementar Tests E2E** — Flujos de contacto y admin.
 
 ---
 

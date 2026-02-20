@@ -17,7 +17,7 @@ Debemos configurar un mapa de redirecciones en `next.config.ts` o mediante un mi
 
 ### Tareas:
 - [ ] Exportar lista completa de URLs indexadas de Google Search Console.
-- [ ] Implementar `redirects()` en `next.config.ts`.
+- [x] Implementar `redirects()` en `next.config.ts`.
 - [ ] Probar que los enlaces antiguos desde redes sociales sigan funcionando.
 
 ---
@@ -26,9 +26,9 @@ Debemos configurar un mapa de redirecciones en `next.config.ts` o mediante un mi
 Actualmente, las páginas interiores son Client Components (`'use client'`), lo que dificulta la indexación profunda de cada propiedad.
 
 ### Acciones Técnicas:
-- [ ] **Convertir `propiedades/[id]` a Server Component**: Esto permite usar `generateMetadata` para que cada propiedad tenga su propio `<title>` y `<meta description>` con palabras clave como:
+- [x] **Convertir `propiedades/[id]` a Server Component**: Esto permite usar `generateMetadata` para que cada propiedad tenga su propio `<title>` y `<meta description>` con palabras clave como:
   *   *“Apartamento en Playa de Gandia - Ref: 123456 | Vidahome”*
-- [ ] **OpenGraph Dinámico**: Generar imágenes de previsualización (OG Images) automáticamente para que al compartir por WhatsApp aparezca la foto de la casa.
+- [x] **OpenGraph Dinámico**: Generar imágenes de previsualización (OG Images) automáticamente para que al compartir por WhatsApp aparezca la foto de la casa.
 
 ---
 
@@ -44,14 +44,14 @@ Para dominar el mercado local, la web debe hablarle a Google específicamente so
 ## 4. Datos Estructurados (Schema.org)
 Implementar JSON-LD para que los resultados en Google sean más ricos (Rich Snippets).
 
-- [ ] **RealEstateListing**: Añadir a la ficha de propiedad para que Google identifique precio, m², habitaciones y fotos directamente en la búsqueda.
-- [ ] **LocalBusiness**: Añadir a la home y contacto con coordenadas y horario de la oficina.
+- [x] **RealEstateListing**: Añadir a la ficha de propiedad para que Google identifique precio, m², habitaciones y fotos directamente en la búsqueda.
+- [x] **LocalBusiness**: Añadir a la home y contacto con coordenadas y horario de la oficina.
 
 ---
 
 ## 5. Herramientas de Indexación
-- [ ] **Sitemap.xml Dinámico**: Crear un generador que lea de la API de Inmovilla para que Google sepa siempre qué casas nuevas hay.
-- [ ] **Robots.txt**: Configurar correctamente para guiar a los rastreadores.
+- [x] **Sitemap.xml Dinámico**: Crear un generador que lea de la API de Inmovilla para que Google sepa siempre qué casas nuevas hay.
+- [x] **Robots.txt**: Configurar correctamente para guiar a los rastreadores.
 - [ ] **Google Search Console**: Notificar el cambio de sitio si el dominio cambia (aunque sea solo de servidor).
 
 ---

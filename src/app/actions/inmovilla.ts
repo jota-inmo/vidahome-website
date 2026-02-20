@@ -53,7 +53,9 @@ export async function fetchPropertiesAction(): Promise<{
                 const ipData = await ipRes.json();
                 clientIp = ipData.ip;
             }
-        } catch (e) { }
+        } catch (e) {
+            console.warn('[Inmovilla Action] Fallback IP fetch failed:', e);
+        }
     }
 
     const isConfigured = !!(numagencia && password) || (!!token && token !== 'your_token_here');
@@ -95,7 +97,9 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
                 const ipData = await ipRes.json();
                 clientIp = ipData.ip;
             }
-        } catch (e) { }
+        } catch (e) {
+            console.warn('[Inmovilla Action] Fallback IP fetch failed for details:', e);
+        }
     }
 
     try {
@@ -109,7 +113,9 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
             try {
                 const localidadMap = require('@/lib/api/localidades_map.json');
                 details.poblacion = localidadMap[details.key_loca] || '';
-            } catch (e) { }
+            } catch (e) {
+                console.warn('[Inmovilla Action] Localidad map loading failed:', e);
+            }
         }
 
         apiCache.set(cacheKey, details);

@@ -44,28 +44,45 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
 
     const totalHabitaciones = (Number(webProp.habitaciones) || 0) + (Number(webProp.habdobles) || 0);
 
-    // Extract description: try parallel root-level array first ($descripciones[id][idioma]['descrip'])
+    // Extract description from parallel root-level array or the property itself
     let description = '';
     const idStr = String(codOfer);
-
-    // 1. Try parallel root-level array first
     const rootDesc = fullResponse?.descripciones || webProp?.descripciones;
-    if (rootDesc && typeof rootDesc === 'object' && rootDesc[idStr]) {
-        const descGroup = rootDesc[idStr];
-        const langData = descGroup['1'] || descGroup[1] || descGroup['es'] || Object.values(descGroup)[0];
-        if (langData && typeof langData === 'object') {
-            description = langData.descrip || langData.descripcion || langData.texto || '';
-        } else if (typeof langData === 'string') {
-            description = langData;
+
+    if (rootDesc) {
+        let descGroup = null;
+        if (Array.isArray(rootDesc)) {
+            descGroup = rootDesc.find((d: any) => d && String(d.cod_ofer || d.codofer) === idStr);
+        } else if (typeof rootDesc === 'object') {
+            descGroup = rootDesc[idStr];
+        }
+
+        if (descGroup) {
+            if (typeof descGroup === 'string') {
+                description = descGroup;
+            } else {
+                // Try language keys (1=ES, 2=VA, etc.)
+                const langData = descGroup['1'] || descGroup[1] || descGroup['es'];
+                if (langData && typeof langData === 'object') {
+                    description = (langData as any).descrip || (langData as any).descripcion || (langData as any).texto || '';
+                } else if (!description) {
+                    // Fallback to any language object found that isn't the cod_ofer itself
+                    const firstLangObj = Object.values(descGroup).find(v => v && typeof v === 'object' && ((v as any).descrip || (v as any).descripcion));
+                    if (firstLangObj && typeof firstLangObj === 'object') {
+                        description = (firstLangObj as any).descrip || (firstLangObj as any).descripcion || '';
+                    }
+                }
+            }
         }
     }
 
-    // 2. Fallback to standard field
+    // Fallback to internal fields if root lookup failed
     if (!description) {
-        if (typeof webProp.descripciones === 'object' && webProp.descripciones !== null) {
-            description = webProp.descripciones['1'] || webProp.descripciones[1] || '';
+        const internalDesc = webProp.descripciones || webProp.descripcion || webProp.texto;
+        if (typeof internalDesc === 'object' && internalDesc !== null) {
+            description = internalDesc['1'] || internalDesc[1] || internalDesc['es'] || '';
         } else {
-            description = String(webProp.descripciones || '');
+            description = String(internalDesc || '');
         }
     }
 
@@ -129,35 +146,43 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
 
     const totalHabitaciones = (Number(webProp.habitaciones) || 0) + (Number(webProp.habdobles) || 0);
 
-    // Extract description using the specific structure identified ($descripciones[id][idioma]['descrip'])
+    // Extract description from parallel root-level array or the property itself
     let description = '';
     const idStr = String(codOfer);
-
-    // 1. Try parallel root-level array first (most reliable for Ficha)
     const rootDesc = fullResponse?.descripciones || webProp?.descripciones;
-    if (rootDesc && typeof rootDesc === 'object' && rootDesc[idStr]) {
-        const descGroup = rootDesc[idStr];
-        const langData = descGroup['1'] || descGroup[1] || descGroup['es'] || Object.values(descGroup)[0];
-        if (langData && typeof langData === 'object') {
-            description = langData.descrip || langData.descripcion || langData.texto || '';
-        } else if (typeof langData === 'string') {
-            description = langData;
+
+    if (rootDesc) {
+        let descGroup = null;
+        if (Array.isArray(rootDesc)) {
+            descGroup = rootDesc.find((d: any) => d && String(d.cod_ofer || d.codofer) === idStr);
+        } else if (typeof rootDesc === 'object') {
+            descGroup = rootDesc[idStr];
+        }
+
+        if (descGroup) {
+            if (typeof descGroup === 'string') {
+                description = descGroup;
+            } else {
+                const langData = descGroup['1'] || descGroup[1] || descGroup['es'];
+                if (langData && typeof langData === 'object') {
+                    description = (langData as any).descrip || (langData as any).descripcion || (langData as any).texto || '';
+                } else {
+                    const firstLangObj = Object.values(descGroup).find(v => v && typeof v === 'object' && ((v as any).descrip || (v as any).descripcion));
+                    if (firstLangObj && typeof firstLangObj === 'object') {
+                        description = (firstLangObj as any).descrip || (firstLangObj as any).descripcion || '';
+                    }
+                }
+            }
         }
     }
 
-    // 2. Fallback to standard fields if root array lookup failed
     if (!description) {
-        const descField = webProp.descripciones || webProp.descripcion || webProp.texto;
-        if (typeof descField === 'object' && descField !== null) {
-            description = descField['1'] || descField[1] || descField['es'] || '';
+        const internalDesc = webProp.descripciones || webProp.descripcion || webProp.texto || (webProp.web && webProp.web.descripcion);
+        if (typeof internalDesc === 'object' && internalDesc !== null) {
+            description = internalDesc['1'] || internalDesc[1] || internalDesc['es'] || '';
         } else {
-            description = String(descField || '');
+            description = String(internalDesc || '');
         }
-    }
-
-    // 3. Last resort fallback
-    if (!description && webProp.web && webProp.web.descripcion) {
-        description = webProp.web.descripcion;
     }
 
     return {
