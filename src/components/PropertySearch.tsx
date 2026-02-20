@@ -30,11 +30,18 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
 
     return (
         <div className="w-full max-w-5xl mx-auto -mt-12 relative z-50">
-            <div className="bg-white dark:bg-slate-900 shadow-2xl rounded-sm border border-slate-100 dark:border-slate-800 p-2 overflow-hidden">
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSearch();
+                }}
+                className="bg-white dark:bg-slate-900 shadow-2xl rounded-sm border border-slate-100 dark:border-slate-800 p-2 overflow-hidden"
+            >
                 <div className="flex flex-col md:flex-row items-stretch gap-1">
                     {/* Toggle Comprar/Alquilar */}
                     <div className="flex p-1 bg-slate-50 dark:bg-slate-950 rounded-sm self-start md:self-stretch">
                         <button
+                            type="button"
                             onClick={() => handleTypeChange('buy')}
                             className={`px-6 py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${type === 'buy'
                                 ? 'bg-[#0a192f] text-white shadow-lg'
@@ -44,6 +51,7 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
                             Comprar
                         </button>
                         <button
+                            type="button"
                             onClick={() => handleTypeChange('rent')}
                             className={`px-6 py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${type === 'rent'
                                 ? 'bg-[#0a192f] text-white shadow-lg'
@@ -85,14 +93,14 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
 
                     {/* Botón Buscar */}
                     <button
-                        onClick={handleSearch}
+                        type="submit"
                         className="bg-[#0a192f] text-white px-10 py-4 flex items-center justify-center gap-3 hover:bg-[#112240] transition-colors rounded-sm group mt-2 md:mt-0"
                     >
                         <Search size={16} className="group-hover:scale-110 transition-transform" />
                         <span className="text-[10px] uppercase tracking-[0.2em] font-bold">Buscar</span>
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     );
 };
