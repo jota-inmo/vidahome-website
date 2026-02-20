@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { Search } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
 import { getHeroSlidesAction, HeroSlide } from '@/app/actions';
 import { supabase } from '@/lib/supabase';
+import { useTranslations } from 'next-intl';
 
 // Swiper styles
 import 'swiper/css';
@@ -28,6 +29,7 @@ const DEFAULT_SLIDES: any[] = [
 export const LuxuryHero = () => {
     const [slides, setSlides] = useState<HeroSlide[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
+    const t = useTranslations('Hero');
 
     const fetchSlides = async () => {
         const dynamicSlides = await getHeroSlidesAction(true); // Only active
@@ -83,8 +85,8 @@ export const LuxuryHero = () => {
                 {slides.map((slide, index) => (
                     <SwiperSlide key={slide.id} className="relative w-full h-full overflow-hidden">
                         {/* Slide Link Wrapper */}
-                        <a
-                            href={getSmartLink(slide.link_url)}
+                        <Link
+                            href={getSmartLink(slide.link_url) as any}
                             className="block w-full h-full relative group cursor-pointer"
                         >
 
@@ -118,7 +120,7 @@ export const LuxuryHero = () => {
                             {/* Center Content */}
                             <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-8 text-center text-white">
                                 <span className="text-[10px] tracking-[0.6em] uppercase font-bold mb-8 block text-teal-400 drop-shadow-xl animate-fade-in opacity-80">
-                                    Explora el ecosistema Vidahome
+                                    {t('explore')}
                                 </span>
 
                                 <h1 className="text-3xl sm:text-4xl md:text-8xl font-serif mb-8 md:mb-12 leading-[1.1] md:leading-[1.05] tracking-tight drop-shadow-2xl max-w-5xl transition-all duration-1000">
@@ -132,7 +134,7 @@ export const LuxuryHero = () => {
                                     ))}
                                 </h1>
                             </div>
-                        </a>
+                        </Link>
                     </SwiperSlide>
                 ))}
             </Swiper>
@@ -145,7 +147,7 @@ export const LuxuryHero = () => {
                         <div className="flex-grow relative">
                             <input
                                 type="text"
-                                placeholder="Gandia, Oliva, Playa..."
+                                placeholder={t('searchPlaceholder')}
                                 className="w-full bg-white/5 border-none text-white placeholder:text-white/40 text-[10px] md:text-xs py-4 md:py-5 px-10 focus:ring-1 focus:ring-teal-500/50 rounded-sm transition-all uppercase tracking-[0.2em] font-medium"
                             />
                             <Search className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-white/30" size={16} />
@@ -155,7 +157,7 @@ export const LuxuryHero = () => {
                             href="/propiedades"
                             className="bg-white text-[#0a192f] px-8 md:px-12 py-4 md:py-5 text-[10px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold hover:bg-teal-500 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm active:scale-95"
                         >
-                            Ver catálogo
+                            {t('viewCatalog')}
                         </Link>
                     </div>
                 </div>

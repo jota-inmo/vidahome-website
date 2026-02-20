@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { PropertySearch, SearchFilters } from '@/components/PropertySearch';
 import { LuxuryPropertyCard } from '@/components/LuxuryPropertyCard';
-import { PropertySkeleton } from '@/components/LuxuryPropertySkeleton';
+import { useTranslations } from 'next-intl';
 
 interface PropertyCatalogClientProps {
     initialProperties: PropertyListEntry[];
@@ -16,6 +16,7 @@ export function PropertyCatalogClient({ initialProperties, populations }: Proper
     const [filteredProperties, setFilteredProperties] = useState<PropertyListEntry[]>(
         initialProperties.filter(p => !p.keyacci || p.keyacci === 1) // default to Buy
     );
+    const t = useTranslations('Search');
 
     const handleSearch = (filters: SearchFilters) => {
         let filtered = [...allProperties];
@@ -50,7 +51,7 @@ export function PropertyCatalogClient({ initialProperties, populations }: Proper
                         ))
                     ) : (
                         <div className="col-span-full py-32 text-center">
-                            <p className="font-serif text-3xl text-slate-300">Sin registros disponibles con esos filtros.</p>
+                            <p className="font-serif text-3xl text-slate-300">{t('noResults')}</p>
                         </div>
                     )}
                 </div>

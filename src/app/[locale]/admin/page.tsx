@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { checkAuthAction, logoutAction } from '../actions';
-import Link from 'next/link';
+import { checkAuthAction, logoutAction } from '@/app/actions';
+import { Link } from '@/i18n/routing';
 import { LayoutDashboard, Film, Star, LogOut, ExternalLink } from 'lucide-react';
 
 export default function AdminDashboard() {

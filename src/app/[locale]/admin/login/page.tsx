@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginAction } from '../../actions';
+import { loginAction } from '@/app/actions';
 
 export default function AdminLogin() {
     const [password, setPassword] = useState('');

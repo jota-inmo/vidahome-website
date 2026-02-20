@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Search, MapPin, Home } from 'lucide-react';
+import { Search as SearchIcon, MapPin, Home } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface PropertySearchProps {
     onSearch: (filters: SearchFilters) => void;
@@ -18,6 +19,7 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
     const [type, setType] = React.useState<'buy' | 'rent'>('buy');
     const [query, setQuery] = React.useState('');
     const [population, setPopulation] = React.useState('');
+    const t = useTranslations('Search');
 
     const handleTypeChange = (newType: 'buy' | 'rent') => {
         setType(newType);
@@ -48,7 +50,7 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
                                 : 'text-slate-400 hover:text-slate-600'
                                 } rounded-sm`}
                         >
-                            Comprar
+                            {t('buy')}
                         </button>
                         <button
                             type="button"
@@ -58,7 +60,7 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
                                 : 'text-slate-400 hover:text-slate-600'
                                 } rounded-sm`}
                         >
-                            Alquilar
+                            {t('rent')}
                         </button>
                     </div>
 
@@ -67,7 +69,7 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
                         <Home size={18} className="text-slate-300 mr-4 flex-shrink-0" />
                         <input
                             type="text"
-                            placeholder="Vivienda o Referencia..."
+                            placeholder={t('placeholder')}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             className="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-300 text-sm py-4"
@@ -82,7 +84,7 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
                             onChange={(e) => setPopulation(e.target.value)}
                             className="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white text-sm py-4 cursor-pointer appearance-none"
                         >
-                            <option value="">Toda la provincia</option>
+                            <option value="">{t('locationDefault')}</option>
                             {populations.map((pop) => (
                                 <option key={pop} value={pop}>
                                     {pop}
@@ -96,8 +98,8 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
                         type="submit"
                         className="bg-[#0a192f] text-white px-10 py-4 flex items-center justify-center gap-3 hover:bg-[#112240] transition-colors rounded-sm group mt-2 md:mt-0"
                     >
-                        <Search size={16} className="group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] uppercase tracking-[0.2em] font-bold">Buscar</span>
+                        <SearchIcon size={16} className="group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] uppercase tracking-[0.2em] font-bold">{t('button')}</span>
                     </button>
                 </div>
             </form>

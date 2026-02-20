@@ -1,0 +1,65 @@
+{
+    "Index": {
+        "title": "Selección de Inmuebles",
+        "description": "No te mostramos lo que tenemos, encontramos lo que buscas. Donde el diseño arquitectónico se une con la ubicación perfecta.",
+        "portfolio": "Portfolio",
+        "viewCatalog": "Ver todo el catálogo",
+        "whyTrust": "Por qué confiar en nosotros",
+        "whyChoose": "¿Por qué elegir VidaHome en Gandia?",
+        "leaderTitle": "Líder local en volumen",
+        "leaderDesc": "Contamos con más de 116 propiedades activas, ofreciendo la mayor variedad en el mercado de Gandia Playa y el Grau.",
+        "specialistsTitle": "Especialistas en la Playa",
+        "specialistsDesc": "Nuestra ubicación en el corazón del Grau i Platja nos permite conocer cada rincón y oportunidad antes que nadie.",
+        "speedTitle": "Rapidez demostrada",
+        "speedDesc": "Promediamos cierres de venta en solo 15-30 días gracias a nuestra base de datos de compradores cualificados.",
+        "valuationTitle": "Valoración en 24h",
+        "valuationDesc": "Entregamos informes de valoración gratuitos y profesionales en menos de un día para que no pierdas tiempo.",
+        "dataNote": "* Datos basados en el historial de 50 ventas cerradas en 2025.",
+        "whyTrustSubtitle": "Por qué confiar en nosotros",
+        "moreThanAg": "Más que una inmobiliaria",
+        "story": "En Vidahome, entendemos que una casa no es solo ladrillo y cemento, sino el escenario donde transcurre tu vida. Nuestro equipo en el Grau de Gandia se dedica a transformar la compraventa en una experiencia transparente, profesional y sin estrés.",
+        "apiMember": "Agentes de la Propiedad Inmobiliaria — APIVA asociados nº0236",
+        "googleScore": "Puntuación Google",
+        "experience": "Años de experiencia",
+        "commitment": "Compromiso ético",
+        "vidahomeProperties": "Propiedades de Vidahome"
+    },
+    "Navbar": {
+        "properties": "Propiedades",
+        "contact": "Contacto",
+        "about": "Nosotros",
+        "sell": "Vender"
+    },
+    "Hero": {
+        "searchPlaceholder": "Gandia, Oliva, Playa...",
+        "viewCatalog": "Ver catálogo",
+        "explore": "Explora el ecosistema Vidahome"
+    },
+    "Footer": {
+        "sede": "Nuestra sede",
+        "contacto": "Contacto directo",
+        "horario": "Horario de agencia",
+        "legal": "Información legal",
+        "aviso": "Aviso Legal",
+        "privacidad": "Política de Privacidad",
+        "cookies": "Política de Cookies",
+        "rights": "© {year} Vidahome Premium Experience — APIVA asociados nº0236",
+        "call": "Llamar",
+        "outside": "Fuera de horario con cita previa."
+    },
+    "Cookie": {
+        "title": "Su privacidad es nuestra prioridad",
+        "description": "Utilizamos cookies para asegurar el correcto funcionamiento de nuestra web, analizar el tráfico y personalizar su experiencia inmobiliaria. Puede aceptar todas las cookies o rechazar las no esenciales.",
+        "policy": "Política de Cookies",
+        "decline": "Rechazar Opcionales",
+        "accept": "Aceptar Todo"
+    },
+    "Search": {
+        "buy": "Comprar",
+        "rent": "Alquilar",
+        "placeholder": "Vivienda o Referencia...",
+        "locationDefault": "Toda la provincia",
+        "button": "Buscar",
+        "noResults": "Sin registros disponibles con esos filtros."
+    }
+}

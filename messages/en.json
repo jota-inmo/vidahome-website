@@ -1,0 +1,65 @@
+{
+    "Index": {
+        "title": "Property Selection",
+        "description": "We don't show you what we have, we find what you are looking for. Where architectural design meets the perfect location.",
+        "portfolio": "Portfolio",
+        "viewCatalog": "View the entire catalog",
+        "whyTrust": "Why trust us",
+        "whyChoose": "Why choose VidaHome in Gandia?",
+        "leaderTitle": "Local volume leader",
+        "leaderDesc": "We have more than 116 active properties, offering the widest variety in the market of Gandia Beach and the Grau.",
+        "specialistsTitle": "Beach Specialists",
+        "specialistsDesc": "Our location in the heart of the Grau i Platja allows us to know every corner and opportunity before anyone else.",
+        "speedTitle": "Proven speed",
+        "speedDesc": "We average sales closings in just 15-30 days thanks to our database of qualified buyers.",
+        "valuationTitle": "24h Valuation",
+        "valuationDesc": "We deliver professional and free valuation reports in less than a day so you don't waste time.",
+        "dataNote": "* Data based on the record of 50 closed sales in 2025.",
+        "whyTrustSubtitle": "Why trust us",
+        "moreThanAg": "More than a real estate agency",
+        "story": "At Vidahome, we understand that a house is not just brick and cement, but the stage where your life takes place. Our team in the Grau of Gandia is dedicated to transforming the buying and selling into a transparent, professional, and stress-free experience.",
+        "apiMember": "Real Estate Agents — APIVA associates nº0236",
+        "googleScore": "Google Score",
+        "experience": "Years of experience",
+        "commitment": "Ethical commitment",
+        "vidahomeProperties": "Vidahome Properties"
+    },
+    "Navbar": {
+        "properties": "Properties",
+        "contact": "Contact",
+        "about": "About Us",
+        "sell": "Sell"
+    },
+    "Hero": {
+        "searchPlaceholder": "Gandia, Oliva, Beach...",
+        "viewCatalog": "View Catalog",
+        "explore": "Explore the Vidahome ecosystem"
+    },
+    "Footer": {
+        "sede": "Our headquarters",
+        "contacto": "Direct contact",
+        "horario": "Agency hours",
+        "legal": "Legal information",
+        "aviso": "Legal Notice",
+        "privacidad": "Privacy Policy",
+        "cookies": "Cookie Policy",
+        "rights": "© {year} Vidahome Premium Experience — APIVA associates nº0236",
+        "call": "Call",
+        "outside": "Outside hours by appointment."
+    },
+    "Cookie": {
+        "title": "Your privacy is our priority",
+        "description": "We use cookies to ensure the correct functioning of our website, analyze traffic and personalize your real estate experience. You can accept all cookies or decline the non-essential ones.",
+        "policy": "Cookie Policy",
+        "decline": "Decline Optional",
+        "accept": "Accept All"
+    },
+    "Search": {
+        "buy": "Buy",
+        "rent": "Rent",
+        "placeholder": "Property or Reference...",
+        "locationDefault": "Entire province",
+        "button": "Search",
+        "noResults": "No records available with those filters."
+    }
+}

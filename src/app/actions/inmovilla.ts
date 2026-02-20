@@ -5,14 +5,29 @@ import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
 import { apiCache, withNextCache } from '@/lib/api/cache';
 import { headers } from 'next/headers';
 import { revalidateTag } from 'next/cache';
+import { getLocale } from 'next-intl/server';
+
+/**
+ * Helper to map next-intl locale to Inmovilla language code
+ * 1 = Spanish, 2 = English
+ */
+function mapLocaleToInmovillaId(locale: string): number {
+    switch (locale) {
+        case 'en': return 2;
+        case 'fr': return 3;
+        case 'de': return 4;
+        case 'es':
+        default: return 1;
+    }
+}
 
 // ─── Función interna cacheada con Next.js Data Cache ─────────────────────────
 const _fetchPropertiesFromApi = withNextCache(
-    'inmovilla_property_list_v5',
-    async (numagencia: string, password: string, addnumagencia: string, clientIp: string, domain: string): Promise<PropertyListEntry[]> => {
-        console.log(`[Actions] Next.js Cache miss: Fetching from Web API (IP: ${clientIp})...`);
+    'inmovilla_property_list_v6',
+    async (numagencia: string, password: string, addnumagencia: string, clientIp: string, domain: string, inmoLang: number): Promise<PropertyListEntry[]> => {
+        console.log(`[Actions] Next.js Cache miss: Fetching from Web API (IP: ${clientIp}, Lang: ${inmoLang})...`);
         const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-        const api = new InmovillaWebApiService(numagencia, password, addnumagencia, 1, clientIp, domain);
+        const api = new InmovillaWebApiService(numagencia, password, addnumagencia, inmoLang, clientIp, domain);
         const properties: PropertyListEntry[] = await api.getProperties({ page: 1 });
 
         if (!properties || properties.length === 0) return [];
@@ -29,7 +44,7 @@ const _fetchPropertiesFromApi = withNextCache(
             )
             .sort((a, b) => b.cod_ofer - a.cod_ofer);
     },
-    { revalidate: 60, tags: ['inmovilla_property_list_v5'] } // 1 minuto para actualizaciones más rápidas
+    { revalidate: 60, tags: ['inmovilla_property_list_v6'] }
 );
 
 export async function fetchPropertiesAction(): Promise<{
@@ -39,6 +54,9 @@ export async function fetchPropertiesAction(): Promise<{
     isConfigured: boolean;
     meta?: { populations: string[] };
 }> {
+    const locale = await getLocale();
+    const inmoLang = mapLocaleToInmovillaId(locale);
+
     const token = process.env.INMOVILLA_TOKEN;
     const numagencia = process.env.INMOVILLA_AGENCIA;
     const addnumagencia = process.env.INMOVILLA_ADDAGENCIA || '';
@@ -67,9 +85,10 @@ export async function fetchPropertiesAction(): Promise<{
     }
 
     try {
-        let properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain);
+        let properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain, inmoLang);
 
         // --- Enrichment with Supabase Metadata starts here ---
+        // (Nota: Las descripciones de Supabase son fijas en un idioma por ahora)
         try {
             const { supabase } = await import('@/lib/supabase');
             const { data: metadata } = await supabase
@@ -98,6 +117,9 @@ export async function fetchPropertiesAction(): Promise<{
 }
 
 export async function getPropertyDetailAction(id: number): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
+    const locale = await getLocale();
+    const inmoLang = mapLocaleToInmovillaId(locale);
+
     const numagencia = process.env.INMOVILLA_AGENCIA;
     const addnumagencia = process.env.INMOVILLA_ADDAGENCIA || '';
     const password = process.env.INMOVILLA_PASSWORD;
@@ -105,7 +127,7 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
     if (!numagencia || !password) return { success: false, error: 'Credenciales no configuradas' };
 
-    const cacheKey = `prop_detail_v9_${id}`;
+    const cacheKey = `prop_detail_v10_${id}_${locale}`;
     const cachedDetail = apiCache.get<PropertyDetails>(cacheKey);
     if (cachedDetail) return { success: true, data: cachedDetail };
 
@@ -126,7 +148,7 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
     try {
         const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-        const api = new InmovillaWebApiService(numagencia, password, addnumagencia, 1, clientIp, domain);
+        const api = new InmovillaWebApiService(numagencia, password, addnumagencia, inmoLang, clientIp, domain);
         const details = await api.getPropertyDetails(id);
 
         if (!details || details.nodisponible || details.prospecto || details.ref === '2494' || details.cod_ofer === 2494) {
