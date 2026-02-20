@@ -82,7 +82,7 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
 
     // Fallback to internal fields if root lookup failed
     if (!description) {
-        const internalDesc = webProp.descripciones || webProp.descripcion || webProp.texto || webProp.observaciones || webProp.comentarios || (webProp.web && webProp.web.descripcion);
+        const internalDesc = webProp.descripciones || webProp.descripcion || webProp.texto || webProp.observaciones || webProp.comentarios || (webProp.web && typeof webProp.web === 'object' && webProp.web.descripcion);
         if (typeof internalDesc === 'object' && internalDesc !== null) {
             description = internalDesc['1'] || internalDesc[1] || internalDesc['es'] || '';
         } else {
@@ -277,12 +277,11 @@ export class InmovillaWebApiService {
         const page = options.page || 1;
 
         try {
-            // Usamos 'ficha' en lugar de 'paginacion' para intentar obtener la descripción completa
-            // en una sola petición de listado, ya que 'paginacion' suele omitirla.
-            const response = await this.client.getProperties(page, 100, '', 'cod_ofer DESC', 'ficha');
+            // Volvemos a 'paginacion' ya que 'ficha' en bloque puede no estar devolviendo
+            // los datos esperados en este entorno o cuenta.
+            const response = await this.client.getProperties(page, 100, '', 'cod_ofer DESC', 'paginacion');
 
-            // La respuesta vendrá en la clave correspondiente al proceso solicitado
-            const rawData = response.ficha || response.paginacion || response.destacados;
+            const rawData = response.paginacion || response.ficha || response.destacados;
 
             if (!rawData) {
                 return [];
