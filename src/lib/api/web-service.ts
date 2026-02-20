@@ -82,7 +82,7 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
 
     // Fallback to internal fields if root lookup failed
     if (!description) {
-        const internalDesc = webProp.descripciones || webProp.descripcion || webProp.texto;
+        const internalDesc = webProp.descripciones || webProp.descripcion || webProp.texto || webProp.observaciones || webProp.comentarios || (webProp.web && webProp.web.descripcion);
         if (typeof internalDesc === 'object' && internalDesc !== null) {
             description = internalDesc['1'] || internalDesc[1] || internalDesc['es'] || '';
         } else {
@@ -277,19 +277,24 @@ export class InmovillaWebApiService {
         const page = options.page || 1;
 
         try {
-            const response = await this.client.getProperties(page, 100, '', 'cod_ofer DESC');
+            // Usamos 'ficha' en lugar de 'paginacion' para intentar obtener la descripción completa
+            // en una sola petición de listado, ya que 'paginacion' suele omitirla.
+            const response = await this.client.getProperties(page, 100, '', 'cod_ofer DESC', 'ficha');
 
-            // The Web API returns data in a specific format
-            // We need to parse it based on the actual response structure
-            if (!response || !response.paginacion) {
+            // La respuesta vendrá en la clave correspondiente al proceso solicitado
+            const rawData = response.ficha || response.paginacion || response.destacados;
+
+            if (!rawData) {
                 return [];
             }
 
-            const properties = Array.isArray(response.paginacion)
-                ? response.paginacion
-                : [response.paginacion];
+            const properties = Array.isArray(rawData)
+                ? rawData
+                : [rawData];
 
-            return properties.map((p: any) => convertToPropertyListEntry(p, response));
+            return properties
+                .filter((p: any) => p && typeof p === 'object' && p.cod_ofer)
+                .map((p: any) => convertToPropertyListEntry(p, response));
         } catch (error) {
             console.error('Error fetching properties from Web API:', error);
             throw error;

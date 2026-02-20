@@ -330,13 +330,14 @@ export class InmovillaWebClient {
         page: number = 1,
         pageSize: number = 20,
         where: string = '',
-        orderBy: string = 'precioinmo, precioalq'
+        orderBy: string = 'precioinmo, precioalq',
+        tipo: string = 'paginacion'
     ) {
         const validatedPage = this.validateNumeric(page, 'page');
         const validatedPageSize = this.validateNumeric(pageSize, 'pageSize');
 
-        // Solicitamos paginación para los datos básicos
-        this.addProcess('paginacion', validatedPage, validatedPageSize, where, orderBy);
+        // Solicitamos el proceso especificado ('paginacion', 'ficha', etc.)
+        this.addProcess(tipo, validatedPage, validatedPageSize, where, orderBy);
 
         return this.execute();
     }
