@@ -27,7 +27,7 @@ const _fetchPropertiesFromApi = withNextCache(
             )
             .sort((a, b) => b.cod_ofer - a.cod_ofer);
     },
-    { revalidate: 1200, tags: ['inmovilla_property_list'] } // 20 minutos
+    { revalidate: 60, tags: ['inmovilla_property_list'] } // 1 minuto para actualizaciones más rápidas
 );
 
 export async function fetchPropertiesAction(): Promise<{

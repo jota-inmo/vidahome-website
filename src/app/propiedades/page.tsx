@@ -3,6 +3,8 @@ import { Metadata } from 'next';
 import { fetchPropertiesAction } from '../actions';
 import { PropertyCatalogClient } from './PropertyCatalogClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Catálogo de Propiedades Exclusivas en Gandia | Vidahome',
     description: 'Encuentra tu próximo hogar en La Safor. Selección de apartamentos, villas y casas exclusivas en Gandia, Oliva y alrededores.',
