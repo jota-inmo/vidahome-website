@@ -6,16 +6,9 @@
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
 import { createInmovillaWebClient } from './web-client';
 
-// Load mapping files for enrichment
-let tiposMap: Record<string, string> = {};
-let localidadesMap: Record<string, string> = {};
-
-try {
-    tiposMap = require('./tipos_map.json');
-    localidadesMap = require('./localidades_map.json');
-} catch (e) {
-    console.warn('[Inmovilla Web Service] Failed to load mapping files:', e);
-}
+// Use ESM imports to ensure the JSON files are bundled correctly
+import tiposMap from './tipos_map.json';
+import localidadesMap from './localidades_map.json';
 
 interface WebApiPropertyResponse {
     cod_ofer: string;
@@ -97,26 +90,28 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
         }
     }
 
-    // Enrich missing fields using maps
-    let tipoNombre = webProp.tipo_nombre || '';
-    if (!tipoNombre && webProp.key_tipo) {
-        tipoNombre = tiposMap[webProp.key_tipo] || '';
+    // Enrich missing fields using maps (Aggressive lookup)
+    const keyTipo = webProp.key_tipo || webProp.keytipo || webProp.key_tipo_inmo || '';
+    let tipoNombre = webProp.tipo_nombre || webProp.tiponombre || '';
+    if (!tipoNombre && keyTipo) {
+        tipoNombre = (tiposMap as any)[String(keyTipo)] || '';
     }
 
-    let poblacion = webProp.poblacion || '';
-    if (!poblacion && webProp.key_loca) {
-        poblacion = localidadesMap[webProp.key_loca] || '';
+    const keyLoca = webProp.key_loca || webProp.keyloca || webProp.key_localidad || '';
+    let poblacion = webProp.poblacion || webProp.poblacion_nombre || '';
+    if (!poblacion && keyLoca) {
+        poblacion = (localidadesMap as any)[String(keyLoca)] || '';
     }
 
     return {
         cod_ofer: codOfer,
         ref: webProp.ref || '',
-        keyacci: webProp.keyacci ? parseInt(webProp.keyacci) : undefined,
-        precioinmo: webProp.precioinmo ? parseFloat(webProp.precioinmo) : undefined,
-        precioalq: webProp.precioalq ? parseFloat(webProp.precioalq) : undefined,
+        keyacci: webProp.keyacci ? parseInt(webProp.keyacci) : (webProp.key_acci ? parseInt(webProp.key_acci) : undefined),
+        precioinmo: webProp.precioinmo ? parseFloat(webProp.precioinmo) : (webProp.precio ? parseFloat(webProp.precio) : undefined),
+        precioalq: webProp.precioalq ? parseFloat(webProp.precioalq) : (webProp.alquiler ? parseFloat(webProp.alquiler) : undefined),
         habitaciones: totalHabitaciones || undefined,
-        banyos: webProp.banyos ? parseFloat(webProp.banyos) : undefined,
-        m_cons: webProp.m_cons ? parseFloat(webProp.m_cons) : undefined,
+        banyos: webProp.banyos ? parseFloat(webProp.banyos) : (webProp.aseos ? parseFloat(webProp.aseos) : undefined),
+        m_cons: webProp.m_cons ? parseFloat(webProp.m_cons) : (webProp.mcons ? parseFloat(webProp.mcons) : undefined),
         calle: webProp.calle,
         descripciones: description,
         numagencia: webProp.numagencia,
@@ -207,23 +202,25 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
         }
     }
 
-    // Enrich missing fields using maps
-    let tipoNombre = webProp.tipo_nombre || '';
-    if (!tipoNombre && webProp.key_tipo) {
-        tipoNombre = tiposMap[webProp.key_tipo] || '';
+    // Enrich missing fields using maps (Aggressive lookup)
+    const keyTipo = webProp.key_tipo || webProp.keytipo || '';
+    let tipoNombre = webProp.tipo_nombre || webProp.tiponombre || '';
+    if (!tipoNombre && keyTipo) {
+        tipoNombre = (tiposMap as any)[String(keyTipo)] || '';
     }
 
-    let poblacion = webProp.poblacion || '';
-    if (!poblacion && webProp.key_loca) {
-        poblacion = localidadesMap[webProp.key_loca] || '';
+    const keyLoca = webProp.key_loca || webProp.keyloca || '';
+    let poblacion = webProp.poblacion || webProp.poblacion_nombre || '';
+    if (!poblacion && keyLoca) {
+        poblacion = (localidadesMap as any)[String(keyLoca)] || '';
     }
 
     return {
         cod_ofer: codOfer,
         ref: webProp.ref || '',
-        keyacci: parseInt(webProp.keyacci || '1'),
-        key_tipo: parseInt(webProp.key_tipo || '0'),
-        key_loca: parseInt(webProp.key_loca || '0'),
+        keyacci: parseInt(webProp.keyacci || webProp.key_acci || '1'),
+        key_tipo: parseInt(webProp.key_tipo || webProp.key_tipo || '0'),
+        key_loca: parseInt(webProp.key_loca || webProp.key_loca || '0'),
         key_zona: 0,
         keycli: 0,
         keyori: 0,

@@ -8,7 +8,7 @@ import { revalidateTag } from 'next/cache';
 
 // ─── Función interna cacheada con Next.js Data Cache ─────────────────────────
 const _fetchPropertiesFromApi = withNextCache(
-    'inmovilla_property_list',
+    'inmovilla_property_list_v3',
     async (numagencia: string, password: string, addnumagencia: string, clientIp: string, domain: string): Promise<PropertyListEntry[]> => {
         console.log(`[Actions] Next.js Cache miss: Fetching from Web API (IP: ${clientIp})...`);
         const { InmovillaWebApiService } = await import('@/lib/api/web-service');
@@ -27,7 +27,7 @@ const _fetchPropertiesFromApi = withNextCache(
             )
             .sort((a, b) => b.cod_ofer - a.cod_ofer);
     },
-    { revalidate: 60, tags: ['inmovilla_property_list'] } // 1 minuto para actualizaciones más rápidas
+    { revalidate: 60, tags: ['inmovilla_property_list_v3'] } // 1 minuto para actualizaciones más rápidas
 );
 
 export async function fetchPropertiesAction(): Promise<{
