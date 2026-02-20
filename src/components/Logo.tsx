@@ -8,13 +8,14 @@ interface LogoProps {
     className?: string;
     variant?: 'full' | 'simple' | 'icon';
     showSlogan?: boolean;
+    plain?: boolean;
 }
 
-export const Logo = ({ className = '', variant = 'full', showSlogan = true }: LogoProps) => {
+export const Logo = ({ className = '', variant = 'full', showSlogan = true, plain = false }: LogoProps) => {
 
     // Use the official PNG logo provided by the user
     const OfficialLogo = ({ innerClass = '' }: { innerClass?: string }) => (
-        <div className={`relative flex items-center bg-white px-5 py-2 rounded-sm shadow-sm border border-slate-100 ${innerClass}`}>
+        <div className={`relative flex items-center ${!plain ? 'bg-white px-5 py-2 rounded-sm shadow-sm border border-slate-100' : ''} ${innerClass}`}>
             <Image
                 src="/MARCA OK.png"
                 alt="Vidahome Logo"
