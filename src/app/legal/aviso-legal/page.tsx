@@ -17,8 +17,8 @@ export default function AvisoLegalPage() {
                     de Servicios de la Sociedad de la Información y del Comercio Electrónico, a continuación se reflejan los siguientes datos:
                 </p>
                 <ul className="list-none pl-0">
-                    <li><strong>Titular:</strong> Vidahome (Responsable a definir por el cliente)</li>
-                    <li><strong>CIF/NIF:</strong> [A completar por el cliente]</li>
+                    <li><strong>Titular:</strong> Vidahome Gandia S.L. (Gerente: Frederico Juan Diago Ferro)</li>
+                    <li><strong>CIF:</strong> B 75472027</li>
                     <li><strong>Domicilio Social:</strong> Carrer Joan XXIII, 1, 46730 Grau i Platja, Gandia, Valencia</li>
                     <li><strong>Email:</strong> info@vidahome.es</li>
                     <li><strong>Teléfono:</strong> +34 659 02 75 12</li>

@@ -44,6 +44,13 @@ export default function AdminDashboard() {
             icon: <Star className="w-6 h-6" />,
             href: '/admin/featured',
             color: 'from-blue-500 to-indigo-600'
+        },
+        {
+            title: 'Datos de Agencia',
+            desc: 'Horarios, teléfono y contacto global',
+            icon: <LayoutDashboard className="w-6 h-6" />,
+            href: '/admin/settings',
+            color: 'from-orange-500 to-amber-600'
         }
     ];
 

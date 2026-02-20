@@ -325,8 +325,41 @@ Estas tablas deben existir para que la aplicación funcione correctamente:
 |-------|---------|-----|
 | `hero_slides` | Configuración del banner de la home | Lectura pública |
 | `featured_properties` | IDs de propiedades destacadas | Lectura pública |
+| `company_settings` | Datos de la agencia (teléfono, horarios, etc) | Lectura pública |
 | `leads` | Backup de contactos recibidos | Sin política pública |
 | `rate_limits` | Rastreo de intentos por IP | Sin política pública |
+
+---
+
+## 5. SQL para nuevas funcionalidades
+
+Debes ejecutar este SQL en el panel de Supabase para habilitar la edición dinámica de datos de la agencia:
+
+```sql
+-- Tabla para datos de contacto y horarios
+CREATE TABLE IF NOT EXISTS company_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Habilitar RLS
+ALTER TABLE company_settings ENABLE ROW LEVEL SECURITY;
+
+-- Política de lectura pública
+CREATE POLICY "Lectura pública company_settings" ON company_settings
+    FOR SELECT USING (true);
+
+-- Insertar valores iniciales (opcional, el código tiene fallbacks)
+INSERT INTO company_settings (key, value) VALUES 
+('phone', '+34 659 02 75 12'),
+('email', 'info@vidahome.es'),
+('address', 'Carrer Joan XXIII, 1, 46730 Grau i Platja, Gandia, Valencia'),
+('hours_week', 'Lunes - Viernes: 09:00 - 14:00 y 17:00 - 20:00'),
+('hours_sat', 'Sábado: 09:30 - 13:30'),
+('instagram_url', 'https://www.instagram.com/vidahome/')
+ON CONFLICT (key) DO NOTHING;
+```
 
 ---
 
