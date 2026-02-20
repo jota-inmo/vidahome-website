@@ -2,9 +2,9 @@
 
 import { createInmovillaApi } from '@/lib/api/properties';
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
-import { apiCache, withNextCache } from '@/lib/api/cache';
+import { apiCache } from '@/lib/api/cache';
 import { headers } from 'next/headers';
-import { revalidateTag } from 'next/cache';
+import { revalidateTag, unstable_cache } from 'next/cache';
 import { getLocale } from 'next-intl/server';
 
 /**
@@ -22,30 +22,33 @@ function mapLocaleToInmovillaId(locale: string): number {
 }
 
 // ─── Función interna cacheada con Next.js Data Cache ─────────────────────────
-const _fetchPropertiesFromApi = withNextCache(
-    'inmovilla_property_list_v6',
-    async (numagencia: string, password: string, addnumagencia: string, clientIp: string, domain: string, inmoLang: number): Promise<PropertyListEntry[]> => {
-        console.log(`[Actions] Next.js Cache miss: Fetching from Web API (IP: ${clientIp}, Lang: ${inmoLang})...`);
-        const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-        const api = new InmovillaWebApiService(numagencia, password, addnumagencia, inmoLang, clientIp, domain);
-        const properties: PropertyListEntry[] = await api.getProperties({ page: 1 });
+// IMPORTANTE: La caché es por idioma. Cada locale tiene su propia entrada.
+async function _fetchPropertiesFromApiRaw(numagencia: string, password: string, addnumagencia: string, clientIp: string, domain: string, inmoLang: number): Promise<PropertyListEntry[]> {
+    console.log(`[Actions] Next.js Cache miss: Fetching from Web API (IP: ${clientIp}, Lang: ${inmoLang})...`);
+    const { InmovillaWebApiService } = await import('@/lib/api/web-service');
+    const api = new InmovillaWebApiService(numagencia, password, addnumagencia, inmoLang, clientIp, domain);
+    const properties: PropertyListEntry[] = await api.getProperties({ page: 1 });
 
-        if (!properties || properties.length === 0) return [];
+    if (!properties || properties.length === 0) return [];
 
-        return properties
-            .filter(p =>
-                !p.nodisponible &&
-                !p.prospecto &&
-                !isNaN(p.cod_ofer) &&
-                p.ref &&
-                p.ref.trim() !== '' &&
-                p.ref !== '2494' && // Exclusión manual por reporte de usuario
-                p.cod_ofer !== 2494
-            )
-            .sort((a, b) => b.cod_ofer - a.cod_ofer);
-    },
-    { revalidate: 60, tags: ['inmovilla_property_list_v6'] }
-);
+    return properties
+        .filter(p =>
+            !p.nodisponible &&
+            !p.prospecto &&
+            !isNaN(p.cod_ofer) &&
+            p.ref &&
+            p.ref.trim() !== '' &&
+            p.ref !== '2494' &&
+            p.cod_ofer !== 2494
+        )
+        .sort((a, b) => b.cod_ofer - a.cod_ofer);
+}
+
+// Devuelve una versión cacheada de la función, con clave única por idioma
+function _getLocaleAwarePropertyFetcher(locale: string) {
+    const tag = `inmovilla_property_list_v7_${locale}`;
+    return unstable_cache(_fetchPropertiesFromApiRaw, [tag], { revalidate: 60, tags: [tag] });
+}
 
 export async function fetchPropertiesAction(): Promise<{
     success: boolean;
@@ -85,6 +88,7 @@ export async function fetchPropertiesAction(): Promise<{
     }
 
     try {
+        const _fetchPropertiesFromApi = _getLocaleAwarePropertyFetcher(locale);
         let properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain, inmoLang);
 
         // --- Enrichment with Supabase Metadata starts here ---
