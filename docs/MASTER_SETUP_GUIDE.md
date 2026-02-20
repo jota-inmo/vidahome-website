@@ -86,8 +86,21 @@ CREATE TABLE IF NOT EXISTS rate_limits (
     last_attempt TIMESTAMPTZ DEFAULT now(),
     reset_at TIMESTAMPTZ NOT NULL
 );
+
+-- 5. Datos de la Agencia y Horarios (Gestión Dinámica)
+CREATE TABLE IF NOT EXISTS company_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Habilitar RLS en tablas críticas
 ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
--- Solo acceso desde el servidor (service role)
+ALTER TABLE company_settings ENABLE ROW LEVEL SECURITY;
+
+-- Política de lectura pública para parámetros de la agencia
+CREATE POLICY "Lectura pública company_settings" ON company_settings 
+    FOR SELECT USING (true);
 ```
 
 ---
@@ -195,8 +208,9 @@ CREATE POLICY "Lectura pública" ON hero_slides FOR SELECT USING (true);
 **Requisito de Storage**: Crear bucket público llamado **`media`**.
 
 ### Panel de Control Centralizado (Admin Hub)
-*   **Gestión Unificada**: Se ha creado un centro de mando en `/admin` que permite gestionar el **Banner Principal** (`/admin/hero`) o las **Propiedades Destacadas**.
+*   **Gestión Unificada**: Se ha creado un centro de mando en `/admin` que permite gestionar el **Banner Principal** (`/admin/hero`), las **Propiedades Destacadas** (`/admin/featured`) y los **Datos de Agencia** (`/admin/settings`).
 *   **Hero Admin PRO**: Panel avanzado con previsualización de vídeo en tiempo real, subida directa al storage y gestión de orden/visibilidad.
+*   **Agency Settings**: Permite modificar en tiempo real el teléfono, email, dirección y horarios de la oficina sin necesidad de tocar el código. Los cambios se reflejan instantáneamente en el Footer y la página de Contacto.
 
 ### 8. Arquitectura Modular (Refactorización 2026)
 Para mejorar la mantenibilidad, el proyecto ha sido desacoplado:
@@ -222,5 +236,5 @@ El proyecto incluye una infraestructura de tests automatizados para asegurar la 
 
 ---
 ---
-*Documento actualizado el 19/02/2026 por Antigravity AI (Refinamientos Visuales).*
+*Documento actualizado el 20/02/2026 por Antigravity AI (Gestión Dinámica de Agencia).*
 
