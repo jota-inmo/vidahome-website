@@ -135,20 +135,10 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
 
                             <ContactForm cod_ofer={property.cod_ofer} />
 
-                            <div className="mt-12 p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-100 dark:border-slate-800/60 flex items-center gap-6 rounded-2xl transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/10 dark:hover:shadow-none group relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                                <div className="shrink-0 p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-50 dark:border-slate-800 group-hover:scale-105 transition-transform duration-500 relative z-10">
-                                    <Logo variant="icon" className="h-6 w-auto" plain />
-                                </div>
-
-                                <div className="h-10 w-px bg-gradient-to-b from-transparent via-slate-200 dark:via-slate-700 to-transparent relative z-10" />
-
-                                <div className="flex flex-col gap-0.5 relative z-10 min-w-0">
-                                    <h4 className="font-serif text-lg text-slate-900 dark:text-white leading-tight truncate">Vidahome</h4>
-                                    <p className="text-[7.5px] text-slate-400 dark:text-slate-500 uppercase tracking-[0.45em] font-bold truncate">
-                                        Especialista <span className="text-[#2dd4bf]">La Safor</span>
-                                    </p>
+                            <div className="mt-12 p-10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-100 dark:border-slate-800/60 flex items-center justify-center rounded-2xl transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/5 dark:hover:shadow-none group relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                <div className="relative z-10 transition-transform duration-700 group-hover:scale-110">
+                                    <Logo variant="full" className="h-10 w-auto filter drop-shadow-sm" plain />
                                 </div>
                             </div>
                         </div>
