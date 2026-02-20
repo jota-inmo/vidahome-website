@@ -13,6 +13,10 @@ export function cleanDescription(text: string | undefined | null): string {
     cleaned = cleaned.replace(/~~+/g, '\n\n');
     cleaned = cleaned.replace(/~/g, ' ');
 
+    // 1.1 Convertir etiquetas HTML comunes como <br> en saltos de línea y limpiar el resto
+    cleaned = cleaned.replace(/<br\s*\/?>/gi, '\n');
+    cleaned = cleaned.replace(/<[^>]+>/g, '');
+
     // 2. Eliminar asteriscos de formato de portales (** o *) 
     cleaned = cleaned.replace(/\*\*/g, '');
     cleaned = cleaned.replace(/\*/g, '');
