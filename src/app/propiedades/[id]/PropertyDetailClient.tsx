@@ -135,11 +135,20 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
 
                             <ContactForm cod_ofer={property.cod_ofer} />
 
-                            <div className="mt-12 p-10 border border-slate-100 dark:border-slate-800 flex items-center gap-10 transition-all hover:bg-slate-50/30 dark:hover:bg-slate-900/30 rounded-sm">
-                                <Logo variant="icon" className="shrink-0" plain />
-                                <div className="flex flex-col gap-1.5 border-l border-slate-100 dark:border-slate-800 pl-10">
-                                    <h4 className="font-serif text-2xl text-slate-900 dark:text-white leading-tight">Vidahome</h4>
-                                    <p className="text-[10px] text-slate-400 uppercase tracking-[0.3em] font-bold">Especialista en La Safor</p>
+                            <div className="mt-12 p-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-100 dark:border-slate-800/50 flex items-center gap-10 transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] dark:hover:shadow-none rounded-2xl group relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-slate-50/30 dark:to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                                <div className="shrink-0 transition-all duration-700 group-hover:scale-105 group-hover:-rotate-2 relative z-10">
+                                    <Logo variant="icon" className="h-12 w-auto drop-shadow-sm" plain />
+                                </div>
+
+                                <div className="h-12 w-px bg-gradient-to-b from-transparent via-slate-200 dark:via-slate-700 to-transparent relative z-10" />
+
+                                <div className="flex flex-col gap-1 relative z-10">
+                                    <h4 className="font-serif text-2xl text-slate-900 dark:text-white leading-tight tracking-[0.02em]">Vidahome</h4>
+                                    <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-[0.5em] font-bold">
+                                        Especialista en <span className="text-slate-600 dark:text-slate-300">La Safor</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
