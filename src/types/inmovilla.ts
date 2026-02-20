@@ -35,6 +35,7 @@ export interface PropertyDetails {
     keyori: number;
     ref: string;
     nodisponible: boolean | number;
+    prospecto?: boolean;
     precio: number;
     precioinmo: number;
     key_loca: number;

@@ -226,6 +226,7 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
         keyori: 0,
         fecha: webProp.fecha || '',
         nodisponible: webProp.nodisponible === '1' || webProp.nodisponible === 1,
+        prospecto: webProp.prospecto === '1' || webProp.prospecto === 1,
         precio: parseFloat(webProp.precioinmo || webProp.precio || '0'),
         precioinmo: parseFloat(webProp.precioinmo || webProp.precio || '0'),
         calle: webProp.calle || '',

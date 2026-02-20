@@ -8,7 +8,7 @@ import { revalidateTag } from 'next/cache';
 
 // ─── Función interna cacheada con Next.js Data Cache ─────────────────────────
 const _fetchPropertiesFromApi = withNextCache(
-    'inmovilla_property_list_v3',
+    'inmovilla_property_list_v5',
     async (numagencia: string, password: string, addnumagencia: string, clientIp: string, domain: string): Promise<PropertyListEntry[]> => {
         console.log(`[Actions] Next.js Cache miss: Fetching from Web API (IP: ${clientIp})...`);
         const { InmovillaWebApiService } = await import('@/lib/api/web-service');
@@ -23,11 +23,13 @@ const _fetchPropertiesFromApi = withNextCache(
                 !p.prospecto &&
                 !isNaN(p.cod_ofer) &&
                 p.ref &&
-                p.ref.trim() !== ''
+                p.ref.trim() !== '' &&
+                p.ref !== '2494' && // Exclusión manual por reporte de usuario
+                p.cod_ofer !== 2494
             )
             .sort((a, b) => b.cod_ofer - a.cod_ofer);
     },
-    { revalidate: 60, tags: ['inmovilla_property_list_v3'] } // 1 minuto para actualizaciones más rápidas
+    { revalidate: 60, tags: ['inmovilla_property_list_v5'] } // 1 minuto para actualizaciones más rápidas
 );
 
 export async function fetchPropertiesAction(): Promise<{
@@ -127,7 +129,9 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         const api = new InmovillaWebApiService(numagencia, password, addnumagencia, 1, clientIp, domain);
         const details = await api.getPropertyDetails(id);
 
-        if (!details) return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
+        if (!details || details.nodisponible || details.prospecto || details.ref === '2494' || details.cod_ofer === 2494) {
+            return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
+        }
 
         // --- Auto-Learn: Sync description to Supabase for the catalog starts here ---
         if (details.descripciones && details.descripciones.length > 20) {
