@@ -18,6 +18,7 @@ import {
     Share2
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
 
 
@@ -26,6 +27,8 @@ interface PropertyDetailClientProps {
 }
 
 export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
+    const router = useRouter();
+
     const handleShare = async () => {
         const shareData = {
             title: `${property.tipo_nombre || 'Propiedad'} en ${property.poblacion} | Vidahome`,
@@ -62,12 +65,12 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950">
             {/* Botón Volver */}
-            <Link
-                href="/propiedades"
+            <button
+                onClick={() => router.back()}
                 className="fixed top-28 left-6 md:top-8 md:left-8 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-2.5 md:p-3 rounded-full shadow-lg hover:scale-110 transition-all border border-slate-100 dark:border-slate-800"
             >
                 <ArrowLeft size={18} className="text-slate-900 dark:text-white" />
-            </Link>
+            </button>
 
             <PropertyGallery images={property.fotos_lista || []} />
 
