@@ -23,8 +23,12 @@ export async function generateMetadata(
 
     const prop = result.data;
     const title = `${prop.tipo_nombre || 'Propiedad'} en ${prop.poblacion} - Ref: ${prop.ref} | Vidahome`;
-    const description = prop.descripciones
-        ? prop.descripciones.split('~~')[0].substring(0, 160) + '...'
+
+    // Import text cleaner logic or use a local version for metadata
+    const { cleanDescription } = require('@/lib/utils/text-cleaner');
+    const cleanedDesc = cleanDescription(prop.descripciones);
+    const description = cleanedDesc
+        ? cleanedDesc.substring(0, 160) + '...'
         : `Venta de ${prop.tipo_nombre} en ${prop.poblacion}. Especialistas en la zona de La Safor.`;
 
     const images = prop.fotos_lista?.slice(0, 1) || [];
@@ -67,7 +71,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         '@context': 'https://schema.org',
         '@type': 'RealEstateListing',
         'name': result.data.tipo_nombre,
-        'description': result.data.descripciones?.split('~~')[0],
+        'description': require('@/lib/utils/text-cleaner').cleanDescription(result.data.descripciones),
         'url': `https://vidahome.es/propiedades/${id}`,
         'image': result.data.fotos_lista?.[0],
         'address': {

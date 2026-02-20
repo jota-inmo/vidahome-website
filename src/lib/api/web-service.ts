@@ -51,9 +51,12 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any): PropertyL
     // 1. Try parallel root-level array first
     const rootDesc = fullResponse?.descripciones || webProp?.descripciones;
     if (rootDesc && typeof rootDesc === 'object' && rootDesc[idStr]) {
-        const langData = rootDesc[idStr]['1'] || rootDesc[idStr][1] || Object.values(rootDesc[idStr])[0];
+        const descGroup = rootDesc[idStr];
+        const langData = descGroup['1'] || descGroup[1] || descGroup['es'] || Object.values(descGroup)[0];
         if (langData && typeof langData === 'object') {
             description = langData.descrip || langData.descripcion || langData.texto || '';
+        } else if (typeof langData === 'string') {
+            description = langData;
         }
     }
 
@@ -133,9 +136,12 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any): PropertyDet
     // 1. Try parallel root-level array first (most reliable for Ficha)
     const rootDesc = fullResponse?.descripciones || webProp?.descripciones;
     if (rootDesc && typeof rootDesc === 'object' && rootDesc[idStr]) {
-        const langData = rootDesc[idStr]['1'] || rootDesc[idStr][1] || Object.values(rootDesc[idStr])[0];
+        const descGroup = rootDesc[idStr];
+        const langData = descGroup['1'] || descGroup[1] || descGroup['es'] || Object.values(descGroup)[0];
         if (langData && typeof langData === 'object') {
             description = langData.descrip || langData.descripcion || langData.texto || '';
+        } else if (typeof langData === 'string') {
+            description = langData;
         }
     }
 

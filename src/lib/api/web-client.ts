@@ -335,7 +335,11 @@ export class InmovillaWebClient {
         const validatedPage = this.validateNumeric(page, 'page');
         const validatedPageSize = this.validateNumeric(pageSize, 'pageSize');
 
+        // Solicitamos paginación para los datos básicos Y descripciones para los textos
+        // Esto poblalará el array paralelo $descripciones en el nivel raíz de la respuesta
         this.addProcess('paginacion', validatedPage, validatedPageSize, where, orderBy);
+        this.addProcess('descripciones', validatedPage, validatedPageSize, where, orderBy);
+
         return this.execute();
     }
 }

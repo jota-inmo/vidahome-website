@@ -15,15 +15,16 @@ El proyecto Vidahome es una aplicación web inmobiliaria construida con un stack
 | # | Severidad | Issue | Estado |
 |---|-----------|-------|--------|
 | 1 | 🔴 Crítico | Credenciales de Inmovilla en historial Git | ⚠️ **Acción manual pendiente** |
-| 2 | 🔴 Crítico | Cookie admin sin firma criptográfica | 🔴 **NUEVO — Pendiente** |
-| 3 | 🟠 Alto | Subida de archivos sin validación de tipo/tamaño | 🟠 **NUEVO — Pendiente** |
-| 4 | 🟠 Alto | Sin `error.tsx` ni `loading.tsx` globales | 🟠 **NUEVO — Pendiente** |
+| 2 | 🔴 Crítico | Cookie admin sin firma criptográfica | ✅ **Resuelto** |
+| 3 | 🟠 Alto | Subida de archivos sin validación de tipo/tamaño | ✅ **Resuelto** |
+| 4 | 🟠 Alto | Sin `error.tsx` ni `loading.tsx` globales | ✅ **Resuelto** |
 | 5 | 🟠 Alto | `/admin-hero` sin protección de middleware | ✅ **Resuelto** |
 | 6 | 🟠 Alto | Contraseña admin hardcodeada como fallback | ✅ **Resuelto** |
 | 7 | 🟠 Alto | Caché de archivos ineficaz en serverless | ✅ **Resuelto** |
 | 8 | 🟠 Alto | Endpoint `/api/debug/ip` expuesto en producción | ✅ **Resuelto** |
-| 9 | 🟡 Medio | RLS de Supabase permisiva en `hero_slides` | ✅ **Resuelto en código** |
-| 10 | 🟡 Medio | Errores silenciados (`catch {}`) en acciones | ⚠️ **Parcialmente pendiente** |
+| 9 | 🟡 Medio | RLS de Supabase permisiva en `hero_slides` | ✅ **Resuelto** |
+| 10 | 🟡 Medio | Errores silenciados (`catch {}`) en acciones | ✅ **Resuelto** |
+| 11 | 🟡 Medio | Limpieza de textos de Inmovilla (tildes, etc) | ✅ **Resuelto** |
 
 ---
 
