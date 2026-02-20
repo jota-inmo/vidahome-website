@@ -135,13 +135,11 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
 
                             <ContactForm cod_ofer={property.cod_ofer} />
 
-                            <div className="mt-12 p-8 border border-slate-50 dark:border-slate-900 flex items-center gap-6">
-                                <div className="scale-125">
-                                    <Logo variant="icon" />
-                                </div>
-                                <div>
-                                    <h4 className="font-serif text-lg">Vidahome</h4>
-                                    <p className="text-xs text-slate-400 uppercase tracking-widest">Especialista en La Safor</p>
+                            <div className="mt-12 p-8 border border-slate-100 dark:border-slate-900 flex items-center gap-8 transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                                <Logo variant="icon" className="shrink-0" />
+                                <div className="flex flex-col gap-1">
+                                    <h4 className="font-serif text-xl text-slate-900 dark:text-white leading-tight">Vidahome</h4>
+                                    <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">Especialista en La Safor</p>
                                 </div>
                             </div>
                         </div>
