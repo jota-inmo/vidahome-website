@@ -70,11 +70,11 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                         </span>
                     </div>
 
-                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8 flex-grow line-clamp-3">
-                        {property.descripciones
-                            ? cleanDescription(property.descripciones)
-                            : 'Una propiedad única que personifica la elegancia atemporal y el diseño contemporáneo.'}
-                    </p>
+                    {property.descripciones && (
+                        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8 flex-grow line-clamp-3">
+                            {cleanDescription(property.descripciones)}
+                        </p>
+                    )}
 
                     <div className="pt-8 border-t border-slate-100 dark:border-slate-900 flex justify-between items-center">
                         <div className="flex gap-4 text-[11px] tracking-widest text-slate-400 uppercase">
