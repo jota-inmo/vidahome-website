@@ -5,6 +5,7 @@ import { PropertyDetails } from '@/types/inmovilla';
 import { PropertyGallery } from '@/components/PropertyGallery';
 import { ContactForm } from '@/components/ContactForm';
 import { Logo } from '@/components/Logo';
+import { PropertyMap } from '@/components/PropertyMap';
 import {
     Square,
     BedDouble,
@@ -106,7 +107,7 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                         </div>
 
                         {/* Características Técnicas */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
                             {technical.map((t, i) => (
                                 <div key={i} className="flex items-center gap-4 p-6 border border-slate-50 dark:border-slate-900 rounded-sm">
                                     <span className="text-slate-400">{t.icon}</span>
@@ -114,6 +115,24 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Ubicación */}
+                        <section className="mb-20">
+                            <div className="flex items-center gap-4 mb-8">
+                                <h2 className="text-2xl font-serif text-slate-900 dark:text-white">Ubicación</h2>
+                                <div className="h-px flex-grow bg-slate-100 dark:bg-slate-900" />
+                            </div>
+                            <PropertyMap
+                                latitud={property.latitud}
+                                longitud={property.longitud}
+                                address={property.calle}
+                                poblacion={property.poblacion}
+                            />
+                            <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                                Ubicación aproximada para proteger la privacidad del propietario
+                            </p>
+                        </section>
                     </div>
 
                     {/* Sidebar de Contacto */}

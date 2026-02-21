@@ -251,7 +251,9 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any, languageId: 
         fotoletra: fotoLetra,
         habitaciones: totalHabitaciones || undefined,
         poblacion: poblacion,
-        tipo_nombre: tipoNombre
+        tipo_nombre: tipoNombre,
+        latitud: webProp.latitud || (webProp.web && webProp.web.latitud) || undefined,
+        longitud: webProp.longitud || (webProp.web && webProp.web.longitud) || undefined
     };
 }
 

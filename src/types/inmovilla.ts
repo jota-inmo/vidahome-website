@@ -63,6 +63,8 @@ export interface PropertyDetails {
     fotos?: Record<string, { url: string; posicion: number }>;
     poblacion?: string;
     tipo_nombre?: string;
+    latitud?: string | number;
+    longitud?: string | number;
     // Additional fields can be added here as needed
 }
 

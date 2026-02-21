@@ -1,0 +1,21 @@
+﻿[dotenv@17.2.4] injecting env (9) from .env -- tip: ÔÜÖ´©Å  override existing env vars with { override: true }
+node.exe : [InmovillaWebClient] Authorization Error: die("xIP 
+NO VALIDADA - IP_RECIVED: 90.165.121.37 --- 13031_244_ext");
+En C:\Program Files\nodejs\npx.ps1: 29 Carácter: 3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([InmovillaWebCl. 
+   ..3031_244_ext");:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Error fetching details: Error: Inmovilla API: IP no 
+autorizada. IP recibida: 90.165.121.37. Considera usar el 
+proxy de Arsys con IP est├ítica. Ver docs/ARSYS_PROXY_SETUP.md
+    at InmovillaWebClient.execute (C:\Users\Admin\.gemini\anti
+gravity\scratch\inmovilla-next-app\src\lib\api\web-client.ts:2
+56:31)
+    at process.processTicksAndRejections 
+(node:internal/process/task_queues:105:5)
+    at async debugPropertyDetails (C:\Users\Admin\.gemini\anti
+gravity\scratch\inmovilla-next-app\debug-raw-property.ts:28:24
+)
