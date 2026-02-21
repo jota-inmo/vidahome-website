@@ -325,7 +325,6 @@ export class InmovillaWebClient {
 
     /**
      * Convenience method: Get paginated properties with filters
-     * Requests both 'paginacion' (list) and 'descripciones' in the same call.
      */
     public async getProperties(
         page: number = 1,
@@ -337,10 +336,7 @@ export class InmovillaWebClient {
         const validatedPage = this.validateNumeric(page, 'page');
         const validatedPageSize = this.validateNumeric(pageSize, 'pageSize');
 
-        // Solicita la lista de propiedades Y sus descripciones en la misma petición HTTP.
-        // Inmovilla soporta múltiples procesos concatenados en el parámetro 'texto'.
         this.addProcess(tipo, validatedPage, validatedPageSize, where, orderBy);
-        this.addProcess('descripciones', validatedPage, validatedPageSize, where, orderBy);
 
         return this.execute();
     }
