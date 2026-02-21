@@ -46,7 +46,7 @@ async function _fetchPropertiesFromApiRaw(numagencia: string, password: string, 
 
 // Devuelve una versión cacheada de la función, con clave única por idioma
 function _getLocaleAwarePropertyFetcher(locale: string) {
-    const tag = `inmovilla_property_list_v7_${locale}`;
+    const tag = `inmovilla_property_list_v8_${locale}`;
     return unstable_cache(_fetchPropertiesFromApiRaw, [tag], { revalidate: 60, tags: [tag] });
 }
 
