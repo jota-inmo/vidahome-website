@@ -281,9 +281,25 @@ export class InmovillaWebApiService {
         const page = options.page || 1;
 
         try {
-            // Volvemos a 'paginacion' ya que 'ficha' en bloque puede no estar devolviendo
-            // los datos esperados en este entorno o cuenta.
             const response = await this.client.getProperties(page, 100, '', 'cod_ofer DESC', 'paginacion');
+
+            // ─── DIAGNOSTIC LOG ─────────────────────────────────────────────────────
+            // Shows the root keys of the Inmovilla response and first property fields
+            // Remove after confirming the description structure.
+            const firstProp = Array.isArray(response.paginacion) ? response.paginacion[1] : null;
+            console.log('[INMOVILLA_DIAG] Root response keys:', Object.keys(response || {}));
+            console.log('[INMOVILLA_DIAG] Has root descripciones:', 'descripciones' in (response || {}));
+            if (firstProp) {
+                console.log('[INMOVILLA_DIAG] First property keys:', Object.keys(firstProp));
+                console.log('[INMOVILLA_DIAG] First property descripciones field:', JSON.stringify(firstProp.descripciones)?.slice(0, 300));
+                console.log('[INMOVILLA_DIAG] First property cod_ofer:', firstProp.cod_ofer);
+            }
+            if (response?.descripciones) {
+                const descKeys = Object.keys(response.descripciones).slice(0, 2);
+                console.log('[INMOVILLA_DIAG] Root descripciones sample keys:', descKeys);
+                descKeys.forEach(k => console.log(`[INMOVILLA_DIAG] descripciones[${k}]:`, JSON.stringify(response.descripciones[k])?.slice(0, 300)));
+            }
+            // ─────────────────────────────────────────────────────────────────────────
 
             const rawData = response.paginacion || response.ficha || response.destacados;
 
