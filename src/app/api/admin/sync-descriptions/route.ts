@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 
 /**
  * Admin endpoint: Bulk sync all property descriptions from Inmovilla to Supabase.
@@ -11,9 +10,9 @@ import { headers } from 'next/headers';
  * This calls ficha for each property one by one, with a small delay to avoid
  * overwhelming the Inmovilla API. Returns a summary when done.
  */
-export async function POST(request: Request) {
-    const headerList = await headers();
-    const secret = headerList.get('x-admin-secret') || '';
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const secret = searchParams.get('secret') || '';
 
     if (secret !== 'vidahome_sync_2026' && secret !== process.env.INMOVILLA_DEBUG_SECRET) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
