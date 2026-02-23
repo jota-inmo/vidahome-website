@@ -30,19 +30,25 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ---
 
-## 🛠️ En Curso (In Progress)
+### 5. Soporte Multi-idioma Inteligente (Caché JSONB)
+- **Problema**: El catálogo solo cargaba descripciones en español desde Supabase.
+- **Solución**: Se implementó una columna `descriptions` (JSONB) que almacena un mapa de idiomas (`es`, `en`, `fr`, etc.).
+- **Auto-Aprendizaje**: Al visitar una ficha, el sistema extrae automáticamente todos los idiomas disponibles de Inmovilla y los guarda en la "bóveda" de Supabase.
+- **Rendimiento**: Catálogo instantáneo en cualquier idioma consultado.
 
-- **Soporte Multi-idioma (Caché)**: Implementada la lógica para almacenar TODAS las traducciones de una propiedad en Supabase (columna `descriptions` JSONB).
-    - *Estado*: Código completado. Falta ejecución de SQL en Supabase para activar la columna.
-- **Optimización de Metadatos**: El catálogo ahora prioriza la descripción localizada guardada en Supabase sobre la de la API, mejorando la velocidad en todos los idiomas (`es`, `en`, `fr`, etc.).
+---
+
+## �️ En Curso (In Progress)
+
+- **Monitoreo de Sincronización**: Verificando la correcta captura de idiomas en nuevas propiedades.
 
 ---
 
 ## 📅 Próximos Pasos (Pendiente)
 
-1.  **Activación de DB**: Ejecutar `ALTER TABLE property_metadata ADD COLUMN descriptions JSONB DEFAULT '{}'::jsonb;` en Supabase.
-2.  **Mejoras SEO**: Refinar los metadatos de las fichas individuales.
-3.  **Dashboard Admin**: Vista para forzar sincronización de idiomas.
+1.  **Mejoras SEO**: Refinar los metadatos de las fichas individuales.
+2.  **Dashboard Admin**: Vista para forzar sincronización de idiomas.
+3.  **Refactor de Limpieza**: Aplicar el motor de limpieza de textos de forma recursiva a todos los idiomas guardados.
 
 ---
 *Última actualización: 23/02/2026 por Antigravity AI.*
