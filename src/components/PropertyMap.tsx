@@ -10,8 +10,10 @@ interface PropertyMapProps {
 }
 
 export function PropertyMap({ latitud, longitud, address, poblacion }: PropertyMapProps) {
-    // If we have coordinates, use them. Otherwise, try address + population
-    const query = (latitud && longitud)
+    // Si tenemos coordenadas válidas, las usamos. Si no, usamos la dirección.
+    const hasCoords = latitud && longitud && String(latitud).trim() !== '' && String(longitud).trim() !== '';
+
+    const query = hasCoords
         ? `${latitud},${longitud}`
         : `${address || ''} ${poblacion || ''}`.trim();
 
