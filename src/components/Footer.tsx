@@ -1,10 +1,12 @@
 import { Link } from '@/i18n/routing';
 import { getCompanySettingsAction } from '@/app/actions/settings';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { translateSchedule } from '@/lib/utils/schedule-translator';
 
 export async function Footer() {
     const settings = await getCompanySettingsAction();
     const t = await getTranslations('Footer');
+    const locale = await getLocale();
 
     return (
         <footer className="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 px-8">
@@ -34,8 +36,8 @@ export async function Footer() {
                 <div>
                     <h4 className="font-serif text-xl mb-6">{t('horario')}</h4>
                     <div className="text-sm text-slate-500 leading-relaxed font-light">
-                        <p>{settings.hours_week}</p>
-                        <p>{settings.hours_sat}</p>
+                        <p>{translateSchedule(settings.hours_week, locale)}</p>
+                        <p>{translateSchedule(settings.hours_sat, locale)}</p>
                         <p className="mt-2 italic opacity-60">{t('outside')}</p>
                     </div>
                 </div>

@@ -101,5 +101,15 @@
         "successText": "Nuestros asesores se pondrán en contacto con usted a la brevedad posible para gestionar su interés en esta propiedad.",
         "errorGeneric": "Ocurrió un error inesperado",
         "errorSubmit": "Error al enviar el formulario"
+    },
+    "ContactPage": {
+        "subheading": "Estamos a tu disposición",
+        "heading": "Contacta con",
+        "officeTitle": "Nuestra oficina",
+        "officeDesc": "Vísítanos en nuestra oficina en el Grau de Gandia para una atención personalizada sobre tu próxima gestión inmobiliaria.",
+        "phone": "Teléfono",
+        "address": "Dirección",
+        "hours": "Horario",
+        "formTitle": "Envíanos un mensaje"
     }
 }

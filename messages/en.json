@@ -97,5 +97,15 @@
         "successText": "Our advisors will get in touch with you as soon as possible to handle your interest in this property.",
         "errorGeneric": "An unexpected error occurred",
         "errorSubmit": "Error submitting the form"
+    },
+    "ContactPage": {
+        "subheading": "We are at your disposal",
+        "heading": "Contact",
+        "officeTitle": "Our office",
+        "officeDesc": "Visit us at our office in Grau de Gandia for personalised advice on your next property transaction.",
+        "phone": "Phone",
+        "address": "Address",
+        "hours": "Agency hours",
+        "formTitle": "Send us a message"
     }
 }
