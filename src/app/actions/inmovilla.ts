@@ -179,14 +179,53 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
             return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
         }
 
-        // --- AI Translation: If missing in current language, try to translate from Spanish ---
+        // --- STEP 1: Check Supabase FIRST for cached translations (fastest path) ---
+        if (locale !== 'es') {
+            try {
+                const { supabase } = await import('@/lib/supabase');
+                const { data: meta } = await supabase
+                    .from('property_metadata')
+                    .select('descriptions, description')
+                    .eq('cod_ofer', id)
+                    .single();
+
+                if (meta) {
+                    const cachedLang = meta.descriptions?.[locale];
+                    if (cachedLang && cachedLang.length > 20) {
+                        // ✅ Cached translation found - use it immediately, no AI needed
+                        details.descripciones = cachedLang;
+                        if (!details.all_descriptions) details.all_descriptions = {};
+                        details.all_descriptions[locale] = cachedLang;
+                        console.log(`[Actions] ✅ Supabase cache HIT for property ${id} in '${locale}' - skipping AI`);
+
+                        // Also populate Spanish from cache if available
+                        const cachedEs = meta.descriptions?.es || meta.description;
+                        if (cachedEs && !details.all_descriptions.es) {
+                            details.all_descriptions.es = cachedEs;
+                        }
+                    } else {
+                        // Populate Spanish from cache for the AI fallback below
+                        const cachedEs = meta.descriptions?.es || meta.description;
+                        if (cachedEs && !details.all_descriptions?.es) {
+                            if (!details.all_descriptions) details.all_descriptions = {};
+                            details.all_descriptions.es = cachedEs;
+                        }
+                        console.log(`[Actions] ⚠️ Supabase cache MISS for property ${id} in '${locale}' - will attempt AI`);
+                    }
+                }
+            } catch (supaErr) {
+                console.warn('[Actions] Supabase pre-check failed:', supaErr);
+            }
+        }
+
+        // --- STEP 2: AI Translation only if Supabase had no cached translation ---
         const needsTranslation = locale !== 'es' && (!details.all_descriptions || !details.all_descriptions[locale]);
         const spanishText = details.all_descriptions?.es || (locale === 'es' ? details.descripciones : null);
 
         if (needsTranslation && spanishText && spanishText.length > 20) {
             try {
                 const { translateText } = await import('@/lib/api/translator');
-                console.log(`[Actions] AI Translating property ${id} from 'es' to '${locale}'...`);
+                console.log(`[Actions] 🤖 AI Translating property ${id} from 'es' to '${locale}'...`);
                 // Timeout de 8 segundos para no bloquear la experiencia del usuario
                 const translated = await translateText(spanishText, 'es', locale, 8000);
 
@@ -194,10 +233,16 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
                     details.descripciones = translated;
                     if (!details.all_descriptions) details.all_descriptions = {};
                     details.all_descriptions[locale] = translated;
-                    console.log(`[Actions] AI Translation successful for ${id}`);
+                    console.log(`[Actions] ✅ AI Translation successful for ${id}`);
+                } else {
+                    // Fallback: show Spanish description rather than nothing
+                    if (spanishText && !details.descripciones) {
+                        details.descripciones = spanishText;
+                    }
                 }
             } catch (transError) {
                 console.warn('[Actions] AI Translation failed, falling back to Spanish:', transError);
+                if (spanishText) details.descripciones = spanishText;
             }
         }
 
@@ -236,6 +281,7 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
         apiCache.set(cacheKey, details);
         return { success: true, data: details };
+
     } catch (error: any) {
         return { success: false, error: error.message };
     }
