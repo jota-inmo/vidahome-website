@@ -47,6 +47,14 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
     - **Timeout y AbortController**: Implementado un tiempo de espera máximo de 8 segundos para la IA. Si el modelo de Hugging Face está "frío", el sistema cancela la petición y muestra el texto original para no bloquear la experiencia del usuario.
 - **SEO Internacional**: Los metadatos de las fichas (títulos y descripciones OpenGraph) ahora se generan dinámicamente en el idioma seleccionado.
 
+### 7. Traducción de Horarios y Banner Multilingüe
+- **Traducción de Horarios dinámicos**: Creado `src/lib/utils/schedule-translator.ts` para traducir automáticamente cadenas de texto libre de horarios (p.ej. "Lunes - Viernes" → "Monday - Friday"). Aplicado en Footer y Página de Contacto.
+- **Títulos de Hero Multilingüe**:
+    - Se ha evolucionado la tabla `hero_slides` con una columna `titles` (JSONB) para permitir títulos específicos por idioma.
+    - **Panel Admin**: Actualizada la interfaz de gestión de vídeos para permitir la edición simultánea de títulos en Español e Inglés.
+    - **Banner dinámico**: El componente `LuxuryHero` ahora selecciona automáticamente el título según el locale del usuario, con fallback al español legado.
+- **Página de Contacto**: Internacionalización completa de la página de contacto (`/contacto`), incluyendo cabeceras, descripciones de oficina y etiquetas.
+
 ---
 
 ## �️ En Curso (In Progress)
@@ -62,4 +70,4 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 3.  **Refactor de Limpieza**: Aplicar el motor de limpieza de textos de forma recursiva a todos los idiomas guardados.
 
 ---
-*Última actualización: 23/02/2026 por Antigravity AI.*
+*Última actualización: 23/02/2026 (17:40) por Antigravity AI.*

@@ -105,10 +105,28 @@ CREATE TABLE IF NOT EXISTS company_settings (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
+-- 7. Diapositivas del Banner Hero (Vídeo/Imagen)
+CREATE TABLE IF NOT EXISTS hero_slides (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    video_path TEXT NOT NULL,
+    link_url TEXT,
+    title TEXT, -- Título legado (ES)
+    titles JSONB DEFAULT '{}'::jsonb, -- Mapa de traducciones {es, en, fr...}
+    "order" INTEGER DEFAULT 0,
+    active BOOLEAN DEFAULT true,
+    type TEXT DEFAULT 'video',
+    poster TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Habilitar RLS y Políticas
 ALTER TABLE property_metadata ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read metadata" ON property_metadata FOR SELECT USING (true);
 CREATE POLICY "Allow all for system" ON property_metadata FOR ALL USING (true);
+
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read hero" ON hero_slides FOR SELECT USING (true);
+CREATE POLICY "Allow all management hero" ON hero_slides FOR ALL USING (true);
 ```
 
 ### Motor de Auto-Aprendizaje e Inteligencia Artificial
@@ -180,9 +198,11 @@ Las peticiones a la API de Inmovilla dependen del idioma detectado. El parámetr
 - `es` -> `1` (Español)
 - `en` -> `2` (Inglés)
 
-### Traducción de Tipos de Propiedad (Inmovilla → Locale)
-Dado que Inmovilla devuelve el campo `tipo_nombre` siempre en español (p.ej. "Piso", "Chalet"), se utiliza el utility `src/lib/utils/property-types.ts` para mapear estos términos a su versión localizada en el componente `LuxuryPropertyCard` y en la ficha de detalle.
+### Traducción de Tipos de Propiedad y Horarios
+1. **Tipos de Propiedad**: `src/lib/utils/property-types.ts` mapea términos de Inmovilla (Piso → Apartment).
+2. **Horarios Dinámicos**: `src/lib/utils/schedule-translator.ts` traduce cadenas de texto libre guardadas en Supabase (Lunes → Monday), permitiendo que la oficina cambie su horario sin romper la traducción.
+3. **Banner Multilingüe**: El componente `LuxuryHero` prioriza el campo `titles[locale]` de la base de datos, permitiendo transcreaciones manuales de los eslóganes en lugar de traducciones literales.
 
 ---
 
-*Documento actualizado el 23/02/2026 por Antigravity AI.*
+*Documento actualizado el 23/02/2026 (17:40) por Antigravity AI.*
