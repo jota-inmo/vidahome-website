@@ -56,6 +56,13 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
     - **Banner dinámico**: El componente `LuxuryHero` ahora selecciona automáticamente el título según el locale del usuario, con fallback al español legado.
 - **Página de Contacto**: Internacionalización completa de la página de contacto (`/contacto`), incluyendo cabeceras, descripciones de oficina y etiquetas.
 
+### 8. Optimización de Performance en Homepage (Batching)
+- **Desafío**: La homepage en inglés era lenta (~8s) porque intentaba cargar los detalles de las 6 viviendas destacadas una por una, disparando múltiples consultas a Supabase y peticiones externas.
+- **Solución**: 
+    - **Batch Fetching**: Se refactorizó `getFeaturedPropertiesWithDetailsAction` para realizar una única consulta masiva a Supabase (`.in('cod_ofer', featuredIds)`). Esto reduce drásticamente el overhead de conexión y latencia.
+    - **Corrección de Mapeo de Idiomas**: Se detectó un error en el adaptador de la API donde las descripciones planas devueltas por Inmovilla se marcaban siempre como Español (`es`), lo que causaba fallos de caché en Inglés y forzaba el uso de la IA en cada carga.
+    - **Caché Persistente**: Se implementó `unstable_cache` para la lista de IDs destacados, evitando consultas redundantes a la base de datos en cada refresco.
+
 ---
 
 ## �️ En Curso (In Progress)

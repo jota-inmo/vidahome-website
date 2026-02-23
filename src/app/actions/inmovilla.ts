@@ -238,23 +238,29 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         // --- Auto-Learn: Sync everything to Supabase for the catalog and super-fast path ---
         try {
             const { supabaseAdmin } = await import('@/lib/supabase-admin');
+
+            // Fix: Ensure the current locale translation is explicitly in the descriptions map
+            const currentDescriptions = { ...(details.all_descriptions || {}) };
+            if (locale && details.descripciones && !currentDescriptions[locale]) {
+                currentDescriptions[locale] = details.descripciones;
+            }
+
             const upsertData: any = {
                 cod_ofer: details.cod_ofer,
                 ref: details.ref,
-                full_data: details, // Store full object for bypass
-                descriptions: details.all_descriptions || {},
+                full_data: { ...details, all_descriptions: currentDescriptions },
+                descriptions: currentDescriptions,
                 updated_at: new Date().toISOString()
             };
 
-            if (details.all_descriptions?.es) {
-                upsertData.description = details.all_descriptions.es;
+            if (currentDescriptions.es) {
+                upsertData.description = currentDescriptions.es;
             } else if (locale === 'es' && details.descripciones) {
                 upsertData.description = details.descripciones;
-                if (!upsertData.descriptions.es) upsertData.descriptions.es = details.descripciones;
             }
 
             await supabaseAdmin.from('property_metadata').upsert(upsertData, { onConflict: 'cod_ofer' });
-            console.log(`[Actions] 💾 Property ${id} synced to Supabase (Full Data)`);
+            console.log(`[Actions] 💾 Property ${id} synced to Supabase (Full Data, Locales: ${Object.keys(currentDescriptions).join(', ')})`);
         } catch (supaError) {
             console.warn('[Actions] Auto-sync multi-lang metadata failed:', supaError);
         }
@@ -325,8 +331,8 @@ export async function submitLeadAction(formData: {
     }
 }
 
-export async function getFeaturedPropertiesAction(): Promise<number[]> {
-    try {
+const getCachedFeaturedIds = unstable_cache(
+    async () => {
         const { supabase } = await import('@/lib/supabase');
         const { data, error } = await supabase
             .from('featured_properties')
@@ -335,6 +341,14 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
 
         if (error) throw error;
         return data.map(item => item.cod_ofer);
+    },
+    ['featured_ids_v1'],
+    { revalidate: 3600, tags: ['featured_properties'] }
+);
+
+export async function getFeaturedPropertiesAction(): Promise<number[]> {
+    try {
+        return await getCachedFeaturedIds();
     } catch (e) {
         console.error('Error fetching featured properties from Supabase:', e);
         return [];
@@ -342,22 +356,68 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
 }
 
 export async function getFeaturedPropertiesWithDetailsAction(): Promise<{ success: boolean; data: any[] }> {
+    const locale = await getLocale();
     const featuredIds = await getFeaturedPropertiesAction();
 
     if (featuredIds.length === 0) return { success: true, data: [] };
 
     try {
-        const detailPromises = featuredIds.map((id: number) => getPropertyDetailAction(id));
-        const results = await Promise.all(detailPromises);
+        // --- BATCH FAST PATH ---
+        const { supabase } = await import('@/lib/supabase');
+        const { data: metadata, error } = await supabase
+            .from('property_metadata')
+            .select('cod_ofer, full_data, descriptions')
+            .in('cod_ofer', featuredIds);
 
-        const validDetails = results
-            .filter(res => res.success && res.data)
-            .map(res => res.data);
+        if (error) throw error;
 
-        return { success: true, data: validDetails };
+        const results: any[] = [];
+        const missingIds: number[] = [];
+
+        featuredIds.forEach(id => {
+            const meta = metadata?.find(m => m.cod_ofer === id);
+            if (meta && meta.full_data) {
+                const data = meta.full_data as PropertyDetails;
+                // Check for current locale translation
+                const translation = meta.descriptions?.[locale] || data.all_descriptions?.[locale];
+
+                if (translation || locale === 'es') {
+                    if (translation) data.descripciones = translation;
+                    // Ensure the data object has the correct descriptions map for consistency
+                    if (!data.all_descriptions) data.all_descriptions = meta.descriptions || {};
+                    results.push(data);
+                    return;
+                }
+            }
+            // If any property is missing or lacks translation, queue for individual fetch
+            missingIds.push(id);
+        });
+
+        if (missingIds.length > 0) {
+            console.log(`[Actions] Featured: ${missingIds.length} properties missing from bulk cache, fetching individually...`);
+            const individualPromises = missingIds.map(id => getPropertyDetailAction(id));
+            const individualResults = await Promise.all(individualPromises);
+
+            individualResults.forEach(res => {
+                if (res.success && res.data) {
+                    results.push(res.data);
+                }
+            });
+        }
+
+        // Sort results to match original featuredIds order
+        const sortedResults = featuredIds
+            .map(id => results.find(r => r.cod_ofer === id))
+            .filter(Boolean);
+
+        return { success: true, data: sortedResults };
     } catch (error) {
         console.error('Error enriching featured properties:', error);
-        return { success: false, data: [] };
+        // Fallback to individual fetching if batch fails
+        const detailPromises = featuredIds.map((id: number) => getPropertyDetailAction(id));
+        const results = await Promise.all(detailPromises);
+        const validDetails = results.filter(res => res.success && res.data).map(res => res.data);
+        return { success: true, data: validDetails };
     }
 }
 

@@ -181,7 +181,12 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any, languageId: 
         if (descGroup) {
             if (typeof descGroup === 'string') {
                 description = descGroup;
-                allDescriptions['es'] = descGroup;
+                // Determine the correct locale for the flat string based on requested languageId
+                const langMapInverse: Record<string, string> = {
+                    '1': 'es', '2': 'en', '3': 'fr', '4': 'de', '5': 'ru', '6': 'it', '7': 'nl'
+                };
+                const currentLocale = langMapInverse[String(languageId)] || 'es';
+                allDescriptions[currentLocale] = descGroup;
             } else {
                 // Populate all available languages
                 const langMap: Record<string, string> = {
