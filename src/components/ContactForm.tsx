@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { submitLeadAction } from '@/app/actions';
+import { useTranslations } from 'next-intl';
 
 interface ContactFormProps {
     cod_ofer: number;
@@ -11,6 +12,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const t = useTranslations('Contact');
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -40,10 +42,10 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
             if (result.success) {
                 setSuccess(true);
             } else {
-                setError(result.error || 'Error al enviar el formulario');
+                setError(result.error || t('errorSubmit'));
             }
         } catch (err) {
-            setError('Ocurrió un error inesperado');
+            setError(t('errorGeneric'));
         } finally {
             setLoading(false);
         }
@@ -52,9 +54,9 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
     if (success) {
         return (
             <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-12 text-center rounded-sm">
-                <h3 className="font-serif text-3xl mb-4">Solicitud Recibida</h3>
+                <h3 className="font-serif text-3xl mb-4">{t('successTitle')}</h3>
                 <p className="text-slate-500 font-light leading-relaxed">
-                    Nuestros asesores se pondrán en contacto con usted a la brevedad posible para gestionar su interés en esta propiedad.
+                    {t('successText')}
                 </p>
             </div>
         );
@@ -62,12 +64,12 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
 
     return (
         <div className="bg-white dark:bg-slate-950 p-10 border border-slate-100 dark:border-slate-900 shadow-xl rounded-sm">
-            <h3 className="font-serif text-3xl mb-8">Solicitar Información</h3>
+            <h3 className="font-serif text-3xl mb-8">{t('formTitle')}</h3>
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">Nombre</label>
+                        <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">{t('firstName')}</label>
                         <input
                             name="nombre"
                             required
@@ -75,7 +77,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">Apellidos</label>
+                        <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">{t('lastName')}</label>
                         <input
                             name="apellidos"
                             required
@@ -85,7 +87,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">Dirección de Email</label>
+                    <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">{t('email')}</label>
                     <input
                         name="email"
                         type="email"
@@ -95,7 +97,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">Teléfono</label>
+                    <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">{t('phone')}</label>
                     <input
                         name="telefono"
                         required
@@ -104,7 +106,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">Mensaje / Consulta</label>
+                    <label className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">{t('message')}</label>
                     <textarea
                         name="mensaje"
                         rows={4}
@@ -124,7 +126,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
                     disabled={loading}
                     className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 uppercase text-[11px] tracking-[0.3em] font-bold hover:opacity-90 transition-all disabled:opacity-50"
                 >
-                    {loading ? 'Enviando Solicitud...' : 'Enviar Solicitud'}
+                    {loading ? t('submitting') : t('submit')}
                 </button>
 
             </form>

@@ -83,5 +83,19 @@
         "notFound": "Property not found",
         "defaultType": "Property",
         "in": "in"
+    },
+    "Contact": {
+        "formTitle": "Request Information",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email Address",
+        "phone": "Phone",
+        "message": "Message / Query",
+        "submit": "Send Request",
+        "submitting": "Sending Request...",
+        "successTitle": "Request Received",
+        "successText": "Our advisors will get in touch with you as soon as possible to handle your interest in this property.",
+        "errorGeneric": "An unexpected error occurred",
+        "errorSubmit": "Error submitting the form"
     }
 }

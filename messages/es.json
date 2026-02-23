@@ -87,5 +87,19 @@
         "notFound": "Propiedad no encontrada",
         "defaultType": "Propiedad",
         "in": "en"
+    },
+    "Contact": {
+        "formTitle": "Solicitar Información",
+        "firstName": "Nombre",
+        "lastName": "Apellidos",
+        "email": "Dirección de Email",
+        "phone": "Teléfono",
+        "message": "Mensaje / Consulta",
+        "submit": "Enviar Solicitud",
+        "submitting": "Enviando Solicitud...",
+        "successTitle": "Solicitud Recibida",
+        "successText": "Nuestros asesores se pondrán en contacto con usted a la brevedad posible para gestionar su interés en esta propiedad.",
+        "errorGeneric": "Ocurrió un error inesperado",
+        "errorSubmit": "Error al enviar el formulario"
     }
 }

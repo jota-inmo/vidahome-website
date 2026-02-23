@@ -21,7 +21,8 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { translatePropertyType } from '@/lib/utils/property-types';
 
 
 interface PropertyDetailClientProps {
@@ -31,9 +32,12 @@ interface PropertyDetailClientProps {
 export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
     const router = useRouter();
     const t = useTranslations('Property');
+    const locale = useLocale();
+
+    const localizedType = translatePropertyType(property.tipo_nombre, locale);
 
     const handleShare = async () => {
-        const type = property.tipo_nombre || t('defaultType');
+        const type = localizedType || t('defaultType');
         const population = property.poblacion || 'La Safor';
 
         const shareData = {
@@ -88,7 +92,7 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                         <header className="mb-12 md:mb-16">
                             <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">{t('reference')}: {property.ref}</span>
                             <h1 className="text-3xl md:text-7xl font-serif text-slate-900 dark:text-white mb-8 leading-tight">
-                                {property.tipo_nombre || t('defaultType')} <br className="hidden md:block" />
+                                {localizedType || t('defaultType')} <br className="hidden md:block" />
                                 <span className="text-slate-400 font-light">{t('in')} {property.poblacion || 'La Safor'}</span>
                             </h1>
                             <div className="flex flex-wrap gap-8 md:gap-12 text-slate-900 dark:text-white">

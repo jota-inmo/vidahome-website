@@ -4,6 +4,7 @@ import { getPropertyDetailAction } from '@/app/actions';
 import { PropertyDetailClient } from './PropertyDetailClient';
 import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
+import { translatePropertyType } from '@/lib/utils/property-types';
 
 interface Props {
     params: Promise<{ id: string, locale: string }>;
@@ -24,7 +25,7 @@ export async function generateMetadata(
     }
 
     const prop = result.data;
-    const typeLabel = prop.tipo_nombre || t('defaultType');
+    const typeLabel = translatePropertyType(prop.tipo_nombre, locale) || t('defaultType');
     const title = `${typeLabel} ${t('in')} ${prop.poblacion} - Ref: ${prop.ref} | Vidahome`;
 
     const { cleanDescription } = require('@/lib/utils/text-cleaner');

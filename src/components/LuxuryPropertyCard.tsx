@@ -5,7 +5,8 @@ import Image from 'next/image';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { Bed, Bath, Square } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { translatePropertyType } from '@/lib/utils/property-types';
 
 
 interface LuxuryPropertyCardProps {
@@ -14,7 +15,10 @@ interface LuxuryPropertyCardProps {
 
 export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
     const t = useTranslations('Search');
+    const locale = useLocale();
     const [imageLoaded, setImageLoaded] = useState(false);
+
+    const localizedType = translatePropertyType(property.tipo_nombre, locale);
 
     // Use real Inmovilla image if available, fallback to high-end architectural images
     const imageUrl = property.mainImage || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop`;
@@ -43,8 +47,8 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
 
                 <div className="p-8 flex flex-col flex-grow">
                     <h3 className="text-xl font-serif text-slate-900 dark:text-slate-100 leading-tight mb-4">
-                        {property.tipo_nombre
-                            ? (property.poblacion ? `${property.tipo_nombre} ${t('in')} ${property.poblacion}` : property.tipo_nombre)
+                        {localizedType
+                            ? (property.poblacion ? `${localizedType} ${t('in')} ${property.poblacion}` : localizedType)
                             : (property.poblacion ? `${t('propertyIn')} ${property.poblacion}` : `Ref ${property.ref}`)}
                     </h3>
 
