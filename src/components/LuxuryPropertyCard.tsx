@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { Bed, Bath, Square } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
+import { useTranslations } from 'next-intl';
 
 
 interface LuxuryPropertyCardProps {
@@ -12,6 +13,7 @@ interface LuxuryPropertyCardProps {
 }
 
 export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
+    const t = useTranslations('Search');
     const [imageLoaded, setImageLoaded] = useState(false);
 
     // Use real Inmovilla image if available, fallback to high-end architectural images
@@ -34,7 +36,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
 
                     <div className="absolute top-6 left-6">
                         <span className="px-3 py-1.5 bg-[#0a192f] text-white text-[10px] tracking-[0.2em] font-medium uppercase rounded-sm">
-                            {property.keyacci === 2 ? 'Alquiler' : 'Venta'}
+                            {property.keyacci === 2 ? t('rent') : t('buy')}
                         </span>
                     </div>
                 </div>
@@ -42,8 +44,8 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                 <div className="p-8 flex flex-col flex-grow">
                     <h3 className="text-xl font-serif text-slate-900 dark:text-slate-100 leading-tight mb-4">
                         {property.tipo_nombre
-                            ? (property.poblacion ? `${property.tipo_nombre} en ${property.poblacion}` : property.tipo_nombre)
-                            : (property.poblacion ? `Propiedad en ${property.poblacion}` : `Referencia ${property.ref}`)}
+                            ? (property.poblacion ? `${property.tipo_nombre} ${t('in')} ${property.poblacion}` : property.tipo_nombre)
+                            : (property.poblacion ? `${t('propertyIn')} ${property.poblacion}` : `Ref ${property.ref}`)}
                     </h3>
 
                     <div className="flex items-center gap-8 mb-6 text-slate-400">
@@ -64,8 +66,8 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     <div className="mb-6">
                         <span className="text-xl font-serif text-slate-700 dark:text-slate-300 italic">
                             {property.keyacci === 2
-                                ? (property.precioalq ? `€ ${property.precioalq.toLocaleString()} /mes` : 'Precio bajo consulta')
-                                : (property.precioinmo ? `€ ${property.precioinmo.toLocaleString()}` : 'Precio bajo consulta')
+                                ? (property.precioalq ? `€ ${property.precioalq.toLocaleString()} /mo` : t('priceUnderRequest'))
+                                : (property.precioinmo ? `€ ${property.precioinmo.toLocaleString()}` : t('priceUnderRequest'))
                             }
                         </span>
                     </div>
@@ -82,7 +84,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                         </div>
 
                         <span className="text-[12px] tracking-[0.1em] font-medium text-slate-900 dark:text-slate-100 uppercase border-b border-slate-900 dark:border-slate-100 pb-0.5 transition-all group-hover:opacity-50">
-                            Explorar
+                            {t('explore')}
                         </span>
                     </div>
                 </div>

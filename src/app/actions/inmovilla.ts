@@ -187,7 +187,8 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
             try {
                 const { translateText } = await import('@/lib/api/translator');
                 console.log(`[Actions] AI Translating property ${id} from 'es' to '${locale}'...`);
-                const translated = await translateText(spanishText, 'es', locale);
+                // Timeout de 8 segundos para no bloquear la experiencia del usuario
+                const translated = await translateText(spanishText, 'es', locale, 8000);
 
                 if (translated) {
                     details.descripciones = translated;

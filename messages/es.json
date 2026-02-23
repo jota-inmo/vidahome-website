@@ -60,6 +60,32 @@
         "placeholder": "Vivienda o Referencia...",
         "locationDefault": "Toda la provincia",
         "button": "Buscar",
-        "noResults": "Sin registros disponibles con esos filtros."
+        "noResults": "Sin registros disponibles con esos filtros.",
+        "in": "en",
+        "propertyIn": "Propiedad en",
+        "priceUnderRequest": "Precio bajo consulta",
+        "explore": "Explorar"
+    },
+    "Property": {
+        "surface": "Superficie",
+        "bedrooms": "Dormitorios",
+        "bathrooms": "Baños",
+        "construction": "Construcción",
+        "pool": "Piscina",
+        "ac": "A/A",
+        "parking": "Parking",
+        "elevator": "Ascensor",
+        "reference": "Referencia",
+        "location": "Ubicación",
+        "locationNotice": "Ubicación aproximada para proteger la privacidad del propietario",
+        "priceUnderRequest": "Precio bajo consulta",
+        "consultPrice": "Consulte precio",
+        "share": "Compartir",
+        "shareTitle": "{type} en {population} | Vidahome",
+        "shareText": "Mira esta propiedad en Vidahome: {type} en {population}",
+        "back": "Volver",
+        "notFound": "Propiedad no encontrada",
+        "defaultType": "Propiedad",
+        "in": "en"
     }
 }

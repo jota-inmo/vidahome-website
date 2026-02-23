@@ -6,30 +6,32 @@ import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
 
 interface Props {
-    params: Promise<{ id: string }>;
+    params: Promise<{ id: string, locale: string }>;
 }
 
 export async function generateMetadata(
     { params }: Props,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
-    const { id } = await params;
+    const { id, locale } = await params;
     const result = await getPropertyDetailAction(parseInt(id));
+    const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
 
     if (!result.success || !result.data) {
         return {
-            title: 'Propiedad no encontrada | Vidahome',
+            title: `${t('notFound')} | Vidahome`,
         };
     }
 
     const prop = result.data;
-    const title = `${prop.tipo_nombre || 'Propiedad'} en ${prop.poblacion} - Ref: ${prop.ref} | Vidahome`;
+    const typeLabel = prop.tipo_nombre || t('defaultType');
+    const title = `${typeLabel} ${t('in')} ${prop.poblacion} - Ref: ${prop.ref} | Vidahome`;
 
     const { cleanDescription } = require('@/lib/utils/text-cleaner');
     const cleanedDesc = cleanDescription(prop.descripciones);
     const description = cleanedDesc
         ? cleanedDesc.substring(0, 160) + '...'
-        : `Venta de ${prop.tipo_nombre} en ${prop.poblacion}. Especialistas en la zona de La Safor.`;
+        : `${typeLabel} ${t('in')} ${prop.poblacion}. Especialistas en la zona de La Safor.`;
 
     const images = prop.fotos_lista?.slice(0, 1) || [];
 
@@ -52,16 +54,17 @@ export async function generateMetadata(
 }
 
 export default async function PropertyDetailPage({ params }: Props) {
-    const { id } = await params;
+    const { id, locale } = await params;
     const result = await getPropertyDetailAction(parseInt(id));
-    const t = await getTranslations('Index');
+    const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
+    const tIndex = await getTranslations({ locale: locale as string, namespace: 'Index' });
 
     if (!result.success || !result.data) {
         return (
             <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center p-8">
-                <h2 className="font-serif text-4xl mb-8 dark:text-white">Propiedad no encontrada</h2>
+                <h2 className="font-serif text-4xl mb-8 dark:text-white">{t('notFound')}</h2>
                 <Link href="/propiedades" className="text-slate-500 underline uppercase tracking-widest text-xs">
-                    {t('viewCatalog')}
+                    {tIndex('viewCatalog')}
                 </Link>
             </div>
         );

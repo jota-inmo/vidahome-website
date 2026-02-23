@@ -21,6 +21,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
+import { useTranslations } from 'next-intl';
 
 
 interface PropertyDetailClientProps {
@@ -29,11 +30,15 @@ interface PropertyDetailClientProps {
 
 export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
     const router = useRouter();
+    const t = useTranslations('Property');
 
     const handleShare = async () => {
+        const type = property.tipo_nombre || t('defaultType');
+        const population = property.poblacion || 'La Safor';
+
         const shareData = {
-            title: `${property.tipo_nombre || 'Propiedad'} en ${property.poblacion} | Vidahome`,
-            text: `Mira esta propiedad en Vidahome: ${property.tipo_nombre} en ${property.poblacion}`,
+            title: t('shareTitle', { type, population }),
+            text: t('shareText', { type, population }),
             url: window.location.href,
         };
 
@@ -50,17 +55,17 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
     };
 
     const features = [
-        { icon: <Square size={20} />, label: 'Superficie', value: `${property.m_cons} m²` },
-        { icon: <BedDouble size={20} />, label: 'Dormitorios', value: property.habitaciones || '1+' },
-        { icon: <Bath size={20} />, label: 'Baños', value: property.banyos },
-        { icon: <Calendar size={20} />, label: 'Construcción', value: property.fecha ? new Date(property.fecha).getFullYear() : 'N/A' },
+        { icon: <Square size={20} />, label: t('surface'), value: `${property.m_cons} m²` },
+        { icon: <BedDouble size={20} />, label: t('bedrooms'), value: property.habitaciones || '1+' },
+        { icon: <Bath size={20} />, label: t('bathrooms'), value: property.banyos },
+        { icon: <Calendar size={20} />, label: t('construction'), value: property.fecha ? new Date(property.fecha).getFullYear() : 'N/A' },
     ];
 
     const technical = [
-        { icon: <Waves size={18} />, label: 'Piscina', show: !!property.piscina_com },
-        { icon: <Wind size={18} />, label: 'A/A', show: !!property.aire_con },
-        { icon: <Car size={18} />, label: 'Parking', show: !!property.garaje },
-        { icon: <Compass size={18} />, label: 'Ascensor', show: !!property.ascensor },
+        { icon: <Waves size={18} />, label: t('pool'), show: !!property.piscina_com },
+        { icon: <Wind size={18} />, label: t('ac'), show: !!property.aire_con },
+        { icon: <Car size={18} />, label: t('parking'), show: !!property.garaje },
+        { icon: <Compass size={18} />, label: t('elevator'), show: !!property.ascensor },
     ].filter(f => f.show);
 
     return (
@@ -69,6 +74,7 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
             <button
                 onClick={() => router.back()}
                 className="fixed top-28 left-6 md:top-8 md:left-8 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-2.5 md:p-3 rounded-full shadow-lg hover:scale-110 transition-all border border-slate-100 dark:border-slate-800"
+                title={t('back')}
             >
                 <ArrowLeft size={18} className="text-slate-900 dark:text-white" />
             </button>
@@ -80,10 +86,10 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                     {/* Detalles Principales */}
                     <div className="lg:col-span-2">
                         <header className="mb-12 md:mb-16">
-                            <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">Referencia: {property.ref}</span>
+                            <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">{t('reference')}: {property.ref}</span>
                             <h1 className="text-3xl md:text-7xl font-serif text-slate-900 dark:text-white mb-8 leading-tight">
-                                {property.tipo_nombre || 'Propiedad'} <br className="hidden md:block" />
-                                <span className="text-slate-400 font-light">en {property.poblacion || 'La Safor'}</span>
+                                {property.tipo_nombre || t('defaultType')} <br className="hidden md:block" />
+                                <span className="text-slate-400 font-light">{t('in')} {property.poblacion || 'La Safor'}</span>
                             </h1>
                             <div className="flex flex-wrap gap-8 md:gap-12 text-slate-900 dark:text-white">
                                 {features.map((f, i) => (
@@ -108,10 +114,10 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
 
                         {/* Características Técnicas */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
-                            {technical.map((t, i) => (
+                            {technical.map((t_item, i) => (
                                 <div key={i} className="flex items-center gap-4 p-6 border border-slate-50 dark:border-slate-900 rounded-sm">
-                                    <span className="text-slate-400">{t.icon}</span>
-                                    <span className="text-[10px] tracking-widest uppercase font-semibold">{t.label}</span>
+                                    <span className="text-slate-400">{t_item.icon}</span>
+                                    <span className="text-[10px] tracking-widest uppercase font-semibold">{t_item.label}</span>
                                 </div>
                             ))}
                         </div>
@@ -119,7 +125,7 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                         {/* Ubicación */}
                         <section className="mb-20">
                             <div className="flex items-center gap-4 mb-8">
-                                <h2 className="text-2xl font-serif text-slate-900 dark:text-white">Ubicación</h2>
+                                <h2 className="text-2xl font-serif text-slate-900 dark:text-white">{t('location')}</h2>
                                 <div className="h-px flex-grow bg-slate-100 dark:bg-slate-900" />
                             </div>
                             <PropertyMap
@@ -130,7 +136,7 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                             />
                             <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-                                Ubicación aproximada para proteger la privacidad del propietario
+                                {t('locationNotice')}
                             </p>
                         </section>
                     </div>
@@ -141,16 +147,16 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                             <div className="mb-8 flex justify-between items-start">
                                 <div>
                                     {(!property.precioinmo || property.precioinmo === 0) && (
-                                        <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">Precio bajo consulta</span>
+                                        <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">{t('priceUnderRequest')}</span>
                                     )}
                                     <span className="text-4xl font-serif text-slate-900 dark:text-white">
-                                        {property.precioinmo && property.precioinmo > 0 ? `€ ${property.precioinmo.toLocaleString()}` : 'Consulte precio'}
+                                        {property.precioinmo && property.precioinmo > 0 ? `€ ${property.precioinmo.toLocaleString()}` : t('consultPrice')}
                                     </span>
                                 </div>
                                 <button
                                     onClick={handleShare}
                                     className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-400 hover:text-[#2dd4bf] hover:bg-slate-100 transition-all shadow-sm"
-                                    title="Compartir"
+                                    title={t('share')}
                                 >
                                     <Share2 size={18} />
                                 </button>

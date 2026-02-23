@@ -59,7 +59,29 @@
         "rent": "Rent",
         "placeholder": "Property or Reference...",
         "locationDefault": "Entire province",
-        "button": "Search",
-        "noResults": "No records available with those filters."
+        "priceUnderRequest": "Price under request",
+        "explore": "Explore"
+    },
+    "Property": {
+        "surface": "Surface",
+        "bedrooms": "Bedrooms",
+        "bathrooms": "Bathrooms",
+        "construction": "Construction",
+        "pool": "Pool",
+        "ac": "A/C",
+        "parking": "Parking",
+        "elevator": "Elevator",
+        "reference": "Reference",
+        "location": "Location",
+        "locationNotice": "Approximate location to protect owner privacy",
+        "priceUnderRequest": "Price under request",
+        "consultPrice": "Consult price",
+        "share": "Share",
+        "shareTitle": "{type} in {population} | Vidahome",
+        "shareText": "Check out this property on Vidahome: {type} in {population}",
+        "back": "Back",
+        "notFound": "Property not found",
+        "defaultType": "Property",
+        "in": "in"
     }
 }
