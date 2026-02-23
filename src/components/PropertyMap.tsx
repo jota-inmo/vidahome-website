@@ -32,7 +32,7 @@ export function PropertyMap({ latitud, longitud, address, poblacion }: PropertyM
                 scrolling="no"
                 marginHeight={0}
                 marginWidth={0}
-                className="grayscale dark:invert-[0.85] dark:hue-rotate-180 opacity-80 hover:opacity-100 transition-opacity duration-700"
+                className="opacity-100 transition-opacity duration-700"
             ></iframe>
         </div>
     );
