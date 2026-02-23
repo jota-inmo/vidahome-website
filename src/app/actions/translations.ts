@@ -38,7 +38,7 @@ export async function savePropertyTranslationAction(cod_ofer: number, descriptio
         if (error) throw error;
 
         // Revalidate tags to ensure the website reflects changes
-        revalidateTag('inmovilla_property_list');
+        revalidateTag('inmovilla_property_list', {});
 
         return { success: true };
     } catch (error) {

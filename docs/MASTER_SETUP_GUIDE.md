@@ -40,7 +40,7 @@ Se ha implementado un cliente profesional (`src/lib/api/web-client.ts`) que mane
 
 ---
 
-## 4. Base de Datos (Supabase)
+### 4. Base de Datos (Supabase)
 Utilizamos Supabase para la persistencia de datos que la API de Inmovilla no gestiona o para copias de seguridad de seguridad y enriquecimiento de datos.
 
 ### Tablas Creadas (Ejecutar en SQL Editor de Supabase)
@@ -81,10 +81,12 @@ CREATE TABLE IF NOT EXISTS valuation_leads (
 );
 
 -- 4. Caché de Metadatos de Propiedad (Enriquecimiento de Catálogo)
+-- Se ha implementado un sistema de "bóveda" multi-idioma usando JSONB.
 CREATE TABLE IF NOT EXISTS property_metadata (
     cod_ofer INTEGER PRIMARY KEY,
     ref TEXT,
-    description TEXT,
+    description TEXT, -- Legacy (español)
+    descriptions JSONB DEFAULT '{}'::jsonb, -- Almacena ES, EN, FR, DE, etc.
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -109,10 +111,12 @@ CREATE POLICY "Allow public read metadata" ON property_metadata FOR SELECT USING
 CREATE POLICY "Allow all for system" ON property_metadata FOR ALL USING (true);
 ```
 
-### Motor de Auto-Aprendizaje (Enriquecimiento Inteligente)
-Para superar la restricción de Inmovilla que omite descripciones en el catálogo, hemos implementado una lógica de "aprendizaje":
-1.  **Captura**: Cuando un usuario visita la ficha individual de una propiedad (donde Inmovilla sí envía el texto completo), el sistema lo guarda en la tabla `property_metadata` de Supabase.
-2.  **Entrega**: Cuando se carga el catálogo general, el sistema inyecta las descripciones reales guardadas, eliminando los textos genéricos.
+### Motor de Auto-Aprendizaje e Inteligencia Artificial
+Para superar la restricción de Inmovilla que omite descripciones en el catálogo y facilitar la expansión internacional:
+1.  **Captura**: Cuando un usuario visita la ficha individual, el sistema extrae todos los idiomas disponibles de Inmovilla y los guarda.
+2.  **Autotraducción (Hugging Face)**: Si falta un idioma, el sistema utiliza IA (modelos de código abierto vía Hugging Face Inference API) para traducir automáticamente desde el español.
+3.  **Panel de Control**: Los agentes pueden supervisar y editar manualmente estas traducciones desde `/admin/translations`.
+4.  **Entrega**: Cuando se carga el catálogo general, el sistema inyecta las descripciones reales guardadas, priorizando el idioma del usuario.
 
 ---
 
@@ -128,6 +132,7 @@ Para superar la restricción de Inmovilla que omite descripciones en el catálog
 | `NEXT_PUBLIC_SUPABASE_URL` | URL de Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anónima de Supabase |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio de Supabase |
+| `HUGGINGFACE_TOKEN` | Token de acceso para la API de IA de Hugging Face |
 
 ---
 
@@ -176,4 +181,4 @@ Las peticiones a la API de Inmovilla dependen del idioma detectado. El parámetr
 
 ---
 
-*Documento actualizado el 20/02/2026 por Antigravity AI.*
+*Documento actualizado el 23/02/2026 por Antigravity AI.*

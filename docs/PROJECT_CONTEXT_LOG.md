@@ -35,9 +35,9 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 - **Problema**: El catálogo solo cargaba descripciones en español desde Supabase.
 - **Solución**: Se implementó una columna `descriptions` (JSONB) que almacena un mapa de idiomas (`es`, `en`, `fr`, etc.).
 - **Auto-Aprendizaje**: Al visitar una ficha, el sistema extrae automáticamente todos los idiomas disponibles de Inmovilla y los guarda en la "bóveda" de Supabase.
-- **Rendimiento**: Catálogo instantáneo en cualquier idioma consultado.
-- **Fallback de Idioma**: Si un anuncio no tiene traducción, muestra automáticamente el español.
 - **Autotraducción con IA (Gratis)**: Integración con **Hugging Face** (Helsinki-NLP/MarianMT y NLLB) para traducir automáticamente descripciones faltantes desde el español. Las traducciones se guardan en Supabase para futuras consultas.
+- **Panel de Control de Traducciones**: Nueva sección en `/admin/translations` que permite revisar, corregir y guardar manualmente las descripciones en todos los idiomas (ES, EN, FR, DE).
+- **Corrección de Build**: Solucionado error de tipado en `revalidateTag` para compatibilidad con Next.js 16.
 
 ---
 
