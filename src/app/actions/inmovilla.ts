@@ -357,69 +357,81 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
 
 export async function getFeaturedPropertiesWithDetailsAction(): Promise<{ success: boolean; data: any[] }> {
     const locale = await getLocale();
-    const featuredIds = await getFeaturedPropertiesAction();
-
-    if (featuredIds.length === 0) return { success: true, data: [] };
-
-    try {
-        // --- BATCH FAST PATH ---
-        const { supabase } = await import('@/lib/supabase');
-        const { data: metadata, error } = await supabase
-            .from('property_metadata')
-            .select('cod_ofer, full_data, descriptions')
-            .in('cod_ofer', featuredIds);
-
-        if (error) throw error;
-
-        const results: any[] = [];
-        const missingIds: number[] = [];
-
-        featuredIds.forEach(id => {
-            const meta = metadata?.find(m => m.cod_ofer === id);
-            if (meta && meta.full_data) {
-                const data = meta.full_data as PropertyDetails;
-                // Check for current locale translation
-                const translation = meta.descriptions?.[locale] || data.all_descriptions?.[locale];
-
-                if (translation || locale === 'es') {
-                    if (translation) data.descripciones = translation;
-                    // Ensure the data object has the correct descriptions map for consistency
-                    if (!data.all_descriptions) data.all_descriptions = meta.descriptions || {};
-                    results.push(data);
-                    return;
-                }
-            }
-            // If any property is missing or lacks translation, queue for individual fetch
-            missingIds.push(id);
-        });
-
-        if (missingIds.length > 0) {
-            console.log(`[Actions] Featured: ${missingIds.length} properties missing from bulk cache, fetching individually...`);
-            const individualPromises = missingIds.map(id => getPropertyDetailAction(id));
-            const individualResults = await Promise.all(individualPromises);
-
-            individualResults.forEach(res => {
-                if (res.success && res.data) {
-                    results.push(res.data);
-                }
-            });
-        }
-
-        // Sort results to match original featuredIds order
-        const sortedResults = featuredIds
-            .map(id => results.find(r => r.cod_ofer === id))
-            .filter(Boolean);
-
-        return { success: true, data: sortedResults };
-    } catch (error) {
-        console.error('Error enriching featured properties:', error);
-        // Fallback to individual fetching if batch fails
-        const detailPromises = featuredIds.map((id: number) => getPropertyDetailAction(id));
-        const results = await Promise.all(detailPromises);
-        const validDetails = results.filter(res => res.success && res.data).map(res => res.data);
-        return { success: true, data: validDetails };
-    }
+    
+    // Use cached version per locale for better performance
+    return await getCachedFeaturedPropertiesForLocale(locale);
 }
+
+// Cached version that varies by locale - improves SSR performance
+const getCachedFeaturedPropertiesForLocale = unstable_cache(
+    async (locale: string) => {
+        const featuredIds = await getFeaturedPropertiesAction();
+
+        if (featuredIds.length === 0) return { success: true, data: [] };
+
+        try {
+            // --- BATCH FAST PATH ---
+            const { supabase } = await import('@/lib/supabase');
+            const { data: metadata, error } = await supabase
+                .from('property_metadata')
+                .select('cod_ofer, full_data, descriptions')
+                .in('cod_ofer', featuredIds);
+
+            if (error) throw error;
+
+            const results: any[] = [];
+            const missingIds: number[] = [];
+
+            featuredIds.forEach(id => {
+                const meta = metadata?.find(m => m.cod_ofer === id);
+                if (meta && meta.full_data) {
+                    const data = meta.full_data as PropertyDetails;
+                    // Check for current locale translation
+                    const translation = meta.descriptions?.[locale] || data.all_descriptions?.[locale];
+
+                    if (translation || locale === 'es') {
+                        if (translation) data.descripciones = translation;
+                        // Ensure the data object has the correct descriptions map for consistency
+                        if (!data.all_descriptions) data.all_descriptions = meta.descriptions || {};
+                        results.push(data);
+                        return;
+                    }
+                }
+                // If any property is missing or lacks translation, queue for individual fetch
+                missingIds.push(id);
+            });
+
+            if (missingIds.length > 0) {
+                console.log(`[Actions] Featured: ${missingIds.length} properties missing from bulk cache, fetching individually...`);
+                const individualPromises = missingIds.map(id => getPropertyDetailAction(id));
+                const individualResults = await Promise.all(individualPromises);
+
+                individualResults.forEach(res => {
+                    if (res.success && res.data) {
+                        results.push(res.data);
+                    }
+                });
+            }
+
+            // Sort results to match original featuredIds order
+            const sortedResults = featuredIds
+                .map(id => results.find(r => r.cod_ofer === id))
+                .filter(Boolean);
+
+            return { success: true, data: sortedResults };
+        } catch (error) {
+            console.error('Error enriching featured properties:', error);
+            // Fallback to individual fetching if batch fails
+            const featuredIds = await getFeaturedPropertiesAction();
+            const detailPromises = featuredIds.map((id: number) => getPropertyDetailAction(id));
+            const results = await Promise.all(detailPromises);
+            const validDetails = results.filter(res => res.success && res.data).map(res => res.data);
+            return { success: true, data: validDetails };
+        }
+    },
+    ['featured_with_details'],
+    { revalidate: 3600, tags: ['featured_properties'] } // Cache per locale for 1 hour
+);
 
 export async function updateFeaturedPropertiesAction(ids: number[]) {
     try {

@@ -1,42 +1,39 @@
-'use client';
+/**
+ * FeaturedGrid - Server Component (optimized for SSR)
+ * 
+ * ✨ Benefits:
+ * - Pre-fetches properties on the server (faster SSR)
+ * - No useEffect overhead
+ * - Cacheable at the server level
+ * - Scales well for adding more languages (fr, de, it, etc.)
+ * - Better Core Web Vitals (no layout shift)
+ */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { LuxuryPropertyCard } from './LuxuryPropertyCard';
+import { getFeaturedPropertiesWithDetailsAction } from '@/app/actions';
 
-export function FeaturedGrid() {
-    const [featured, setFeatured] = useState<PropertyListEntry[]>([]);
-    const [loading, setLoading] = useState(true);
+export async function FeaturedGrid() {
+    let featured: PropertyListEntry[] = [];
+    let error: string | null = null;
 
-    useEffect(() => {
-        async function load() {
-            try {
-                const { getFeaturedPropertiesWithDetailsAction } = await import('@/app/actions');
-                const res = await getFeaturedPropertiesWithDetailsAction();
-
-                if (res.success && res.data) {
-                    setFeatured(res.data);
-                }
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
-            }
+    try {
+        const res = await getFeaturedPropertiesWithDetailsAction();
+        if (res.success && res.data) {
+            featured = res.data;
+        } else {
+            error = 'Error loading properties';
         }
-        load();
-    }, []);
-
-    if (loading) {
-        return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="aspect-[16/11] bg-slate-100 dark:bg-slate-900 animate-pulse rounded-sm" />
-                ))}
-            </div>
-        );
+    } catch (e) {
+        console.error('[FeaturedGrid] Error:', e);
+        error = 'Error loading properties';
     }
 
-    if (featured.length === 0) return null;
+    // Fallback: Return empty if there's an error or no data
+    if (error || featured.length === 0) {
+        return null;
+    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">

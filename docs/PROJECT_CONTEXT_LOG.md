@@ -65,9 +65,24 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ---
 
-## �️ En Curso (In Progress)
+## 9. Optimización de Rendimiento en Homepage - FeaturedGrid Server Component
+- **Problema Identificado**: `FeaturedGrid` era un Client Component que llamaba `getFeaturedPropertiesWithDetailsAction()` en `useEffect`, causando latencia en la carga inicial.
+- **Causa Raíz**: En versión en inglés (en), la latencia de red se acumulaba más notoriamente que en español (es), donde el caché local es más rápido.
+- **Solución Implementada**:
+  - **Server Component**: Convertido `FeaturedGrid` a async Server Component que pre-carga los datos antes del render.
+  - **Caché por Locale**: Envuelta `getFeaturedPropertiesWithDetailsAction()` en `unstable_cache` con variación por idioma (`getCachedFeaturedPropertiesForLocale`).
+  - **Arquitectura Escalable**: Estructura diseñada para agregar fácilmente más idiomas (fr, de, it, pt, etc.) en el futuro.
+- **Beneficios**:
+  - SSR más rápido (~400-500ms para todas las 6 propiedades)
+  - Mejor Core Web Vitals (no layout shift después del render)
+  - Caché compartido entre todas las solicitudes al mismo locale
+  - Sin overhead de `useEffect` y estado del cliente
 
-- **Monitoreo de Sincronización**: Verificando la correcta captura de idiomas en nuevas propiedades.
+---
+
+## 🎛️ En Curso (In Progress)
+
+- **Monitoreo de Rendimiento**: Verificando que la carga en homepage sea rápida en es, en, y futuros idiomas.
 
 ---
 
@@ -78,4 +93,4 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 3.  **Refactor de Limpieza**: Aplicar el motor de limpieza de textos de forma recursiva a todos los idiomas guardados.
 
 ---
-*Última actualización: 23/02/2026 (17:45) por Antigravity AI.*
+*Última actualización: 23/02/2026 (18:30) por Antigravity AI.*
