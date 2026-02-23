@@ -4,23 +4,13 @@
  * Uses free models like Helsinki-NLP/MarianMT or NLLB-200.
  */
 
-const HF_TOKEN = process.env.HUGGINGFACE_TOKEN;
-
-// Model mapping for Spanish to other languages
-const MODELS: Record<string, string> = {
-    'en': 'Helsinki-NLP/opus-mt-es-en',
-    'fr': 'Helsinki-NLP/opus-mt-es-fr',
-    'de': 'Helsinki-NLP/opus-mt-es-de',
-    'it': 'Helsinki-NLP/opus-mt-es-it',
-    'nl': 'Helsinki-NLP/opus-mt-es-nl',
-    'ru': 'Helsinki-NLP/opus-mt-es-ru',
-};
-
-// Multilingual fallback model (slower but covers everything)
-const GLOBAL_MODEL = 'facebook/nllb-200-distilled-600M';
+// Use Helsinki-NLP as primary for translation speed
+const PRIMARY_MODEL = 'Helsinki-NLP/opus-mt-es-en';
 
 export async function translateText(text: string, sourceLag: string, targetLang: string): Promise<string | null> {
     if (!text || text.length < 5) return null;
+
+    const token = process.env.HUGGINGFACE_TOKEN;
 
     // For now we assume source is Spanish ('es')
     if (sourceLag !== 'es') {
@@ -28,22 +18,18 @@ export async function translateText(text: string, sourceLag: string, targetLang:
         return null;
     }
 
-    const modelId = MODELS[targetLang] || GLOBAL_MODEL;
-    const url = `https://api-inference.huggingface.co/models/${modelId}`;
+    const modelId = PRIMARY_MODEL;
+    const url = `https://router.huggingface.co/hf-inference/models/${modelId}`;
 
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                ...(HF_TOKEN ? { 'Authorization': `Bearer ${HF_TOKEN}` } : {})
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
             body: JSON.stringify({
-                inputs: text,
-                parameters: {
-                    // Specific params for NLLB if used
-                    ...(modelId === GLOBAL_MODEL ? { src_lang: 'spa_Latn', tgt_lang: getNLBBLangCode(targetLang) } : {})
-                }
+                inputs: text
             })
         });
 
@@ -53,11 +39,24 @@ export async function translateText(text: string, sourceLag: string, targetLang:
             return null;
         }
 
-        const result = await response.json();
+        let result = await response.json();
+
+        // Handle "model loading" state
+        if (result.error && result.error.includes('currently loading')) {
+            const waitTime = (result.estimated_time || 10) * 1000;
+            console.log(`[Translator] Model is loading, waiting ${waitTime / 1000}s...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            // Retry once
+            return translateText(text, sourceLag, targetLang);
+        }
 
         // Handle response format variations
         if (Array.isArray(result) && result[0]?.translation_text) {
             return result[0].translation_text;
+        }
+
+        if (result.error) {
+            console.warn(`[Translator] HF Error:`, result.error);
         }
 
         return null;

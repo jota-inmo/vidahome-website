@@ -51,6 +51,13 @@ export default function AdminDashboard() {
             icon: <LayoutDashboard className="w-6 h-6" />,
             href: '/admin/settings',
             color: 'from-orange-500 to-amber-600'
+        },
+        {
+            title: 'Traducciones',
+            desc: 'Editar descripciones en varios idiomas',
+            icon: <LayoutDashboard className="w-6 h-6" />, // Changed to a more appropriate icon later if needed
+            href: '/admin/translations',
+            color: 'from-fuchsia-500 to-pink-600'
         }
     ];
 
