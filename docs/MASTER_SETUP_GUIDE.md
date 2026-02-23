@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS property_metadata (
     ref TEXT,
     description TEXT, -- Legacy (español)
     descriptions JSONB DEFAULT '{}'::jsonb, -- Almacena ES, EN, FR, DE, etc.
+    full_data JSONB, -- Objeto completo PropertyDetails para bypass de API
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -131,9 +132,9 @@ CREATE POLICY "Allow all management hero" ON hero_slides FOR ALL USING (true);
 
 ### Motor de Auto-Aprendizaje e Inteligencia Artificial
 Para superar la restricción de Inmovilla que omite descripciones en el catálogo y facilitar la expansión internacional:
-1.  **Captura**: Cuando un usuario visita la ficha individual, el sistema extrae todos los idiomas disponibles de Inmovilla y los guarda en Supabase.
-2.  **Optimización de Consulta**: Antes de cualquier acción de IA, el sistema comprueba la "bóveda" de Supabase. Si existe la traducción para el locale actual, se sirve instantáneamente (latencia zero).
-3.  **Autotraducción (Hugging Face)**: Si falta un idioma en Supabase, el sistema utiliza la API de Hugging Face. Se ha implementado un **timeout de 8 segundos** y un `AbortController` para evitar que la carga de la página se bloquee si el modelo de IA está inactivo.
+1.  **Captura**: Cuando un usuario visita la ficha individual o se carga el catálogo, el sistema extrae todos los datos de Inmovilla y los guarda en Supabase.
+2.  **Optimización Agresiva (Supabase-First)**: Antes de cualquier acción de red (Inmovilla o IA), el sistema comprueba la "bóveda" de Supabase. Si existe `full_data` con la traducción necesaria, se sirve instantáneamente (latencia zero), ignorando por completo la llamada a la web API de Inmovilla.
+3.  **Autotraducción (Hugging Face)**: Si falta un idioma en la bóveda, el sistema utiliza la IA únicamente para ese campo.
 4.  **Panel de Control**: Los agentes pueden supervisar y editar manualmente estas traducciones desde `/admin/translations`.
 5.  **Entrega**: Cuando se carga el catálogo general, el sistema inyecta las descripciones reales guardadas, priorizando el idioma del usuario.
 
@@ -205,4 +206,4 @@ Las peticiones a la API de Inmovilla dependen del idioma detectado. El parámetr
 
 ---
 
-*Documento actualizado el 23/02/2026 (17:40) por Antigravity AI.*
+*Documento actualizado el 23/02/2026 (17:45) por Antigravity AI.*

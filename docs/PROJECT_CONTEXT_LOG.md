@@ -20,7 +20,8 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 - **Desafío**: El proceso `paginacion` de Inmovilla no devuelve las descripciones de los anuncios (solo datos básicos). El proceso `ficha` sí las trae pero es lento (1 por 1).
 - **Solución**: Supabase actúa como "memoria rápida". 
     - Se han sincronizado **50 propiedades** manualmente.
-    - El sistema tiene un motor de **auto-aprendizaje**: cuando alguien visita una ficha por primera vez, el sistema guarda el texto en Supabase para que aparezca en el catálogo general.
+    - **Supabase-First para TODO**: El sistema ahora intenta cargar la vivienda completa (precio, fotos, descripción) desde Supabase antes de llamar a la API de Inmovilla. Esto reduce el tiempo de carga de ~2s a milisegundos para propiedades ya conocidas.
+    - El sistema tiene un motor de **auto-aprendizaje**: cuando alguien visita una ficha por primera vez, el sistema guarda el objeto completo en Supabase.
 
 ### 4. Visualización y UX Premium
 - **Google Maps**: Integrado en la ficha de cada propiedad. Usa coordenadas exactas o dirección.
@@ -70,4 +71,4 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 3.  **Refactor de Limpieza**: Aplicar el motor de limpieza de textos de forma recursiva a todos los idiomas guardados.
 
 ---
-*Última actualización: 23/02/2026 (17:40) por Antigravity AI.*
+*Última actualización: 23/02/2026 (17:45) por Antigravity AI.*

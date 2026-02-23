@@ -151,9 +151,37 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
     if (!numagencia || !password) return { success: false, error: 'Credenciales no configuradas' };
 
-    const cacheKey = `prop_detail_v10_${id}_${locale}`;
+    const cacheKey = `prop_detail_v11_${id}_${locale}`;
     const cachedDetail = apiCache.get<PropertyDetails>(cacheKey);
     if (cachedDetail) return { success: true, data: cachedDetail };
+
+    // --- STEP 0: Check Supabase FIRST for FULL DATA (Super-fast path) ---
+    try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data: meta } = await supabase
+            .from('property_metadata')
+            .select('full_data, descriptions, ref')
+            .eq('cod_ofer', id)
+            .single();
+
+        if (meta && meta.full_data) {
+            const data = meta.full_data as PropertyDetails;
+            // Ensure we have the translation for current locale
+            const translation = meta.descriptions?.[locale] || data.all_descriptions?.[locale];
+
+            if (translation || locale === 'es') {
+                if (translation) data.descripciones = translation;
+                if (!data.all_descriptions) data.all_descriptions = meta.descriptions || {};
+
+                console.log(`[Actions] 🚀 SUPABASE-FIRST: Full cache HIT for ${id} in '${locale}'`);
+                apiCache.set(cacheKey, data);
+                return { success: true, data };
+            }
+        }
+        console.log(`[Actions] ⏳ Cache MISS for ${id}, fetching from Inmovilla...`);
+    } catch (supaErr) {
+        console.warn('[Actions] Supabase pre-fetch failed, falling back to API:', supaErr);
+    }
 
     const headerList = await headers();
     let clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
@@ -177,45 +205,6 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
 
         if (!details || details.nodisponible || details.prospecto || details.ref === '2494' || details.cod_ofer === 2494) {
             return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
-        }
-
-        // --- STEP 1: Check Supabase FIRST for cached translations (fastest path) ---
-        if (locale !== 'es') {
-            try {
-                const { supabase } = await import('@/lib/supabase');
-                const { data: meta } = await supabase
-                    .from('property_metadata')
-                    .select('descriptions, description')
-                    .eq('cod_ofer', id)
-                    .single();
-
-                if (meta) {
-                    const cachedLang = meta.descriptions?.[locale];
-                    if (cachedLang && cachedLang.length > 20) {
-                        // ✅ Cached translation found - use it immediately, no AI needed
-                        details.descripciones = cachedLang;
-                        if (!details.all_descriptions) details.all_descriptions = {};
-                        details.all_descriptions[locale] = cachedLang;
-                        console.log(`[Actions] ✅ Supabase cache HIT for property ${id} in '${locale}' - skipping AI`);
-
-                        // Also populate Spanish from cache if available
-                        const cachedEs = meta.descriptions?.es || meta.description;
-                        if (cachedEs && !details.all_descriptions.es) {
-                            details.all_descriptions.es = cachedEs;
-                        }
-                    } else {
-                        // Populate Spanish from cache for the AI fallback below
-                        const cachedEs = meta.descriptions?.es || meta.description;
-                        if (cachedEs && !details.all_descriptions?.es) {
-                            if (!details.all_descriptions) details.all_descriptions = {};
-                            details.all_descriptions.es = cachedEs;
-                        }
-                        console.log(`[Actions] ⚠️ Supabase cache MISS for property ${id} in '${locale}' - will attempt AI`);
-                    }
-                }
-            } catch (supaErr) {
-                console.warn('[Actions] Supabase pre-check failed:', supaErr);
-            }
         }
 
         // --- STEP 2: AI Translation only if Supabase had no cached translation ---
@@ -246,36 +235,28 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
             }
         }
 
-        // --- Auto-Learn: Sync descriptions to Supabase for the catalog ---
-        if (details.all_descriptions || (locale === 'es' && details.descripciones && details.descripciones.length > 20)) {
-            try {
-                const { supabaseAdmin } = await import('@/lib/supabase-admin');
+        // --- Auto-Learn: Sync everything to Supabase for the catalog and super-fast path ---
+        try {
+            const { supabaseAdmin } = await import('@/lib/supabase-admin');
+            const upsertData: any = {
+                cod_ofer: details.cod_ofer,
+                ref: details.ref,
+                full_data: details, // Store full object for bypass
+                descriptions: details.all_descriptions || {},
+                updated_at: new Date().toISOString()
+            };
 
-                // Preparamos el objeto de guardado
-                const upsertData: any = {
-                    cod_ofer: details.cod_ofer,
-                    ref: details.ref,
-                    updated_at: new Date().toISOString()
-                };
-
-                // Si tenemos el mapa completo, lo guardamos
-                if (details.all_descriptions) {
-                    upsertData.descriptions = details.all_descriptions;
-                }
-
-                // Mantenemos compatibilidad con la columna 'description' (legacy/español)
-                if (details.all_descriptions?.es) {
-                    upsertData.description = details.all_descriptions.es;
-                } else if (locale === 'es' && details.descripciones) {
-                    upsertData.description = details.descripciones;
-                    // También inicializamos el JSON si no existía
-                    upsertData.descriptions = { es: details.descripciones };
-                }
-
-                await supabaseAdmin.from('property_metadata').upsert(upsertData, { onConflict: 'cod_ofer' });
-            } catch (supaError) {
-                console.warn('[Actions] Auto-sync multi-lang metadata failed:', supaError);
+            if (details.all_descriptions?.es) {
+                upsertData.description = details.all_descriptions.es;
+            } else if (locale === 'es' && details.descripciones) {
+                upsertData.description = details.descripciones;
+                if (!upsertData.descriptions.es) upsertData.descriptions.es = details.descripciones;
             }
+
+            await supabaseAdmin.from('property_metadata').upsert(upsertData, { onConflict: 'cod_ofer' });
+            console.log(`[Actions] 💾 Property ${id} synced to Supabase (Full Data)`);
+        } catch (supaError) {
+            console.warn('[Actions] Auto-sync multi-lang metadata failed:', supaError);
         }
         // --- Auto-Learn ends here ---
 
