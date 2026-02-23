@@ -179,6 +179,27 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
             return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
         }
 
+        // --- AI Translation: If missing in current language, try to translate from Spanish ---
+        const needsTranslation = locale !== 'es' && (!details.all_descriptions || !details.all_descriptions[locale]);
+        const spanishText = details.all_descriptions?.es || (locale === 'es' ? details.descripciones : null);
+
+        if (needsTranslation && spanishText && spanishText.length > 20) {
+            try {
+                const { translateText } = await import('@/lib/api/translator');
+                console.log(`[Actions] AI Translating property ${id} from 'es' to '${locale}'...`);
+                const translated = await translateText(spanishText, 'es', locale);
+
+                if (translated) {
+                    details.descripciones = translated;
+                    if (!details.all_descriptions) details.all_descriptions = {};
+                    details.all_descriptions[locale] = translated;
+                    console.log(`[Actions] AI Translation successful for ${id}`);
+                }
+            } catch (transError) {
+                console.warn('[Actions] AI Translation failed, falling back to Spanish:', transError);
+            }
+        }
+
         // --- Auto-Learn: Sync descriptions to Supabase for the catalog ---
         if (details.all_descriptions || (locale === 'es' && details.descripciones && details.descripciones.length > 20)) {
             try {

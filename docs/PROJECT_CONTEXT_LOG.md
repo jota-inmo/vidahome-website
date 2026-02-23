@@ -36,7 +36,8 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 - **Solución**: Se implementó una columna `descriptions` (JSONB) que almacena un mapa de idiomas (`es`, `en`, `fr`, etc.).
 - **Auto-Aprendizaje**: Al visitar una ficha, el sistema extrae automáticamente todos los idiomas disponibles de Inmovilla y los guarda en la "bóveda" de Supabase.
 - **Rendimiento**: Catálogo instantáneo en cualquier idioma consultado.
-- **Fallback de Idioma**: Si un anuncio no tiene traducción en el idioma solicitado, el sistema ahora muestra automáticamente la versión en **Español** como respaldo, evitando huecos en blanco.
+- **Fallback de Idioma**: Si un anuncio no tiene traducción, muestra automáticamente el español.
+- **Autotraducción con IA (Gratis)**: Integración con **Hugging Face** (Helsinki-NLP/MarianMT y NLLB) para traducir automáticamente descripciones faltantes desde el español. Las traducciones se guardan en Supabase para futuras consultas.
 
 ---
 
