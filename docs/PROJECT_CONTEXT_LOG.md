@@ -39,6 +39,14 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 - **Panel de Control de Traducciones**: Nueva sección en `/admin/translations` que permite revisar, corregir y guardar manualmente las descripciones en todos los idiomas (ES, EN, FR, DE).
 - **Corrección de Build**: Solucionado error de tipado en `revalidateTag` para compatibilidad con Next.js 16.
 
+### 6. Refinamiento y Optimización de i18n
+- **Traducción de Tipos de Propiedad**: Implementado un mapeador dinámico (`src/lib/utils/property-types.ts`) que traduce términos nativos de Inmovilla (p.ej., "Chalet" → "Villa", "Piso" → "Apartment").
+- **Formulario de Contacto Localizado**: Internacionalización completa de `ContactForm.tsx`, incluyendo etiquetas, placeholders y mensajes de éxito/error.
+- **Optimización de Carga (IA)**:
+    - **Supabase-First**: El sistema ahora consulta Supabase antes de intentar cualquier traducción por IA. Esto elimina latencias de hasta 60s en propiedades ya cacheadas.
+    - **Timeout y AbortController**: Implementado un tiempo de espera máximo de 8 segundos para la IA. Si el modelo de Hugging Face está "frío", el sistema cancela la petición y muestra el texto original para no bloquear la experiencia del usuario.
+- **SEO Internacional**: Los metadatos de las fichas (títulos y descripciones OpenGraph) ahora se generan dinámicamente en el idioma seleccionado.
+
 ---
 
 ## �️ En Curso (In Progress)

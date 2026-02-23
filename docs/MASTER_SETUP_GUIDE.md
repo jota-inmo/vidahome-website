@@ -113,10 +113,11 @@ CREATE POLICY "Allow all for system" ON property_metadata FOR ALL USING (true);
 
 ### Motor de Auto-Aprendizaje e Inteligencia Artificial
 Para superar la restricción de Inmovilla que omite descripciones en el catálogo y facilitar la expansión internacional:
-1.  **Captura**: Cuando un usuario visita la ficha individual, el sistema extrae todos los idiomas disponibles de Inmovilla y los guarda.
-2.  **Autotraducción (Hugging Face)**: Si falta un idioma, el sistema utiliza IA (modelos de código abierto vía Hugging Face Inference API) para traducir automáticamente desde el español.
-3.  **Panel de Control**: Los agentes pueden supervisar y editar manualmente estas traducciones desde `/admin/translations`.
-4.  **Entrega**: Cuando se carga el catálogo general, el sistema inyecta las descripciones reales guardadas, priorizando el idioma del usuario.
+1.  **Captura**: Cuando un usuario visita la ficha individual, el sistema extrae todos los idiomas disponibles de Inmovilla y los guarda en Supabase.
+2.  **Optimización de Consulta**: Antes de cualquier acción de IA, el sistema comprueba la "bóveda" de Supabase. Si existe la traducción para el locale actual, se sirve instantáneamente (latencia zero).
+3.  **Autotraducción (Hugging Face)**: Si falta un idioma en Supabase, el sistema utiliza la API de Hugging Face. Se ha implementado un **timeout de 8 segundos** y un `AbortController` para evitar que la carga de la página se bloquee si el modelo de IA está inactivo.
+4.  **Panel de Control**: Los agentes pueden supervisar y editar manualmente estas traducciones desde `/admin/translations`.
+5.  **Entrega**: Cuando se carga el catálogo general, el sistema inyecta las descripciones reales guardadas, priorizando el idioma del usuario.
 
 ---
 
@@ -178,6 +179,9 @@ Para añadir o modificar textos:
 Las peticiones a la API de Inmovilla dependen del idioma detectado. El parámetro `inmoLang` se mapea automáticamente:
 - `es` -> `1` (Español)
 - `en` -> `2` (Inglés)
+
+### Traducción de Tipos de Propiedad (Inmovilla → Locale)
+Dado que Inmovilla devuelve el campo `tipo_nombre` siempre en español (p.ej. "Piso", "Chalet"), se utiliza el utility `src/lib/utils/property-types.ts` para mapear estos términos a su versión localizada en el componente `LuxuryPropertyCard` y en la ficha de detalle.
 
 ---
 
