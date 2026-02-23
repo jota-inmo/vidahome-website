@@ -6,7 +6,8 @@ export interface HeroSlide {
     id: string;
     video_path: string;
     link_url: string;
-    title: string;
+    title: string;       // Legacy / fallback (español)
+    titles?: Record<string, string>; // Multi-lang: { es: '...', en: '...', fr: '...' }
     order: number;
     active: boolean;
     type: 'video' | 'image';

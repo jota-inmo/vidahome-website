@@ -50,3 +50,30 @@ CREATE POLICY "Allow public read metadata" ON property_metadata FOR SELECT USING
 
 -- Allow all for system updates (simplification for the demo)
 CREATE POLICY "Allow all for system" ON property_metadata FOR ALL USING (true);
+
+-- Table for hero slides
+CREATE TABLE IF NOT EXISTS hero_slides (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    video_path TEXT NOT NULL,
+    link_url TEXT,
+    title TEXT,
+    titles JSONB DEFAULT '{}'::jsonb,
+    "order" INTEGER DEFAULT 0,
+    active BOOLEAN DEFAULT true,
+    type TEXT DEFAULT 'video',
+    poster TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Migration for existing table (if it exists without titles)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='hero_slides' AND column_name='titles') THEN
+        ALTER TABLE hero_slides ADD COLUMN titles JSONB DEFAULT '{}'::jsonb;
+    END IF;
+END $$;
+
+-- Enable RLS for hero_slides
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read hero" ON hero_slides FOR SELECT USING (true);
+CREATE POLICY "Allow all management hero" ON hero_slides FOR ALL USING (true);

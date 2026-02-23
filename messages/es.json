@@ -31,9 +31,9 @@
         "sell": "Vender"
     },
     "Hero": {
-        "searchPlaceholder": "Gandia, Oliva, Playa...",
-        "viewCatalog": "Ver catálogo",
-        "explore": "Explora el ecosistema Vidahome"
+        "explore": "Explora nuestra selección",
+        "searchPlaceholder": "Busca por referencia o zona...",
+        "viewCatalog": "Ver catálogo"
     },
     "Footer": {
         "sede": "Nuestra sede",

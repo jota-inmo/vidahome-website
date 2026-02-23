@@ -7,7 +7,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
 import { getHeroSlidesAction, HeroSlide } from '@/app/actions';
 import { supabase } from '@/lib/supabase';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 // Swiper styles
 import 'swiper/css';
@@ -30,6 +30,7 @@ export const LuxuryHero = () => {
     const [slides, setSlides] = useState<HeroSlide[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const t = useTranslations('Hero');
+    const locale = useLocale();
 
     const fetchSlides = async () => {
         const dynamicSlides = await getHeroSlidesAction(true); // Only active
@@ -124,11 +125,11 @@ export const LuxuryHero = () => {
                                 </span>
 
                                 <h1 className="text-3xl sm:text-4xl md:text-8xl font-serif mb-8 md:mb-12 leading-[1.1] md:leading-[1.05] tracking-tight drop-shadow-2xl max-w-5xl transition-all duration-1000">
-                                    {(slide.title || '').split(', ').map((text, i) => (
+                                    {((slide.titles?.[locale]) || slide.title || '').split(', ').map((text, i) => (
                                         <React.Fragment key={i}>
                                             {i > 0 && <br className="hidden md:block" />}
                                             <span className={`${i === 1 ? 'italic font-normal text-slate-100' : 'font-medium'}`}>
-                                                {text}{i === 0 && (slide.title || '').includes(', ') ? ',' : ''}
+                                                {text}{i === 0 && ((slide.titles?.[locale] || slide.title || '').includes(', ')) ? ',' : ''}
                                             </span>
                                         </React.Fragment>
                                     ))}

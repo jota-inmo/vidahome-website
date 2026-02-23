@@ -45,9 +45,15 @@ export default function HeroAdmin() {
         if (!editingSlide) return;
 
         setSaving(true);
-        // Ensure defaults
+
+        // Auto-sync: keep legacy 'title' field = Spanish title (for backwards compat)
+        const titlesMap = editingSlide.titles || {};
+        const legacyTitle = titlesMap.es || editingSlide.title || '';
+
         const payload = {
             ...editingSlide,
+            title: legacyTitle,
+            titles: titlesMap,
             active: editingSlide.active ?? true,
             order: editingSlide.order ?? slides.length,
             type: editingSlide.type ?? 'video'
@@ -171,8 +177,8 @@ export default function HeroAdmin() {
                             </div>
 
                             <div className="flex-grow">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <h3 className="font-serif text-xl">{slide.title || 'Sin Título'}</h3>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <h3 className="font-serif text-xl">{slide.titles?.es || slide.title || 'Sin Título'}</h3>
                                     <button
                                         onClick={() => toggleActive(slide)}
                                         className={`p-1 rounded-full transition-colors ${slide.active ? 'text-teal-500' : 'text-slate-300'}`}
@@ -180,6 +186,9 @@ export default function HeroAdmin() {
                                         {slide.active ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                                     </button>
                                 </div>
+                                {slide.titles?.en && (
+                                    <p className="text-[11px] text-slate-400 italic mb-2">EN: {slide.titles.en}</p>
+                                )}
 
                                 {slide.link_url && (
                                     <div className="flex items-center gap-2 text-[10px] text-teal-400 font-mono mb-4 bg-teal-400/5 px-2 py-1 rounded-xs inline-block">
@@ -219,28 +228,51 @@ export default function HeroAdmin() {
                                 </div>
 
                                 <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Título del Slide</label>
+                                    {/* Multilingual Titles */}
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 mb-3">
+                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-teal-500 font-mono">ES</span>
+                                                Título en Español
+                                            </label>
                                             <input
-                                                value={editingSlide.title || ''}
-                                                onChange={e => setEditingSlide(prev => ({ ...prev, title: e.target.value }))}
+                                                value={editingSlide.titles?.es || editingSlide.title || ''}
+                                                onChange={e => setEditingSlide(prev => ({
+                                                    ...prev,
+                                                    title: e.target.value, // sync legacy field
+                                                    titles: { ...(prev?.titles || {}), es: e.target.value }
+                                                }))}
                                                 required
                                                 className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
-                                                placeholder="Ej: Calidad de Vida en Gandia"
+                                                placeholder="Ej: Hogares excepcionales, experiencia inigualable"
                                             />
+                                            <p className="text-[9px] text-slate-400 mt-1">Usa coma para dividir en dos líneas: &quot;Primera línea, Segunda línea en itálica&quot;</p>
                                         </div>
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Enlace de Destino (Link URL)</label>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 mb-3">
+                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-blue-400 font-mono">EN</span>
+                                                Título en Inglés
+                                            </label>
                                             <input
-                                                value={editingSlide.link_url || ''}
-                                                onChange={e => setEditingSlide(prev => ({ ...prev, link_url: e.target.value }))}
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-teal-500 font-mono"
-                                                placeholder="Ej: 13031 (ID Propiedad) o /propiedades"
+                                                value={editingSlide.titles?.en || ''}
+                                                onChange={e => setEditingSlide(prev => ({
+                                                    ...prev,
+                                                    titles: { ...(prev?.titles || {}), en: e.target.value }
+                                                }))}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-blue-400 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
+                                                placeholder="Ej: Exceptional homes, unrivalled experience"
                                             />
-                                            <p className="text-[9px] text-slate-400 italic">Vacio = Catálogo | Solo número = Ficha Propiedad</p>
                                         </div>
-
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Enlace de Destino (Link URL)</label>
+                                        <input
+                                            value={editingSlide.link_url || ''}
+                                            onChange={e => setEditingSlide(prev => ({ ...prev, link_url: e.target.value }))}
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-teal-500 font-mono"
+                                            placeholder="Ej: 13031 (ID Propiedad) o /propiedades"
+                                        />
+                                        <p className="text-[9px] text-slate-400 italic">Vacio = Catálogo | Solo número = Ficha Propiedad</p>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

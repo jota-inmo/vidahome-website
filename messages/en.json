@@ -31,9 +31,9 @@
         "sell": "Sell"
     },
     "Hero": {
-        "searchPlaceholder": "Gandia, Oliva, Beach...",
-        "viewCatalog": "View Catalog",
-        "explore": "Explore the Vidahome ecosystem"
+        "explore": "Explore our selection",
+        "searchPlaceholder": "Search by reference or area...",
+        "viewCatalog": "View catalog"
     },
     "Footer": {
         "sede": "Our headquarters",
