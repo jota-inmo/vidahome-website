@@ -108,8 +108,15 @@ export async function fetchPropertiesAction(): Promise<{
 
                     if (meta.descriptions && typeof meta.descriptions === 'object') {
                         const langDesc = (meta.descriptions as any)[locale];
-                        if (langDesc) bestDescription = langDesc;
-                    } else if (locale === 'es' && meta.description) {
+                        if (langDesc) {
+                            bestDescription = langDesc;
+                        } else {
+                            // Fallback a español si el idioma actual no existe en la caché
+                            const esDesc = (meta.descriptions as any)['es'];
+                            if (esDesc) bestDescription = esDesc;
+                        }
+                    } else if (meta.description) {
+                        // Fallback legacy (columna simple)
                         bestDescription = meta.description;
                     }
 
