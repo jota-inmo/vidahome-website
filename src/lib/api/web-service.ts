@@ -166,6 +166,7 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any, languageId: 
 
     // Extract description from parallel root-level array or the property itself
     let description = '';
+    let allDescriptions: Record<string, string> = {};
     const idStr = String(codOfer);
     const rootDesc = fullResponse?.descripciones || webProp?.descripciones;
 
@@ -180,7 +181,23 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any, languageId: 
         if (descGroup) {
             if (typeof descGroup === 'string') {
                 description = descGroup;
+                allDescriptions['es'] = descGroup;
             } else {
+                // Populate all available languages
+                const langMap: Record<string, string> = {
+                    '1': 'es', '2': 'en', '3': 'fr', '4': 'de', '5': 'ru', '6': 'it', '7': 'nl'
+                };
+
+                Object.entries(descGroup).forEach(([key, value]) => {
+                    if (value && typeof value === 'object') {
+                        const text = (value as any).descrip || (value as any).descripcion || (value as any).texto || '';
+                        if (text) {
+                            const isoLocale = langMap[key] || `lang_${key}`;
+                            allDescriptions[isoLocale] = text;
+                        }
+                    }
+                });
+
                 const langData = descGroup[String(languageId)] || descGroup[languageId] || descGroup['1'] || descGroup[1] || descGroup['es'];
                 if (langData && typeof langData === 'object') {
                     description = (langData as any).descrip || (langData as any).descripcion || (langData as any).texto || '';
@@ -253,7 +270,8 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any, languageId: 
         poblacion: poblacion,
         tipo_nombre: tipoNombre,
         latitud: webProp.latitud || (webProp.web && webProp.web.latitud) || undefined,
-        longitud: webProp.longitud || (webProp.web && webProp.web.longitud) || undefined
+        longitud: webProp.longitud || (webProp.web && webProp.web.longitud) || undefined,
+        all_descriptions: Object.keys(allDescriptions).length > 0 ? allDescriptions : undefined
     };
 }
 

@@ -92,25 +92,35 @@ export async function fetchPropertiesAction(): Promise<{
         let properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain, inmoLang);
 
         // --- Enrichment with Supabase Metadata starts here ---
-        // Solo enriquecemos desde Supabase si el idioma es Español ('es').
-        // Para otros idiomas, confiamos plenamente en las traducciones que devuelve la API de Inmovilla.
-        if (locale === 'es') {
-            try {
-                const { supabase } = await import('@/lib/supabase');
-                const { data: metadata } = await supabase
-                    .from('property_metadata')
-                    .select('cod_ofer, description');
+        try {
+            const { supabase } = await import('@/lib/supabase');
+            const { data: metadata } = await supabase
+                .from('property_metadata')
+                .select('cod_ofer, description, descriptions');
 
-                if (metadata && metadata.length > 0) {
-                    const metaMap = new Map(metadata.map(m => [m.cod_ofer, m.description]));
-                    properties = properties.map(p => ({
+            if (metadata && metadata.length > 0) {
+                properties = properties.map(p => {
+                    const meta = metadata.find(m => m.cod_ofer === p.cod_ofer);
+                    if (!meta) return p;
+
+                    // Prioridad: descriptions JSONB (multi-idioma) > description (legacy)
+                    let bestDescription = p.descripciones;
+
+                    if (meta.descriptions && typeof meta.descriptions === 'object') {
+                        const langDesc = (meta.descriptions as any)[locale];
+                        if (langDesc) bestDescription = langDesc;
+                    } else if (locale === 'es' && meta.description) {
+                        bestDescription = meta.description;
+                    }
+
+                    return {
                         ...p,
-                        descripciones: metaMap.has(p.cod_ofer) ? metaMap.get(p.cod_ofer) : p.descripciones
-                    }));
-                }
-            } catch (supaError) {
-                console.warn('[Actions] Supabase metadata enrichment failed:', supaError);
+                        descripciones: bestDescription
+                    };
+                });
             }
+        } catch (supaError) {
+            console.warn('[Actions] Supabase metadata enrichment failed:', supaError);
         }
         // --- Enrichment ends here ---
 
@@ -162,19 +172,35 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
             return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
         }
 
-        // --- Auto-Learn: Sync description to Supabase for the catalog starts here ---
-        // Solo sincronizamos con Supabase si estamos en Español para evitar corromper la DB con otros idiomas.
-        if (locale === 'es' && details.descripciones && details.descripciones.length > 20) {
+        // --- Auto-Learn: Sync descriptions to Supabase for the catalog ---
+        if (details.all_descriptions || (locale === 'es' && details.descripciones && details.descripciones.length > 20)) {
             try {
                 const { supabaseAdmin } = await import('@/lib/supabase-admin');
-                await supabaseAdmin.from('property_metadata').upsert({
+
+                // Preparamos el objeto de guardado
+                const upsertData: any = {
                     cod_ofer: details.cod_ofer,
                     ref: details.ref,
-                    description: details.descripciones,
                     updated_at: new Date().toISOString()
-                }, { onConflict: 'cod_ofer' });
+                };
+
+                // Si tenemos el mapa completo, lo guardamos
+                if (details.all_descriptions) {
+                    upsertData.descriptions = details.all_descriptions;
+                }
+
+                // Mantenemos compatibilidad con la columna 'description' (legacy/español)
+                if (details.all_descriptions?.es) {
+                    upsertData.description = details.all_descriptions.es;
+                } else if (locale === 'es' && details.descripciones) {
+                    upsertData.description = details.descripciones;
+                    // También inicializamos el JSON si no existía
+                    upsertData.descriptions = { es: details.descripciones };
+                }
+
+                await supabaseAdmin.from('property_metadata').upsert(upsertData, { onConflict: 'cod_ofer' });
             } catch (supaError) {
-                console.warn('[Actions] Auto-sync metadata failed:', supaError);
+                console.warn('[Actions] Auto-sync multi-lang metadata failed:', supaError);
             }
         }
         // --- Auto-Learn ends here ---

@@ -65,6 +65,7 @@ export interface PropertyDetails {
     tipo_nombre?: string;
     latitud?: string | number;
     longitud?: string | number;
+    all_descriptions?: Record<string, string>;
     // Additional fields can be added here as needed
 }
 

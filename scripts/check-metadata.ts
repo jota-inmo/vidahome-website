@@ -17,8 +17,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function checkMetadata() {
     const { data, count, error } = await supabase
         .from('property_metadata')
-        .select('cod_ofer')
-        .limit(5);
+        .select('cod_ofer, descriptions')
+        .limit(3);
 
     if (error) {
         console.error('Error fetching metadata:', error);

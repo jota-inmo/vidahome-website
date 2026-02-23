@@ -23,7 +23,8 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
     - El sistema tiene un motor de **auto-aprendizaje**: cuando alguien visita una ficha por primera vez, el sistema guarda el texto en Supabase para que aparezca en el catálogo general.
 
 ### 4. Visualización y UX Premium
-- **Google Maps**: Integrado en la ficha de cada propiedad. Usa coordenadas exactas si existen; si no, hace geocodificación por dirección + población.
+- **Google Maps**: Integrado en la ficha de cada propiedad. Usa coordenadas exactas o dirección.
+    - *Corrección técnica*: Se ajustó la **Content Security Policy (CSP)** en `next.config.ts` para permitir el cargue de frames de Google Maps, solucionando el error de "contenido bloqueado".
 - **Limpieza de Textos**: Motor que elimina etiquetas HTML, emoticonos excesivos y asteriscos de portales que vienen del CRM.
 - **Selector de Idioma**: Soporte para Español (`es`) e Inglés (`en`).
 
@@ -31,16 +32,17 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ## 🛠️ En Curso (In Progress)
 
-- **Optimización de Metadatos**: Actualmente, el enriquecimiento con Supabase solo se aplica a `locale: 'es'`. Estamos evaluando si extenderlo a otros idiomas o confiar en las traducciones directas de Inmovilla.
-- **Monitoreo de Sincronización**: Verificando que las nuevas propiedades captadas en el CRM se guarden correctamente en la caché al ser visitadas.
+- **Soporte Multi-idioma (Caché)**: Implementada la lógica para almacenar TODAS las traducciones de una propiedad en Supabase (columna `descriptions` JSONB).
+    - *Estado*: Código completado. Falta ejecución de SQL en Supabase para activar la columna.
+- **Optimización de Metadatos**: El catálogo ahora prioriza la descripción localizada guardada en Supabase sobre la de la API, mejorando la velocidad en todos los idiomas (`es`, `en`, `fr`, etc.).
 
 ---
 
 ## 📅 Próximos Pasos (Pendiente)
 
-1.  **Mejoras SEO**: Refinar los metadatos de las fichas individuales para que Google indexe mejor las descripciones "limpias" que generamos.
-2.  **Dashboard Admin**: Una vista simple para ver cuántas propiedades están "cacheada" y forzar una sincronización si fuera necesario.
-3.  **Filtrado Avanzado**: Añadir más filtros al catálogo (piscina, vistas al mar, rango de precios más preciso).
+1.  **Activación de DB**: Ejecutar `ALTER TABLE property_metadata ADD COLUMN descriptions JSONB DEFAULT '{}'::jsonb;` en Supabase.
+2.  **Mejoras SEO**: Refinar los metadatos de las fichas individuales.
+3.  **Dashboard Admin**: Vista para forzar sincronización de idiomas.
 
 ---
 *Última actualización: 23/02/2026 por Antigravity AI.*
