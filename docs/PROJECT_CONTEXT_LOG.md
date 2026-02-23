@@ -24,7 +24,8 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ### 4. Visualización y UX Premium
 - **Google Maps**: Integrado en la ficha de cada propiedad. Usa coordenadas exactas o dirección.
-    - *Corrección técnica*: Se ajustó la **Content Security Policy (CSP)** en `next.config.ts` para permitir el cargue de frames de Google Maps, solucionando el error de "contenido bloqueado".
+    - *Corrección técnica*: Se ajustó la **Content Security Policy (CSP)** en `next.config.ts` para permitir el cargue de frames de Google Maps.
+    - *Diseño*: Se mantienen los **colores originales** del mapa para facilitar la identificación de puntos de interés (playas, zonas verdes) por parte del usuario.
 - **Limpieza de Textos**: Motor que elimina etiquetas HTML, emoticonos excesivos y asteriscos de portales que vienen del CRM.
 - **Selector de Idioma**: Soporte para Español (`es`) e Inglés (`en`).
 
