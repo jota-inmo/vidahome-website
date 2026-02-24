@@ -1,8 +1,9 @@
 'use server';
 
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getPerplexityModel, PERPLEXITY_CONFIG } from '@/config/perplexity';
 
-const PERPLEXITY_API_URL = 'https://api.perplexity.ai/chat/completions';
+const PERPLEXITY_API_URL = PERPLEXITY_CONFIG.apiUrl;
 
 interface BlogTranslateResult {
   success: boolean;
@@ -108,7 +109,7 @@ EXCERPT: ${post.excerpt || 'N/A'}
         Authorization: `Bearer ${perplexityKey}`,
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: getPerplexityModel(),
         messages: [
           {
             role: 'system',
@@ -320,7 +321,7 @@ ${chunk}`;
           Authorization: `Bearer ${perplexityKey}`,
         },
         body: JSON.stringify({
-          model: 'llama-3.1-sonar-small-128k-online',
+          model: getPerplexityModel(),
           messages: [
             {
               role: 'system',

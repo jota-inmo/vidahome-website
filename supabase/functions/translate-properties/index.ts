@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.1";
 
 const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+const PERPLEXITY_MODEL = Deno.env.get("PERPLEXITY_MODEL") || "llama-3.1-sonar-small-128k-online";
 const BATCH_SIZE = 10; // Max properties per batch
 
 interface TranslateRequest {
@@ -152,7 +153,7 @@ ${sourceTexts.map((item) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}`).jo
         Authorization: `Bearer ${perplexityKey}`,
       },
       body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online",
+        model: PERPLEXITY_MODEL,
         messages: [
           {
             role: "system",

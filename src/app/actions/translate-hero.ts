@@ -1,8 +1,9 @@
 'use server';
 
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getPerplexityModel, PERPLEXITY_CONFIG } from '@/config/perplexity';
 
-const PERPLEXITY_API_URL = 'https://api.perplexity.ai/chat/completions';
+const PERPLEXITY_API_URL = PERPLEXITY_CONFIG.apiUrl;
 
 interface HeroTranslateResult {
   success: boolean;
@@ -90,7 +91,7 @@ ${slidesWithTitles.map((slide: any) => `ID: ${slide.id}\nTITLE: ${slide.title}`)
         Authorization: `Bearer ${perplexityKey}`,
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: getPerplexityModel(),
         messages: [
           {
             role: 'system',

@@ -195,7 +195,34 @@
 
 ---
 
-## 🚀 COMANDOS ÚTILES
+## � Configuración del Modelo Perplexity
+
+El modelo Perplexity está centralizado y puede cambiarse sin modificar código:
+
+### Opción 1: Via Environment Variable (Recomendado)
+```bash
+# En Vercel Settings → Environment Variables, agrega:
+PERPLEXITY_MODEL=llama-3.1-sonar-small-128k-online
+```
+
+### Opción 2: Default Fallback
+Si no está configurada, usa automáticamente:
+- `llama-3.1-sonar-small-128k-online` (pequeño, rápido, económico)
+
+### Cambiar de Modelo
+Si Perplexity descontinúa un modelo nuevamente:
+1. Consulta https://docs.perplexity.ai/docs/getting-started/models
+2. Actualiza `PERPLEXITY_MODEL` en Vercel
+3. Sin código, sin redeploy, cambio instantáneo
+
+### Modelos Disponibles
+- `llama-3.1-sonar-small-128k-online` - Recomendado (balance velocidad/calidad)
+- `llama-3.1-sonar-large-128k-online` - Mayor capacidad
+- `llama-3.1-sonar-huge-128k-online` - Máxima capacidad
+
+---
+
+## 📍 Archivos Centralizados
 
 ### Sincronizar Manualmente (CLI)
 ```bash
