@@ -30,6 +30,7 @@ interface TranslationResponse {
  * Called from Next.js server, not from browser
  * No JWT issues - uses server-side API key
  * Uses centralized model configuration from src/config/perplexity.ts
+ * Model format: provider/model (e.g., perplexity/llama-3.1-sonar-small-128k-online)
  */
 export async function translatePropertiesAction(
   propertyIds?: string[],
