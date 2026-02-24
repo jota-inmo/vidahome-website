@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase-admin";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
 
@@ -43,7 +43,7 @@ export async function translatePropertiesAction(
     }
 
     // Initialize Supabase admin client
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
 
     // Fetch properties from property_metadata table
     let query = supabase
@@ -274,7 +274,7 @@ export async function updateTranslationAction(
   translatedText: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
 
     // Get existing descriptions
     const { data: existing, error: fetchError } = await supabase
