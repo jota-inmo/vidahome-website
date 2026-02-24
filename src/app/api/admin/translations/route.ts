@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase-admin";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { NextResponse } from "next/server";
 
 /**
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     // TODO: Add authentication check here
     // For now, assuming this endpoint is protected by Next.js middleware
 
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
 
     const { data: properties, error } = await supabase
       .from("property_metadata")
