@@ -29,6 +29,7 @@ interface TranslationResponse {
  * Server action to translate property descriptions using Perplexity AI
  * Called from Next.js server, not from browser
  * No JWT issues - uses server-side API key
+ * Uses centralized model configuration from src/config/perplexity.ts
  */
 export async function translatePropertiesAction(
   propertyIds?: string[],

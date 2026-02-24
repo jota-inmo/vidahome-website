@@ -297,37 +297,20 @@ e91007d fix: Convert environment variables to correct types
 
 ---
 
-**Última actualización**: Feb 24, 2026 - Sistema totalmente operativo ✅
+**Última actualización**: Feb 24, 2026 - Sistema completamente centralizado y futuro-proof ✅
 
 ---
 
-## � Historial de Archivos
+## 🆘 Si Sigue Sin Funcionar
 
-> **⚠️ Edge Functions Deprecated** - Los siguientes archivos ya NO se usan
->
-> - `supabase/functions/translate-properties/index.ts` - Migrado a Server Actions
-> - Toda la lógica está ahora en `src/app/actions/` y `src/app/api/admin/`
-> - Ver archivos de Server Actions arriba para implementación actual
+Comprueba:
+1. ✅ Configuración del modelo en `src/config/perplexity.ts`
+2. ✅ Variable `PERPLEXITY_MODEL` en Vercel (si no, usa default)
+3. ✅ `PERPLEXITY_API_KEY` está configurada en Vercel
+4. ✅ Tabla `translation_log` existe en Supabase
+5. ✅ `property_metadata` tiene datos sincronizados
 
-interface TranslateRequest {
-  property_ids?: string[];
-  batch_size?: number;
-}
-
-interface TranslateResponse {
-  translated: number;
-  errors: number;
-  error_details?: Array<{
-    property_id: string;
-    error: string;
-  }>;
-  cost_estimate: string;
-  duration_ms?: number;
-}
-
-serve(async (req: Request) => {
-  // CORS handling
-  if (req.method === "OPTIONS") {
+Si algo sigue mal, dame error exacto y lo arreglamos.
     return new Response("ok", {
       headers: {
         "Access-Control-Allow-Origin": "*",
