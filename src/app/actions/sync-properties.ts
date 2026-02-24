@@ -5,6 +5,10 @@ import { InmovillaWebApiService } from '@/lib/api/web-service';
 
 const { INMOVILLA_LANG, INMOVILLA_NUMAGENCIA, INMOVILLA_PASSWORD, INMOVILLA_ADDNUMAGENCIA } = process.env;
 
+// Parse env vars to correct types
+const inmoLang = parseInt(INMOVILLA_LANG || '1', 10); // Default to 1 (Spanish)
+const addnumagencia = INMOVILLA_ADDNUMAGENCIA || '';
+
 /**
  * Sync a single new property from Inmovilla to property_metadata
  * Called when a new property is created in the CRM
@@ -19,8 +23,8 @@ export async function syncSinglePropertyAction(propertyId: number) {
         const api = new InmovillaWebApiService(
             INMOVILLA_NUMAGENCIA,
             INMOVILLA_PASSWORD,
-            INMOVILLA_ADDNUMAGENCIA,
-            INMOVILLA_LANG,
+            addnumagencia,
+            inmoLang,
             '127.0.0.1',
             'vidahome.es'
         );
@@ -73,8 +77,8 @@ export async function syncAllPropertiesAction() {
         const api = new InmovillaWebApiService(
             INMOVILLA_NUMAGENCIA,
             INMOVILLA_PASSWORD,
-            INMOVILLA_ADDNUMAGENCIA,
-            INMOVILLA_LANG,
+            addnumagencia,
+            inmoLang,
             '127.0.0.1',
             'vidahome.es'
         );
