@@ -40,21 +40,30 @@ export const Navbar = () => {
                         {t('about')}
                     </Link>
 
-                    {/* Language Switcher */}
-                    <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-800 pl-8 ml-2">
-                        {availableLocales.map((loc) => (
-                            <Link
-                                key={loc.id}
-                                href={pathname}
-                                locale={loc.id}
-                                className={`text-[10px] tracking-widest font-bold px-2 py-1 transition-all ${locale === loc.id
-                                        ? 'text-[#0a192f] dark:text-white border-b-2 border-lime-400'
-                                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                    {/* Language Switcher Dropdown */}
+                    <div className="relative group border-l border-slate-200 dark:border-slate-800 pl-6 ml-2">
+                        <button className="flex items-center gap-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">
+                            <Globe size={16} strokeWidth={1.5} />
+                            <span className="text-[10px] tracking-widest font-bold uppercase">{locale.toUpperCase()}</span>
+                        </button>
+                        
+                        {/* Dropdown Menu */}
+                        <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-lg z-50">
+                            {availableLocales.map((loc) => (
+                                <Link
+                                    key={loc.id}
+                                    href={pathname}
+                                    locale={loc.id}
+                                    className={`block px-4 py-2.5 text-[11px] uppercase tracking-widest font-semibold transition-colors ${
+                                        locale === loc.id 
+                                            ? 'bg-lime-400 text-slate-900'
+                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                                     }`}
-                            >
-                                {loc.label}
-                            </Link>
-                        ))}
+                                >
+                                    {loc.flag} {loc.label}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
 
                     <Link
@@ -89,21 +98,25 @@ export const Navbar = () => {
                     </Link>
 
                     {/* Language Switcher Mobile */}
-                    <div className="flex gap-4 py-2">
-                        {availableLocales.map((loc) => (
-                            <Link
-                                key={loc.id}
-                                href={pathname}
-                                locale={loc.id}
-                                onClick={() => setIsOpen(false)}
-                                className={`text-[12px] tracking-widest font-bold ${locale === loc.id
-                                        ? 'text-[#0a192f] dark:text-white'
-                                        : 'text-slate-400'
+                    <div className="flex items-center gap-3 py-2 border-t border-slate-50 dark:border-slate-900 pt-4">
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Idioma:</span>
+                        <div className="flex gap-2">
+                            {availableLocales.map((loc) => (
+                                <Link
+                                    key={loc.id}
+                                    href={pathname}
+                                    locale={loc.id}
+                                    onClick={() => setIsOpen(false)}
+                                    className={`text-[12px] tracking-widest font-bold px-2 py-1 rounded-sm transition-all ${
+                                        locale === loc.id
+                                            ? 'bg-lime-400 text-slate-900'
+                                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                                     }`}
-                            >
-                                {loc.label === 'ES' ? 'Español' : 'English'}
-                            </Link>
-                        ))}
+                                >
+                                    {loc.flag}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
 
                     <Link
