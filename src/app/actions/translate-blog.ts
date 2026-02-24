@@ -108,7 +108,7 @@ EXCERPT: ${post.excerpt || 'N/A'}
         Authorization: `Bearer ${perplexityKey}`,
       },
       body: JSON.stringify({
-        model: 'sonar-small-online',
+        model: 'llama-3.1-sonar-small-128k-online',
         messages: [
           {
             role: 'system',
@@ -320,7 +320,7 @@ ${chunk}`;
           Authorization: `Bearer ${perplexityKey}`,
         },
         body: JSON.stringify({
-          model: 'sonar-small-online',
+          model: 'llama-3.1-sonar-small-128k-online',
           messages: [
             {
               role: 'system',

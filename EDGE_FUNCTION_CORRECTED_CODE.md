@@ -1,36 +1,286 @@
-# 🔧 Edge Function - DEPRECATED ⚠️
+# 🔧 Data Sync Architecture - COMPLETE ✅
 
-> **STATUS**: ⚠️ **No longer used** - Migrated to Server Actions
+> **STATUS**: ✅ **FULLY IMPLEMENTED** - All sync operations via Server Actions
 
-**Razón**: Evitar errores JWT y simplificar la autenticación. Ahora usamos **Next.js Server Actions** con `supabaseAdmin` en lugar de Edge Functions.
+**Razón**: Evitar errores JWT y simplificar la autenticación. Ahora TODO usa **Next.js Server Actions** con `supabaseAdmin` en lugar de Edge Functions.
 
-## 📍 Ubicación Actual (Referencia Solamente)
-`supabase/functions/translate-properties/index.ts` - Kept as reference only
+## 📍 Arquitectura Actual (Completamente Operativa)
 
-## ⚡ NUEVA ARQUITECTURA - Server Actions (ACTUALMENTE EN USO)
+### Server Actions (✅ En Uso)
+- `src/app/actions/sync-properties.ts` - Sincronización de propiedades desde Inmovilla CRM
+- `src/app/actions/translations.ts` - Traducciones con Perplexity AI
+- `src/app/actions/translate-perplexity.ts` - Lógica de traducción
 
-Ver `src/app/actions/translate-perplexity.ts` y `src/app/actions/translations.ts` para la implementación actual.
+### API Endpoints (✅ En Uso)
+- `src/app/api/admin/sync/route.ts` - Endpoints para sincronización (POST/GET)
+- `src/app/api/admin/translations/route.ts` - Endpoint para traducciones
 
-### Por qué Server Actions en lugar de Edge Functions:
-1. ✅ Evita errores JWT de autenticación
-2. ✅ Más simple: acceso directo a `supabaseAdmin` (SERVICE_ROLE_KEY)
-3. ✅ Mejor control de errores y logging
-4. ✅ No requiere despliegue separado
+### Admin UI (✅ En Uso)
+- `src/app/[locale]/admin/sync/page.tsx` - Panel de sincronización de propiedades
+- `src/components/admin/SyncPropertiesClient.tsx` - Interfaz interactiva de sync
+- Dashboard mejorado con link a `/admin/sync`
+
+## ⚡ FLUJO COMPLETO DE DATOS
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    INMOVILLA CRM                                │
+│              (Crear propiedad aquí)                             │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              INMOVILLA WEB API                                  │
+│         (getProperties, getPropertyDetails)                     │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+        ┌────────────────┴────────────────┐
+        │                                 │
+        ▼                                 ▼
+┌──────────────────────┐    ┌─────────────────────────────┐
+│ syncSingleProperty   │    │ syncAllProperties           │
+│ (Manual/On-demand)   │    │ (Auto on catalog load)      │
+└──────────────────────┘    └─────────────────────────────┘
+        │                                 │
+        └────────────────┬────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│           PROPERTY_METADATA TABLE                               │
+│        (Central Repository - Single Source of Truth)            │
+│                                                                 │
+│  Columns:                                                       │
+│  - cod_ofer (PK)                                               │
+│  - ref                                                         │
+│  - descriptions (JSONB):                                       │
+│    {                                                           │
+│      description_es: "...",                                    │
+│      description_en: "...",                                    │
+│      description_fr: "...",                                    │
+│      description_de: "...",                                    │
+│      description_it: "...",                                    │
+│      description_pl: "..."                                     │
+│    }                                                           │
+│  - full_data (JSONB) - Complete API response                  │
+│  - updated_at                                                 │
+└────────────┬──────────┬──────────┬──────────────┬──────────────┘
+             │          │          │              │
+    ┌────────▼──┐  ┌────▼────┐  ┌─▼──────┐  ┌────▼────┐
+    │  Catalog  │  │ Detail   │  │Translator  │Translation
+    │  /        │  │  Page    │  │Admin Hub   │Log
+    │Properties │  │          │  │            │
+    └───────────┘  └──────────┘  └────────────┘└────────────┘
+```
+
+## 🔄 FLUJO DE SINCRONIZACIÓN
+
+### 1️⃣ **Sincronización Automática** (En cada carga de catálogo)
+```typescript
+// En: src/app/actions/inmovilla.ts → fetchPropertiesAction()
+// Se ejecuta: Cada vez que se carga /propiedades
+// Resultado: Las primeras 30 propiedades se syncan a property_metadata
+```
+
+### 2️⃣ **Sincronización Manual Single** (A demanda)
+```typescript
+// En: src/app/actions/sync-properties.ts
+// Ubicación: /admin/sync → Input field → "Sincronizar"
+// Función: syncSinglePropertyAction(propertyId: number)
+// Resultado: 1 propiedad synca a property_metadata
+```
+
+### 3️⃣ **Sincronización Manual All** (A demanda)
+```typescript
+// En: src/app/actions/sync-properties.ts
+// Ubicación: /admin/sync → "Sincronizar Todo"
+// Función: syncAllPropertiesAction()
+// Resultado: TODAS las propiedades syncan a property_metadata (paginado)
+```
+
+### 4️⃣ **Traducción Automática** (Generar en admin)
+```typescript
+// En: src/app/actions/translations.ts
+// Ubicación: /admin/translations-hub → "Traducir" button
+// Flujo: 
+//   1. Fetch properties from property_metadata (ya tienen descriptions)
+//   2. Enviar a Perplexity AI para traducción
+//   3. Guardar traducciones en property_metadata.descriptions
+//   4. Log en translation_log
+```
 
 ---
 
-## 🔴 Código Anterior (Referencia Histórica)
+## 📋 WORKFLOW TÍPICO (Usuario Final)
 
-## ✅ Código Correcto
+### A. Nueva Propiedad Publicada en CRM
 
-Reemplaza el contenido de `supabase/functions/translate-properties/index.ts` con esto:
+**Opción 1: Acceso Inmediato (Recomendado)**
+```
+1. Crear propiedad en Inmovilla CRM
+2. Ir a https://vidahome.es/es/admin/sync
+3. Ingresar Property ID
+4. Click "Sincronizar"
+5. ¡Propiedad disponible en catálogo, detalle, traductor!
+```
 
-```typescript
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.1";
+**Opción 2: Automático (Pasivo)**
+```
+1. Crear propiedad en Inmovilla CRM
+2. Esperar a que alguien visite /propiedades
+3. Auto-sync importa primeras 30 propiedades
+4. Propiedad disponible en ~2 minutos
+```
 
-const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
-const BATCH_SIZE = 10; // Max properties per batch
+**Opción 3: Sincronización Total (Periódico)**
+```
+1. Ir a https://vidahome.es/es/admin/sync
+2. Click "Sincronizar Todo" (bottom section)
+3. Esperar a que complete (~30 seg)
+4. TODAS las propiedades updated
+```
+
+### B. Traducir Propiedades
+
+**Después de sincronizar:**
+```
+1. Ir a https://vidahome.es/es/admin/translations-hub
+2. Seleccionar propiedades a traducir
+3. Click "Generar Traducciones"
+4. Esperar a Perplexity AI
+5. Traducciones guardadas automáticamente en property_metadata
+```
+
+---
+
+## 🔧 ARCHIVOS CREADOS/MODIFICADOS
+
+### ✅ Nuevos Archivos
+| Archivo | Propósito |
+|---------|-----------|
+| `src/app/actions/sync-properties.ts` | Server actions para single/all sync |
+| `src/app/api/admin/sync/route.ts` | API endpoints (POST/GET) para sync |
+| `src/app/[locale]/admin/sync/page.tsx` | Admin page para sync |
+| `src/components/admin/SyncPropertiesClient.tsx` | UI component para sync |
+
+### 🔄 Archivos Modificados
+| Archivo | Cambio |
+|---------|--------|
+| `src/app/actions/inmovilla.ts` | Agregado auto-sync en fetchPropertiesAction |
+| `src/app/actions/translations.ts` | Ahora usa fetchPropertiesAction (no API directo) |
+| `src/app/[locale]/admin/page.tsx` | Agregado link a /admin/sync |
+| `src/app/api/admin/translations/route.ts` | Ahora usa fetchPropertiesAction |
+
+---
+
+## ✅ ESTRUCTURA DE PROPERTY_METADATA
+
+```javascript
+{
+  cod_ofer: "12345",           // ID único de propiedad
+  ref: "REF-001",              // Referencia CRM
+  descriptions: {              // JSONB con traducciones
+    description_es: "Casa de lujo en primera línea de playa...",
+    description_en: "Luxury beachfront villa...",
+    description_fr: "Villa de luxe en première ligne de plage...",
+    description_de: "Luxusvilla in erster Strandlinie...",
+    description_it: "Villa di lusso in prima linea di spiaggia...",
+    description_pl: "Luksusowa willa na pierwszej linii plaży..."
+  },
+  full_data: {                 // Complete Inmovilla API response
+    // ... 50+ propiedades del API
+  },
+  updated_at: "2024-02-24T13:32:00Z"
+}
+```
+
+---
+
+## 🚀 COMANDOS ÚTILES
+
+### Sincronizar Manualmente (CLI)
+```bash
+# Sincronizar 1 propiedad
+curl -X POST "https://vidahome.es/api/admin/sync?property_id=12345"
+
+# Sincronizar TODAS
+curl -X GET "https://vidahome.es/api/admin/sync"
+```
+
+### Verificar Datos
+```sql
+-- Ver propiedades en property_metadata
+SELECT cod_ofer, ref, updated_at 
+FROM property_metadata 
+ORDER BY updated_at DESC 
+LIMIT 10;
+
+-- Ver historial de traducciones
+SELECT property_id, status, cost_estimate, created_at
+FROM translation_log
+ORDER BY created_at DESC
+LIMIT 20;
+```
+
+---
+
+## 🆘 TROUBLESHOOTING
+
+### Propiedad no aparece en catálogo después de sync
+```
+1. ✅ Verificar que sync completó exitosamente
+2. ✅ Confirmar property_id es correcto
+3. ✅ Check Vercel logs: https://vercel.com/
+4. ✅ Revalidar cache: GET /api/revalidate?tag=properties
+```
+
+### Traducciones no se guardan
+```
+1. ✅ Verificar PERPLEXITY_API_KEY en Vercel Env vars
+2. ✅ Check Perplexity account has credits
+3. ✅ Revisar translation_log table para errores
+4. ✅ Reintentar desde /admin/translations-hub
+```
+
+### Errores de tipo en TypeScript
+```
+✅ Todos resueltos en commits recientes:
+  - e91007d: Convertir env strings a numbers
+  - 2d0b155: Usar método correcto getProperties()
+```
+
+---
+
+## 📊 COMMITS RELEVANTES
+
+```
+ff8ba79 feat: Add property sync system for new CRM entries
+e91007d fix: Convert environment variables to correct types
+2d0b155 fix: Use correct getProperties method
+```
+
+---
+
+## 🎯 PRÓXIMOS PASOS (Opcionales)
+
+- [ ] Configurar webhook Inmovilla → auto-sync en creation
+- [ ] Agregar scheduler para sync automático diario
+- [ ] Dashboard de historial de sync/traducciones
+- [ ] Bulk actions: traducir x propiedades de una vez
+- [ ] Email notifications cuando sync completa
+
+---
+
+**Última actualización**: Feb 24, 2026 - Sistema totalmente operativo ✅
+
+---
+
+## � Historial de Archivos
+
+> **⚠️ Edge Functions Deprecated** - Los siguientes archivos ya NO se usan
+>
+> - `supabase/functions/translate-properties/index.ts` - Migrado a Server Actions
+> - Toda la lógica está ahora en `src/app/actions/` y `src/app/api/admin/`
+> - Ver archivos de Server Actions arriba para implementación actual
 
 interface TranslateRequest {
   property_ids?: string[];
@@ -181,7 +431,7 @@ ${sourceTexts.map((item) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}`).jo
         Authorization: `Bearer ${perplexityKey}`,
       },
       body: JSON.stringify({
-        model: "sonar-small-online",
+        model: "llama-3.1-sonar-small-128k-online",
         messages: [
           {
             role: "system",

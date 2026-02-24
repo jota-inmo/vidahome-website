@@ -90,7 +90,7 @@ ${slidesWithTitles.map((slide: any) => `ID: ${slide.id}\nTITLE: ${slide.title}`)
         Authorization: `Bearer ${perplexityKey}`,
       },
       body: JSON.stringify({
-        model: 'sonar-small-online',
+        model: 'llama-3.1-sonar-small-128k-online',
         messages: [
           {
             role: 'system',

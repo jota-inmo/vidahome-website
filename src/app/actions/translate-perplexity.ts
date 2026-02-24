@@ -130,7 +130,7 @@ ${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}
         Authorization: `Bearer ${perplexityKey}`,
       },
       body: JSON.stringify({
-        model: "sonar-small-online",
+        model: "llama-3.1-sonar-small-128k-online",
         messages: [
           {
             role: "system",
