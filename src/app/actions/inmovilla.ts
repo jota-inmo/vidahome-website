@@ -16,6 +16,8 @@ function mapLocaleToInmovillaId(locale: string): number {
         case 'en': return 2;
         case 'fr': return 3;
         case 'de': return 4;
+        case 'it': return 5; // Added Italian
+        case 'pl': return 6; // Added Polish
         case 'es':
         default: return 1;
     }
@@ -94,30 +96,24 @@ export async function fetchPropertiesAction(): Promise<{
         // --- Enrichment with Supabase Metadata starts here ---
         try {
             const { supabase } = await import('@/lib/supabase');
+            // Check both tables for compatibility during migration
             const { data: metadata } = await supabase
-                .from('property_metadata')
-                .select('cod_ofer, description, descriptions');
+                .from('properties')
+                .select('property_id, description_es, description_en, description_fr, description_de, description_it, description_pl');
 
             if (metadata && metadata.length > 0) {
                 properties = properties.map(p => {
-                    const meta = metadata.find(m => m.cod_ofer === p.cod_ofer);
+                    const meta = metadata.find(m => m.property_id === p.cod_ofer);
                     if (!meta) return p;
 
-                    // Prioridad: descriptions JSONB (multi-idioma) > description (legacy)
                     let bestDescription = p.descripciones;
+                    const langKey = `description_${locale}` as keyof typeof meta;
+                    const translated = meta[langKey];
 
-                    if (meta.descriptions && typeof meta.descriptions === 'object') {
-                        const langDesc = (meta.descriptions as any)[locale];
-                        if (langDesc) {
-                            bestDescription = langDesc;
-                        } else {
-                            // Fallback a español si el idioma actual no existe en la caché
-                            const esDesc = (meta.descriptions as any)['es'];
-                            if (esDesc) bestDescription = esDesc;
-                        }
-                    } else if (meta.description) {
-                        // Fallback legacy (columna simple)
-                        bestDescription = meta.description;
+                    if (translated) {
+                        bestDescription = translated as string;
+                    } else if (meta.description_es) {
+                        bestDescription = meta.description_es;
                     }
 
                     return {
@@ -127,7 +123,7 @@ export async function fetchPropertiesAction(): Promise<{
                 });
             }
         } catch (supaError) {
-            console.warn('[Actions] Supabase metadata enrichment failed:', supaError);
+            console.warn('[Actions] Supabase properties enrichment failed:', supaError);
         }
         // --- Enrichment ends here ---
 
@@ -159,23 +155,34 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
     try {
         const { supabase } = await import('@/lib/supabase');
         const { data: meta } = await supabase
-            .from('property_metadata')
-            .select('full_data, descriptions, ref')
-            .eq('cod_ofer', id)
+            .from('properties')
+            .select('*')
+            .eq('property_id', id)
             .single();
 
-        if (meta && meta.full_data) {
-            const data = meta.full_data as PropertyDetails;
-            // Ensure we have the translation for current locale
-            const translation = meta.descriptions?.[locale] || data.all_descriptions?.[locale];
+        if (meta) {
+            const langKey = `description_${locale}` as keyof typeof meta;
+            const translation = meta[langKey];
 
             if (translation || locale === 'es') {
-                if (translation) data.descripciones = translation;
-                if (!data.all_descriptions) data.all_descriptions = meta.descriptions || {};
-
-                console.log(`[Actions] 🚀 SUPABASE-FIRST: Full cache HIT for ${id} in '${locale}'`);
-                apiCache.set(cacheKey, data);
-                return { success: true, data };
+                console.log(`[Actions] 🚀 SUPABASE-FIRST: Translation HIT for ${id} in '${locale}'`);
+                // If we had full_data we would use it, but for now we prioritize description
+                return {
+                    success: true,
+                    data: {
+                        cod_ofer: id,
+                        ref: meta.ref || '',
+                        descripciones: (translation || meta.description_es) as string,
+                        all_descriptions: {
+                            es: meta.description_es,
+                            en: meta.description_en,
+                            fr: meta.description_fr,
+                            de: meta.description_de,
+                            it: meta.description_it,
+                            pl: meta.description_pl
+                        }
+                    } as any
+                };
             }
         }
         console.log(`[Actions] ⏳ Cache MISS for ${id}, fetching from Inmovilla...`);
@@ -357,7 +364,7 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
 
 export async function getFeaturedPropertiesWithDetailsAction(): Promise<{ success: boolean; data: any[] }> {
     const locale = await getLocale();
-    
+
     // Use cached version per locale for better performance
     return await getCachedFeaturedPropertiesForLocale(locale);
 }

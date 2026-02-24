@@ -80,15 +80,31 @@ CREATE TABLE IF NOT EXISTS valuation_leads (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 4. Caché de Metadatos de Propiedad (Enriquecimiento de Catálogo)
--- Se ha implementado un sistema de "bóveda" multi-idioma usando JSONB.
-CREATE TABLE IF NOT EXISTS property_metadata (
-    cod_ofer INTEGER PRIMARY KEY,
+-- 4. Nueva Tabla de Propiedades y Traducciones PRO (Perplexity Engine)
+-- Reemplaza a property_metadata para mayor rendimiento y soporte IT.
+CREATE TABLE IF NOT EXISTS properties (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    property_id INTEGER UNIQUE, -- original cod_ofer
     ref TEXT,
-    description TEXT, -- Legacy (español)
-    descriptions JSONB DEFAULT '{}'::jsonb, -- Almacena ES, EN, FR, DE, etc.
-    full_data JSONB, -- Objeto completo PropertyDetails para bypass de API
+    description_es TEXT,
+    description_en TEXT,
+    description_fr TEXT,
+    description_de TEXT,
+    description_it TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 5. Log de Traducciones y Control de Costes
+CREATE TABLE IF NOT EXISTS translation_log (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    property_id INTEGER REFERENCES properties(property_id) ON DELETE CASCADE,
+    language TEXT NOT NULL,
+    tokens_used INTEGER,
+    cost_estimate NUMERIC(10, 5),
+    status TEXT DEFAULT 'success',
+    error_message TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 5. Control de Frecuencia (Rate Limiting)
@@ -130,13 +146,13 @@ CREATE POLICY "Allow public read hero" ON hero_slides FOR SELECT USING (true);
 CREATE POLICY "Allow all management hero" ON hero_slides FOR ALL USING (true);
 ```
 
-### Motor de Auto-Aprendizaje e Inteligencia Artificial
+### Motor de Auto-Aprendizaje y Traducción Inteligente (Perplexity AI)
 Para superar la restricción de Inmovilla que omite descripciones en el catálogo y facilitar la expansión internacional:
-1.  **Captura**: Cuando un usuario visita la ficha individual o se carga el catálogo, el sistema extrae todos los datos de Inmovilla y los guarda en Supabase.
-2.  **Optimización Agresiva (Supabase-First)**: Antes de cualquier acción de red (Inmovilla o IA), el sistema comprueba la "bóveda" de Supabase. Si existe `full_data` con la traducción necesaria, se sirve instantáneamente (latencia zero), ignorando por completo la llamada a la web API de Inmovilla.
-3.  **Autotraducción (Hugging Face)**: Si falta un idioma en la bóveda, el sistema utiliza la IA únicamente para ese campo.
-4.  **Panel de Control**: Los agentes pueden supervisar y editar manualmente estas traducciones desde `/admin/translations`.
-5.  **Entrega**: Cuando se carga el catálogo general, el sistema inyecta las descripciones reales guardadas, priorizando el idioma del usuario.
+1.  **Captura**: El sistema sincroniza los anuncios de Inmovilla con la tabla `properties` de Supabase.
+2.  **Traducción Masiva (Perplexity Engine)**: Se utiliza el modelo `sonar-small-online` via Supabase Edge Functions para traducir anuncios de ES a EN, FR, DE e IT en un solo paso, manteniendo coherencia técnica inmobiliaria.
+3.  **Bóveda de Alta Velocidad**: El catálogo consulta directamente la tabla `properties`. Si el anuncio ya está traducido, se sirve con latencia 0ms sin consultar la API de Inmovilla.
+4.  **Panel de Control Inteligente**: Ubicado en `/admin/translations`, permite lanzar traducciones masivas, ver el progreso y controlar el coste estimado en tiempo real.
+5.  **Control de Calidad**: Se registran todos los tokens y costes en `translation_log`.
 
 ---
 
@@ -152,7 +168,7 @@ Para superar la restricción de Inmovilla que omite descripciones en el catálog
 | `NEXT_PUBLIC_SUPABASE_URL` | URL de Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anónima de Supabase |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio de Supabase |
-| `HUGGINGFACE_TOKEN` | Token de acceso para la API de IA de Hugging Face |
+| `SUPABASE_PERPLEXITY_API_KEY` | Clave de API de Perplexity para traducciones |
 
 ---
 
