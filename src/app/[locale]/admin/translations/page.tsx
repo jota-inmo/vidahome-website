@@ -76,7 +76,7 @@ export default function TranslationsAdmin() {
         setTranslating(true);
         setTranslationResult(null);
         const res = await runAutoTranslationAction();
-        if (res.success) {
+        if (res.success && 'translated' in res) {
             setTranslationResult(res);
             setMessage({ text: `¡Traducción completada! ${res.translated} anuncios procesados.`, type: 'success' });
             loadProperties();
