@@ -3,6 +3,7 @@
 import React from 'react';
 import { Search as SearchIcon, MapPin, Home } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useAnalytics } from '@/lib/hooks/useAnalytics';
 
 interface PropertySearchProps {
     onSearch: (filters: SearchFilters) => void;
@@ -20,6 +21,7 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
     const [query, setQuery] = React.useState('');
     const [population, setPopulation] = React.useState('');
     const t = useTranslations('Search');
+    const { trackSearch } = useAnalytics();
 
     const handleTypeChange = (newType: 'buy' | 'rent') => {
         setType(newType);
@@ -27,6 +29,11 @@ export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) =
     };
 
     const handleSearch = () => {
+        // Track search with query and filters
+        if (query || population) {
+            const searchQuery = `${query || ''} ${population || ''}`.trim();
+            trackSearch(searchQuery, 0); // resultsCount will be updated after search completes
+        }
         onSearch({ type, query, population });
     };
 

@@ -27,8 +27,9 @@
     "Navbar": {
         "properties": "Properties",
         "contact": "Contact",
-        "about": "About Us",
-        "sell": "Sell"
+        "about": "About",
+        "sell": "Sell",
+        "blog": "Blog"
     },
     "Hero": {
         "explore": "Explore our selection",
@@ -107,5 +108,12 @@
         "address": "Address",
         "hours": "Agency hours",
         "formTitle": "Send us a message"
+    },
+    "Blog": {
+        "title": "Property Blog",
+        "description": "Articles about properties, real estate market and advice for buyers on the Golden Coast.",
+        "readMore": "Read more",
+        "noPosts": "No posts available yet",
+        "noPostsDesc": "Interesting content coming soon..."
     }
 }

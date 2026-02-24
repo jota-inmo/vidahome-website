@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PropertyDetails } from '@/types/inmovilla';
 import { PropertyGallery } from '@/components/PropertyGallery';
 import { ContactForm } from '@/components/ContactForm';
@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
 import { useTranslations, useLocale } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
+import { useAnalytics } from '@/lib/hooks/useAnalytics';
 
 
 interface PropertyDetailClientProps {
@@ -33,6 +34,12 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
     const router = useRouter();
     const t = useTranslations('Property');
     const locale = useLocale();
+    const { trackPropertyView } = useAnalytics();
+
+    // Track property view on component mount
+    useEffect(() => {
+        trackPropertyView(property.cod_ofer);
+    }, [property.cod_ofer, trackPropertyView]);
 
     const localizedType = translatePropertyType(property.tipo_nombre, locale);
 

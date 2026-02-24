@@ -1,0 +1,123 @@
+{
+    "Index": {
+        "title": "Sélection de Propriétés",
+        "description": "Nous ne vous montrons pas ce que nous avons, nous trouvons ce que vous cherchez. Où la conception architecturale se rencontre avec l'emplacement parfait.",
+        "portfolio": "Portfolio",
+        "viewCatalog": "Voir le catalogue complet",
+        "whyTrust": "Pourquoi nous faire confiance",
+        "whyChoose": "Pourquoi choisir VidaHome à Gandia?",
+        "leaderTitle": "Leader local en volume",
+        "leaderDesc": "Nous disposons de plus de 116 propriétés actives, offrant la plus grande variété du marché de Gandia Playa et du Grau.",
+        "specialistsTitle": "Spécialistes de la Plage",
+        "specialistsDesc": "Notre emplacement au cœur du Grau i Platja nous permet de connaître chaque coin et opportunité avant les autres.",
+        "speedTitle": "Rapidité prouvée",
+        "speedDesc": "Nous fermons les ventes en moyenne en seulement 15-30 jours grâce à notre base de données d'acheteurs qualifiés.",
+        "valuationTitle": "Évaluation en 24h",
+        "valuationDesc": "Nous livrons des rapports d'évaluation gratuits et professionnels en moins d'un jour pour que vous ne perdiez pas de temps.",
+        "dataNote": "* Données basées sur l'historique de 50 ventes clôturées en 2025.",
+        "whyTrustSubtitle": "Pourquoi nous faire confiance",
+        "moreThanAg": "Plus qu'une agence immobilière",
+        "story": "Chez Vidahome, nous comprenons qu'une maison n'est pas seulement de la brique et du ciment, mais le cadre où se déroule votre vie. Notre équipe au Grau de Gandia se consacre à transformer la vente et l'achat en une expérience transparente, professionnelle et sans stress.",
+        "apiMember": "Agents de la Propriété Immobilière — Membres APIVA nº0236",
+        "googleScore": "Score Google",
+        "experience": "Années d'expérience",
+        "commitment": "Engagement éthique",
+        "vidahomeProperties": "Propriétés de Vidahome"
+    },
+    "Navbar": {
+        "properties": "Propriétés",
+        "contact": "Contact",
+        "about": "À propos",
+        "sell": "Vendre",
+        "blog": "Blog"
+    },
+    "Hero": {
+        "explore": "Explorez notre sélection",
+        "searchPlaceholder": "Rechercher par référence ou zone...",
+        "viewCatalog": "Voir le catalogue"
+    },
+    "Footer": {
+        "sede": "Notre siège",
+        "contacto": "Contact direct",
+        "horario": "Horaires d'ouverture",
+        "legal": "Informations légales",
+        "aviso": "Avis Légal",
+        "privacidad": "Politique de Confidentialité",
+        "cookies": "Politique des Cookies",
+        "rights": "© {year} Vidahome Premium Experience — Membres APIVA nº0236",
+        "call": "Appeler",
+        "outside": "En dehors des heures avec rendez-vous."
+    },
+    "Cookie": {
+        "title": "Votre confidentialité est notre priorité",
+        "description": "Nous utilisons des cookies pour assurer le bon fonctionnement de notre site web, analyser le trafic et personnaliser votre expérience immobilière. Vous pouvez accepter tous les cookies ou refuser les non-essentiels.",
+        "policy": "Politique des Cookies",
+        "decline": "Refuser les Optionnels",
+        "accept": "Accepter Tout"
+    },
+    "Search": {
+        "buy": "Acheter",
+        "rent": "Louer",
+        "placeholder": "Propriété ou Référence...",
+        "locationDefault": "Toute la province",
+        "button": "Chercher",
+        "noResults": "Aucun enregistrement disponible avec ces filtres.",
+        "in": "à",
+        "propertyIn": "Propriété à",
+        "priceUnderRequest": "Prix sur demande",
+        "explore": "Explorer"
+    },
+    "Property": {
+        "surface": "Surface",
+        "bedrooms": "Chambres",
+        "bathrooms": "Salles de bains",
+        "construction": "Construction",
+        "pool": "Piscine",
+        "ac": "Clim.",
+        "parking": "Parking",
+        "elevator": "Ascenseur",
+        "reference": "Référence",
+        "location": "Emplacement",
+        "locationNotice": "Emplacement approximatif pour protéger la vie privée du propriétaire",
+        "priceUnderRequest": "Prix sur demande",
+        "consultPrice": "Consultez le prix",
+        "share": "Partager",
+        "shareTitle": "{type} à {population} | Vidahome",
+        "shareText": "Regardez cette propriété sur Vidahome : {type} à {population}",
+        "back": "Retour",
+        "notFound": "Propriété non trouvée",
+        "defaultType": "Propriété",
+        "in": "à"
+    },
+    "Contact": {
+        "formTitle": "Demander des Informations",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "email": "Adresse Email",
+        "phone": "Téléphone",
+        "message": "Message / Consultation",
+        "submit": "Envoyer la Demande",
+        "submitting": "Envoi de la Demande...",
+        "successTitle": "Demande Reçue",
+        "successText": "Nos conseillers vous contacteront dans les plus brefs délais pour gérer votre intérêt pour cette propriété.",
+        "errorGeneric": "Une erreur inattendue s'est produite",
+        "errorSubmit": "Erreur lors de l'envoi du formulaire"
+    },
+    "ContactPage": {
+        "subheading": "Nous sommes à votre disposition",
+        "heading": "Contactez",
+        "officeTitle": "Notre bureau",
+        "officeDesc": "Visitez-nous dans notre bureau au Grau de Gandia pour une attention personnalisée concernant votre prochaine gestion immobilière.",
+        "phone": "Téléphone",
+        "address": "Adresse",
+        "hours": "Horaires",
+        "formTitle": "Envoyez-nous un message"
+    },
+    "Blog": {
+        "title": "Blog Immobilier",
+        "description": "Articles sur les propriétés, le marché immobilier et des conseils pour les acheteurs sur la Côte d'Or.",
+        "readMore": "Lire la suite",
+        "noPosts": "Aucun article disponible pour le moment",
+        "noPostsDesc": "Du contenu intéressant arrive bientôt..."
+    }
+}

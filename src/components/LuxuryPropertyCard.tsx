@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { Bed, Bath, Square } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
 import { useTranslations, useLocale } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
+import { useAnalytics } from '@/lib/hooks/useAnalytics';
 
 
 interface LuxuryPropertyCardProps {
@@ -17,6 +18,12 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
     const t = useTranslations('Search');
     const locale = useLocale();
     const [imageLoaded, setImageLoaded] = useState(false);
+    const { trackPropertyView } = useAnalytics();
+
+    // Track property view on component mount
+    useEffect(() => {
+        trackPropertyView(property.cod_ofer);
+    }, [property.cod_ofer, trackPropertyView]);
 
     const localizedType = translatePropertyType(property.tipo_nombre, locale);
 

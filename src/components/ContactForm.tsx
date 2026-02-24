@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { submitLeadAction } from '@/app/actions';
 import { useTranslations } from 'next-intl';
+import { useAnalytics } from '@/lib/hooks/useAnalytics';
 
 interface ContactFormProps {
     cod_ofer: number;
@@ -13,6 +14,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const t = useTranslations('Contact');
+    const { trackConversion } = useAnalytics();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -40,6 +42,11 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
         try {
             const result = await submitLeadAction(data);
             if (result.success) {
+                // Track conversion on successful form submission
+                trackConversion({
+                    codOfer: cod_ofer,
+                    conversionType: 'contact_form'
+                });
                 setSuccess(true);
             } else {
                 setError(result.error || t('errorSubmit'));

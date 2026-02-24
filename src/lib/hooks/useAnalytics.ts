@@ -1,6 +1,7 @@
 /**
  * Hook para capturar eventos de analytics
  * Registra: vistas de propiedades, búsquedas, vistas de página
+ * Incluye: UTM tracking, detección de fuente de tráfico
  */
 
 'use client';
@@ -26,6 +27,29 @@ const getSessionId = () => {
     return sessionId;
 };
 
+// Extract UTM parameters from URL
+const getUTMParams = () => {
+    if (typeof window === 'undefined') return {};
+    const params = new URLSearchParams(window.location.search);
+    return {
+        utm_source: params.get('utm_source'),
+        utm_medium: params.get('utm_medium'),
+        utm_campaign: params.get('utm_campaign'),
+    };
+};
+
+// Detect traffic source from referrer
+const detectTrafficSource = (referrer: string): string => {
+    if (!referrer) return 'direct';
+    if (referrer.includes('google.')) return 'google_organic';
+    if (referrer.includes('facebook.')) return 'facebook';
+    if (referrer.includes('instagram.')) return 'instagram';
+    if (referrer.includes('linkedin.')) return 'linkedin';
+    if (referrer.includes('twitter.') || referrer.includes('x.com')) return 'twitter';
+    if (referrer.includes('vidahome.es')) return 'internal';
+    return 'referral';
+};
+
 interface TrackEventOptions {
     codOfer?: number;
     source?: string;
@@ -40,7 +64,7 @@ export function useAnalytics() {
     // Extract locale from pathname
     useEffect(() => {
         const pathParts = pathname.split('/');
-        if (pathParts[1] && ['es', 'en', 'fr', 'de'].includes(pathParts[1])) {
+        if (pathParts[1] && ['es', 'en', 'fr', 'de', 'pl'].includes(pathParts[1])) {
             setLocale(pathParts[1]);
         }
     }, [pathname]);
@@ -66,12 +90,20 @@ export function useAnalytics() {
     // Track property view
     const trackPropertyView = useCallback(async (codOfer: number) => {
         try {
+            const utm = getUTMParams();
+            const referrer = typeof document !== 'undefined' ? document.referrer : '';
+            const trafficSource = utm.utm_source || detectTrafficSource(referrer);
+
             await supabase.from('analytics_property_views').insert({
                 cod_ofer: codOfer,
                 locale,
                 session_id: getSessionId(),
                 user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
-                referer: typeof document !== 'undefined' ? document.referrer : '',
+                referer: referrer,
+                traffic_source: trafficSource,
+                utm_source: utm.utm_source,
+                utm_medium: utm.utm_medium,
+                utm_campaign: utm.utm_campaign,
             });
         } catch (error) {
             console.warn('[Analytics] Error tracking property view:', error);
@@ -95,9 +127,13 @@ export function useAnalytics() {
     // Track lead/conversion
     const trackConversion = useCallback(async (options: TrackEventOptions) => {
         try {
+            const utm = getUTMParams();
+            const referrer = typeof document !== 'undefined' ? document.referrer : '';
+            const trafficSource = utm.utm_source || detectTrafficSource(referrer);
+
             await supabase.from('analytics_leads').insert({
                 cod_ofer: options.codOfer,
-                source: options.source || 'direct',
+                source: options.source || trafficSource || 'direct',
                 locale,
                 conversion_type: options.conversionType || 'lead',
             });

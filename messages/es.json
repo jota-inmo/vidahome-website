@@ -28,7 +28,8 @@
         "properties": "Propiedades",
         "contact": "Contacto",
         "about": "Nosotros",
-        "sell": "Vender"
+        "sell": "Vender",
+        "blog": "Blog"
     },
     "Hero": {
         "explore": "Explora nuestra selección",
@@ -111,5 +112,12 @@
         "address": "Dirección",
         "hours": "Horario",
         "formTitle": "Envíanos un mensaje"
+    },
+    "Blog": {
+        "title": "Blog de Inmuebles",
+        "description": "Artículos sobre propiedades, mercado inmobiliario y consejos para compradores en la Costa Dorada.",
+        "readMore": "Leer más",
+        "noPosts": "No hay posts disponibles aún",
+        "noPostsDesc": "Pronto habrá contenido interesante..."
     }
 }

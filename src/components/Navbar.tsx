@@ -13,8 +13,11 @@ export const Navbar = () => {
     const pathname = usePathname();
 
     const availableLocales = [
-        { id: 'es', label: 'ES' },
-        { id: 'en', label: 'EN' }
+        { id: 'es', label: 'ES', flag: '🇪🇸' },
+        { id: 'en', label: 'EN', flag: '🇬🇧' },
+        { id: 'fr', label: 'FR', flag: '🇫🇷' },
+        { id: 'de', label: 'DE', flag: '🇩🇪' },
+        { id: 'pl', label: 'PL', flag: '🇵🇱' }
     ];
 
     return (
