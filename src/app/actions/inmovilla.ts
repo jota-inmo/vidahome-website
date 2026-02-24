@@ -201,7 +201,8 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
     error?: string;
 }> {
     const token = process.env.INMOVILLA_TOKEN;
-    const numagencia = process.env.INMOVILLA_AGENCIA;
+    const numagencia = process.env.INMOVILLA_NUMAGENCIA;
+    const addnumagencia = process.env.INMOVILLA_ADDNUMAGENCIA || '';
     const password = process.env.INMOVILLA_PASSWORD;
     const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
 
