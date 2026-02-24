@@ -7,8 +7,8 @@ export interface PropertyListEntry {
     cod_ofer: number;
     ref: string;
     nodisponible: boolean | number;
-    prospecto: boolean;
-    fechaact: string;
+    prospecto?: boolean; // Optional: from Inmovilla API only
+    fechaact?: string;   // Optional: from Inmovilla API only
     // Discovered fields (calculated or fetched)
     numagencia?: string;
     numfotos?: string;
@@ -24,6 +24,9 @@ export interface PropertyListEntry {
     habitaciones?: number;
     banyos?: number;
     m_cons?: number;
+    tipo?: string;
+    precio?: number;
+    main_photo?: string;
 }
 
 export interface PropertyDetails {
