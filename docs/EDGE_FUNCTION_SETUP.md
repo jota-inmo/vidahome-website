@@ -1,6 +1,8 @@
 # 🔧 Edge Function Setup - Local Development
 
-This guide explains how to sync the `translate-properties` Edge Function from Supabase to your local repository.
+This guide explains how to work with the `translate-properties` Edge Function from Supabase locally.
+
+> **⚠️ IMPORTANT**: The Edge Function code should **NOT be committed to this repository**. It lives in Supabase Cloud only. You can download it for reference/editing, but keep it in a `.gitignored` directory.
 
 ## 📋 Prerequisites
 
@@ -23,41 +25,50 @@ This guide explains how to sync the `translate-properties` Edge Function from Su
    # Replace with your actual project reference ID
    ```
 
-## 📥 Syncing Edge Function from Supabase
+## 📥 Working with Edge Function Locally
 
-### Option 1: Download Existing Function (Recommended)
+### ⚠️ Important Architecture Note
 
-The `translate-properties` function already exists in your Supabase project. To download it:
+The Edge Function **lives in Supabase Cloud**, not in this Next.js repository. You can:
+- ✅ **Download it for local editing/testing**
+- ✅ **Deploy changes back to Supabase**
+- ❌ **But DON'T commit it to git** (see `ARCHITECTURE_EDGE_FUNCTIONS.md`)
+
+### Option 1: Download for Editing (Recommended)
+
+If you need to edit the Edge Function locally:
 
 ```bash
-# From project root
-supabase functions download translate-properties --name translate-properties
+# Download to a temporary location (NOT committing to git)
+supabase functions download translate-properties
 
-# This creates: supabase/functions/translate-properties/
+# This creates a local copy to edit
+# After editing, deploy it back:
+supabase functions deploy translate-properties
 ```
 
-### Option 2: Manual Copy
+**Important**: The `supabase/functions/` directory should be empty for Next.js builds. Don't leave the function code there.
 
-If the CLI download doesn't work, you can manually copy the function:
+### Option 2: Edit in Supabase Console (No Download Needed)
+
+The easiest way is to edit directly in Supabase:
 
 1. Go to [Supabase Console](https://supabase.com/dashboard)
 2. Navigate to: Functions → translate-properties
-3. Copy the full code
-4. Create local file:
-   ```bash
-   mkdir -p supabase/functions/translate-properties
-   ```
-5. Paste code into: `supabase/functions/translate-properties/index.ts`
+3. Edit the code directly in the browser
+4. Click "Deploy" to save changes
 
-### Option 3: Deploy from Local Repository
+No download needed, no git issues.
 
-If you want to deploy a fresh version from local:
+### Option 3: Deploy Updated Function
+
+If you've edited the function locally and want to deploy:
 
 ```bash
-# First, ensure you have the function file locally
-# supabase/functions/translate-properties/index.ts
+# Make sure you have the function file locally
+# (e.g., in a temporary directory, NOT supabase/functions/)
 
-# Then deploy it
+# Deploy it
 supabase functions deploy translate-properties
 
 # Or deploy all functions
@@ -66,32 +77,22 @@ supabase functions deploy
 
 ## ✅ Verifying the Setup
 
-### Check local directory structure:
-
-```bash
-ls -la supabase/functions/translate-properties/
-# Should show: index.ts
-```
-
-### Verify Supabase CLI can find it:
+### Verify Function is Deployed in Supabase:
 
 ```bash
 supabase functions list
 # Should show: translate-properties (deployed)
 ```
 
-### Test the function:
+### Test the Function:
 
 ```bash
-# Option 1: Direct invoke
-supabase functions invoke translate-properties --no-verify-jwt
-
-# Option 2: With authentication
+# Invoke via CLI (with test data)
 supabase functions invoke translate-properties \
   --no-verify-jwt \
   --body '{"property_ids": []}'
 
-# Option 3: Using curl (in deployed environment)
+# Or with curl (in deployed environment)
 curl -X POST https://yheqvroinbcrrpppzdzx.supabase.co/functions/v1/translate-properties \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ANON_KEY" \
@@ -124,27 +125,28 @@ const perplexityKey = Deno.env.get("PERPLEXITY_API_KEY");
 
 ## 📂 Directory Structure
 
-After syncing, your structure should look like:
+The Edge Function lives **only in Supabase Cloud**. Your local repository should have:
 
 ```
 inmovilla-next-app/
-├── supabase/
-│   └── functions/
-│       └── translate-properties/
-│           └── index.ts          # ← Edge Function code
 ├── src/
 │   └── lib/
 │       └── supabase/
-│           └── translate-client.ts    # ← TypeScript client
+│           └── translate-client.ts    # ← Client to CALL the function
 ├── src/
 │   └── app/
 │       └── actions/
-│           └── translate.ts          # ← Server action
+│           └── translate.ts           # ← Server action wrapper
 ├── scripts/
-│   └── translate-with-perplexity.ts  # ← CLI script
+│   └── translate-with-perplexity.ts   # ← CLI to use the function
 └── docs/
-    └── EDGE_FUNCTION_TRANSLATION_GUIDE.md
+    └── EDGE_FUNCTION_SETUP.md         # ← This file
+    
+# NO supabase/functions/ directory (or it's empty)
+# The Edge Function code stays in Supabase Cloud
 ```
+
+**Note**: The `supabase/` directory is intentionally NOT used for Next.js builds. Edge Functions are deployed separately via Supabase CLI.
 
 ## 🚀 Quick Start
 
