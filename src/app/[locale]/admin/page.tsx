@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkAuthAction, logoutAction } from '@/app/actions';
 import { Link } from '@/i18n/routing';
-import { LayoutDashboard, Film, Star, LogOut, ExternalLink, Languages } from 'lucide-react';
+import { LayoutDashboard, Film, Star, LogOut, ExternalLink, Languages, RefreshCw } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [authorized, setAuthorized] = useState<boolean | null>(null);
@@ -58,6 +58,13 @@ export default function AdminDashboard() {
             icon: <Languages className="w-6 h-6" />,
             href: '/admin/translations-hub',
             color: 'from-fuchsia-500 to-pink-600'
+        },
+        {
+            title: 'Sincronizar Propiedades',
+            desc: 'Importar nuevas propiedades del CRM Inmovilla',
+            icon: <RefreshCw className="w-6 h-6" />,
+            href: '/admin/sync',
+            color: 'from-cyan-500 to-blue-600'
         }
     ];
 
