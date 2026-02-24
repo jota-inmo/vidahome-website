@@ -356,7 +356,7 @@ ${chunk}`;
     });
 
     // Estimate cost
-    const totalLength = chunk.length * chunks.length;
+    const totalLength = post.content.length;
     const estimatedTokens = Math.ceil(totalLength / 4); // Rough estimate
     const costEstimate = (estimatedTokens / 1000) * 0.0002;
 

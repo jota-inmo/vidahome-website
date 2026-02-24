@@ -1,19 +1,26 @@
 # 🌍 Sistema de Traducción - Arquitectura Final
 
-**Estado**: ✅ **Producción Lista** (Build exitoso con todos los tests pasando)
+**Estado**: ✅ **Producción Lista v2.0** (Multi-content Translation Hub)
 
-**Última Actualización**: 24/02/2026 12:30 (Commit 8c1964f)
+**Última Actualización**: 24/02/2026 14:45 (Commit 0f332a0)
 
 ---
 
 ## 📋 Resumen Ejecutivo
 
-Sistema de traducción automática para descripciones de propiedades usando:
+Sistema de traducción automática multicontenido usando Perplexity AI:
+
+**Contenidos Soportados**:
+- 🏠 **Propiedades**: Descripciones de viviendas (`property_metadata`)
+- 🎬 **Banners/Hero**: Títulos de slides (`hero_slides`)
+- 📝 **Blog Posts**: Títulos, extractos y contenido (`blog_posts`)
+
+**Características**:
 - **Engine**: Perplexity AI (`sonar-small-online`)
-- **Idiomas**: Español (ES - fuente), Inglés (EN), Francés (FR), Alemán (DE), Italiano (IT), Polaco (PL)
-- **Almacenamiento**: JSON JSONB (`property_metadata.descriptions`)
-- **Admin**: Panel web intuitivo con edición manual + auto-traducción
-- **Auditoría**: Tabla `translation_log` con registro completo
+- **Idiomas**: Español (ES), Inglés (EN), Francés (FR), Alemán (DE), Italiano (IT), Polaco (PL)
+- **Admin UI**: Translation Hub centralizado (`/admin/translations-hub`)
+- **Auditoría**: `translation_log` con tokens, costos y errores
+- **Seguridad**: Server Actions sin JWT, usa `supabaseAdmin`
 
 ---
 
@@ -23,18 +30,26 @@ Sistema de traducción automática para descripciones de propiedades usando:
 src/
 ├── app/
 │   ├── actions/
-│   │   ├── translate-perplexity.ts       ⭐ CORE: Llamadas a Perplexity
-│   │   └── translations.ts                ⭐ WRAPPERS: Actions para admin
+│   │   ├── translate-perplexity.ts       ⭐ Propiedades: Llama Perplexity
+│   │   ├── translate-hero.ts             ⭐ Banners: Traduce títulos
+│   │   ├── translate-blog.ts             ⭐ Blog: Titulos/extracto/content
+│   │   └── translations.ts               ⭐ Wrappers: Admin utilities
 │   ├── api/admin/translations/
 │   │   ├── route.ts                      📡 GET: Listar propiedades
-│   │   ├── run/route.ts                  📡 POST: Ejecutar auto-traducción
-│   │   └── save/route.ts                 📡 POST: Guardar edits manuales
-│   └── [locale]/admin/translations/
-│       └── page.tsx                      🎨 UI: Admin panel
+│   │   ├── run/route.ts                  📡 POST: Auto-traducir propiedades
+│   │   ├── save/route.ts                 📡 POST: Guardar edits manuales
+│   │   ├── hero/route.ts                 📡 POST: Traducir banners (NUEVO)
+│   │   └── blog/route.ts                 📡 POST: Traducir blog (NUEVO)
+│   └── [locale]/admin/
+│       ├── translations-hub/page.tsx    🎨 Hub centralizado (NUEVO)
+│       └── translations/page.tsx        🎨 Editor detallado (existente)
+├── components/admin/
+│   ├── TranslationsEditor.tsx           🎛️ Properties editor
+│   └── TranslationPanel.tsx             🎛️ Reusable panel (NUEVO)
 ├── lib/
-│   └── supabase-admin.ts                 🔐 Client seguro (SERVICE_ROLE_KEY)
+│   └── supabase-admin.ts                🔐 Client seguro (SERVICE_ROLE_KEY)
 └── types/
-    └── inmovilla.ts                      📝 Types comunes
+    └── inmovilla.ts                      📝 Types
 ```
 
 ---
@@ -326,6 +341,59 @@ LIMIT 100;
 
 ---
 
+## 🎛️ Translation Hub (`/admin/translations-hub`)
+
+**Nueva interfaz centralizada para traducir todos los contenidos** (Commit 0f332a0)
+
+### Acceso
+1. Ir a `/admin` (requiere autenticación)
+2. Click en botón **"Traducciones"** (con icono `Languages`)
+3. Se abre Translation Hub con 3 tabs
+
+### Tabs Disponibles
+
+#### ✏️ Tab 1: Propiedades
+- **Tabla**: `property_metadata`
+- **Campo**: `descriptions` (JSON)
+- **Idiomas**: ES (fuente) → EN, FR, DE, IT, PL
+- **Función**: `translatePropertiesAction()`
+- **Endpoint**: `POST /api/admin/translations/run`
+- **Característica**: Edición manual + auto-traducción
+
+#### 🎬 Tab 2: Banners
+- **Tabla**: `hero_slides`
+- **Campo**: `titles` (JSON con estructura `{es, en, fr, de, it, pl}`)
+- **Contenido**: Títulos de slides de inicio
+- **Función**: `translateHeroAction()`
+- **Endpoint**: `POST /api/admin/translations/hero`
+- **Resultado**: Actualiza JSON directamente
+
+#### 📝 Tab 3: Blog
+- **Tabla**: `blog_posts`
+- **Contenido**: Títulos, extractos, contenido
+- **Función**: `translateBlogPostAction()` + `translateBlogContentAction()`
+- **Endpoint**: `POST /api/admin/translations/blog`
+- **Característica**: Crea nuevas filas por idioma (unpublished)
+
+### UI Components
+- **TranslationPanel**: Componente reutilizable para cualquier tipo de traducción
+  - Botón "Auto-traducir" con indicadores de carga
+  - Muestra resultado (traducciones, errores, costo)
+  - Detalles de errores con primeros 5 items
+  - Diseño oscuro/light compatible
+
+### Ejemplo de Uso
+```typescript
+// En cualquier tab, usuario hace click en "Auto-traducir"
+// 1. Llama a endpoint correspondiente (hero, blog, o run)
+// 2. Server Action ejecuta Perplexity
+// 3. Actualiza BD automáticamente
+// 4. TranslationPanel muestra resultado
+// 5. Costo y estadísticas aparecen en pantalla
+```
+
+---
+
 ## ⚡ Performance
 
 | Operación | Tiempo | Notas |
@@ -366,5 +434,5 @@ LIMIT 100;
 ---
 
 **Autor**: GitHub Copilot  
-**Versión**: 2.0 (Server Actions + Perplexity)  
-**Status**: ✅ Production Ready
+**Versión**: 2.1 (Multi-content Translation Hub)  
+**Commits**: 8c1964f, ae0327b, bdcf28e, 9345e5f, 0f332a0

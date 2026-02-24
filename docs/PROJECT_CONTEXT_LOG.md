@@ -107,26 +107,39 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
     - ✅ Interfaz amigable para edición manual
     - ✅ Control de cache: `revalidateTag()` invalidate datos después de cambios
 
-- **Build Fixes Completados**:
-    - ✅ **Commit 0311cae**: Movida Edge Function a `supabase/functions/` (fuera del root)
-    - ✅ **Commit 54fe3af**: Actualizado `tsconfig.json` para excluir carpeta `supabase/`
-    - ✅ **Commit c55beae**: Corregido import `createClient` → `supabaseAdmin` en API routes
-    - ✅ **Commit b6d91e7**: Añadido type guard `'translated' in res` para manejo correcto de tipos
-    - ✅ **Commit 8c1964f**: Corregida firma `revalidateTag()` (añadido segundo argumento options object) para Next.js 16.1.6
+### 11. Translation Hub Multicontenido (24/02/2026)
+- **Problema**: Sistema de traducción solo cubría propiedades
+- **Solución**: Extendido a **Banner/Hero** y **Blog Posts**
+  - `translateHeroAction()` en `src/app/actions/translate-hero.ts` - Traduce títulos de slides
+  - `translateBlogPostAction()` en `src/app/actions/translate-blog.ts` - Traduce títulos/extractos
+  - `translateBlogContentAction()` en `src/app/actions/translate-blog.ts` - Traduce contenido completo
+- **Interfaz Centralizada**: `/admin/translations-hub` con 3 tabs (Propiedades, Banners, Blog)
+  - Componente `TranslationPanel` reutilizable para cualquier contenido
+  - API routes para cada tipo: `/api/admin/translations/{hero,blog}`
+  - UI con indicadores de estado, costo y detalles de errores
+- **Data Format**:
+  - `hero_slides.titles`: JSON con estructura `{es, en, fr, de, it, pl}`
+  - `blog_posts`: Múltiples filas (una por idioma) con `is_published: false` para revisión
+- **Builds Completados**:
+  - ✅ **Commit 9345e5f**: Funciones de traducción para Hero y Blog
+  - ✅ **Commit 0f332a0**: Hub centralizado, API routes, componentes
 
 ## ✅ Completado
 
-- ✅ Sistema de traducción con Perplexity AI operacional
-- ✅ Admin panel funcional para edición de traducciones
+- ✅ Sistema de traducción con Perplexity AI (Propiedades, Banners, Blog)
+- ✅ Translation Hub centralizado con interfaz tabbed
+- ✅ Admin panel funcional con edición manual y auto-traducción
 - ✅ Build pipeline limpio sin errores TypeScript
-- ✅ Arquitectura de servidor segura (sin Edge Functions con JWT)
-- ✅ Logging de auditoría en `translation_log`
+- ✅ Arquitectura segura (Server Actions sin JWT)
+- ✅ Logging de auditoría completo en `translation_log`
+- ✅ Consolidación de datos: todas las fuentes se consultan desde `property_metadata`
 
 ## 🎯 Próximas Mejoras (Opcionales)
 
-1. **Validación automática**: Revisar precisión de traducciones Perplexity en todos los idiomas
-2. **Mejoras SEO**: Metadatos dinámicos por idioma
-3. **Refactor de Limpieza**: Aplicar motor de limpieza de textos a todos los idiomas guardados
+1. **Interfaz de contenido**: Traductor interactivo para contenido largo de blog
+2. **Sistema de aprobación**: Revisar traducciones antes de publicar
+3. **Historial**: Versiones de traducciones por idioma
+4. **Optimización**: Caché inteligente de traducciones frecuentes
 
 ---
-*Última actualización: 24/02/2026 (12:30) - Server Actions + Perplexity integrados. Build exitoso. Admin panel listo.*
+*Última actualización: 24/02/2026 (14:45) - Translation Hub multicontenido completado. Propiedades + Banner + Blog integrados en una sola interfaz. Build exitoso.*
