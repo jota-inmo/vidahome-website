@@ -2,56 +2,27 @@
 
 import { createInmovillaApi } from '@/lib/api/properties';
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
-import { apiCache } from '@/lib/api/cache';
-import { headers } from 'next/headers';
-import { revalidateTag, unstable_cache } from 'next/cache';
-import { getLocale } from 'next-intl/server';
+import { revalidateTag } from 'next/cache';
 
 /**
- * Helper to map next-intl locale to Inmovilla language code
- * 1 = Spanish, 2 = English
+ * Helper to map next-intl locale to description key
  */
-function mapLocaleToInmovillaId(locale: string): number {
+function getDescriptionKey(locale: string): string {
     switch (locale) {
-        case 'en': return 2;
-        case 'fr': return 3;
-        case 'de': return 4;
-        case 'it': return 5; // Added Italian
-        case 'pl': return 6; // Added Polish
+        case 'en': return 'description_en';
+        case 'fr': return 'description_fr';
+        case 'de': return 'description_de';
+        case 'it': return 'description_it';
+        case 'pl': return 'description_pl';
         case 'es':
-        default: return 1;
+        default: return 'description_es';
     }
 }
 
-// ─── Función interna cacheada con Next.js Data Cache ─────────────────────────
-// IMPORTANTE: La caché es por idioma. Cada locale tiene su propia entrada.
-async function _fetchPropertiesFromApiRaw(numagencia: string, password: string, addnumagencia: string, clientIp: string, domain: string, inmoLang: number): Promise<PropertyListEntry[]> {
-    console.log(`[Actions] Next.js Cache miss: Fetching from Web API (IP: ${clientIp}, Lang: ${inmoLang})...`);
-    const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-    const api = new InmovillaWebApiService(numagencia, password, addnumagencia, inmoLang, clientIp, domain);
-    const properties: PropertyListEntry[] = await api.getProperties({ page: 1 });
-
-    if (!properties || properties.length === 0) return [];
-
-    return properties
-        .filter(p =>
-            !p.nodisponible &&
-            !p.prospecto &&
-            !isNaN(p.cod_ofer) &&
-            p.ref &&
-            p.ref.trim() !== '' &&
-            p.ref !== '2494' &&
-            p.cod_ofer !== 2494
-        )
-        .sort((a, b) => b.cod_ofer - a.cod_ofer);
-}
-
-// Devuelve una versión cacheada de la función, con clave única por idioma
-function _getLocaleAwarePropertyFetcher(locale: string) {
-    const tag = `inmovilla_property_list_v9_${locale}`;
-    return unstable_cache(_fetchPropertiesFromApiRaw, [tag], { revalidate: 60, tags: [tag] });
-}
-
+/**
+ * SIMPLIFIED: Fetch properties from Supabase (source of truth)
+ * No Inmovilla calls - all data is pre-synced via admin/sync panel
+ */
 export async function fetchPropertiesAction(): Promise<{
     success: boolean;
     data?: PropertyListEntry[];
@@ -59,274 +30,277 @@ export async function fetchPropertiesAction(): Promise<{
     isConfigured: boolean;
     meta?: { populations: string[] };
 }> {
-    const locale = await getLocale();
-    const inmoLang = mapLocaleToInmovillaId(locale);
-
-    const token = process.env.INMOVILLA_TOKEN;
-    const numagencia = process.env.INMOVILLA_AGENCIA;
-    const addnumagencia = process.env.INMOVILLA_ADDAGENCIA || '';
-    const password = process.env.INMOVILLA_PASSWORD;
-    const domain = process.env.INMOVILLA_DOMAIN || 'vidahome.es';
-
-    const headerList = await headers();
-    let clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
-
-    if (clientIp === '127.0.0.1' || clientIp === '::1') {
-        try {
-            const ipRes = await fetch('https://api.ipify.org?format=json');
-            if (ipRes.ok) {
-                const ipData = await ipRes.json();
-                clientIp = ipData.ip;
-            }
-        } catch (e) {
-            console.warn('[Inmovilla Action] Fallback IP fetch failed:', e);
-        }
-    }
-
-    const isConfigured = !!(numagencia && password) || (!!token && token !== 'your_token_here');
-
-    if (!isConfigured) {
-        return { success: false, isConfigured: false, error: 'Credenciales de Inmovilla no configuradas.' };
-    }
-
     try {
-        const _fetchPropertiesFromApi = _getLocaleAwarePropertyFetcher(locale);
-        let properties = await _fetchPropertiesFromApi(numagencia!, password!, addnumagencia, clientIp, domain, inmoLang);
+        const { supabase } = await import('@/lib/supabase');
+        const { data: properties, error } = await supabase
+            .from('property_metadata')
+            .select('cod_ofer, ref, tipo, precio, descripciones:descriptions->>description_es, main_photo, poblacion, nodisponible, prospecto, fechaact')
+            .eq('nodisponible', false)
+            .order('cod_ofer', { ascending: false });
 
-        // --- Enrichment with Supabase Metadata starts here ---
-        try {
-            const { supabase } = await import('@/lib/supabase');
-            // Fetch from property_metadata (source of truth for translations)
-            const { data: metadata } = await supabase
-                .from('property_metadata')
-                .select('cod_ofer, descriptions, full_data');
+        if (error) throw error;
 
-            if (metadata && metadata.length > 0) {
-                properties = properties.map(p => {
-                    const meta = metadata.find(m => m.cod_ofer === p.cod_ofer);
-                    if (!meta) return p;
+        // Cast to PropertyListEntry (Supabase returns the structure we need)
+        const formatted = (properties || []) as PropertyListEntry[];
+        const populations = [...new Set(formatted.map(p => p.poblacion).filter(Boolean))].sort() as string[];
 
-                    let bestDescription = p.descripciones;
-                    
-                    // Try translations first
-                    if (meta.descriptions) {
-                        const descriptions = meta.descriptions as Record<string, string>;
-                        const langKey = `description_${locale}`;
-                        const translated = descriptions[langKey];
-
-                        if (translated) {
-                            bestDescription = translated;
-                        } else if (descriptions.description_es) {
-                            bestDescription = descriptions.description_es;
-                        }
-                    }
-                    
-                    // Fallback to full_data if no description found
-                    if (!bestDescription && meta.full_data) {
-                        const fullData = meta.full_data as any;
-                        bestDescription = fullData.descripciones;
-                    }
-
-                    return {
-                        ...p,
-                        descripciones: bestDescription
-                    };
-                });
-            }
-        } catch (supaError) {
-            console.warn('[Actions] Supabase properties enrichment failed:', supaError);
-        }
-        // --- Enrichment ends here ---
-
-        // --- Auto-Sync: Save all properties to property_metadata (single source of truth) ---
-        try {
-            const { supabaseAdmin } = await import('@/lib/supabase-admin');
-            const upsertBatch = properties.map((p: any) => ({
-                cod_ofer: p.cod_ofer,
-                ref: p.ref,
-                descriptions: {
-                    description_es: p.descripciones || '',
-                },
-                full_data: p, // Store complete property data for reference
-                updated_at: new Date().toISOString()
-            }));
-
-            // Upsert in batches to avoid timeout
-            const batchSize = 10;
-            for (let i = 0; i < upsertBatch.length; i += batchSize) {
-                const batch = upsertBatch.slice(i, i + batchSize);
-                await supabaseAdmin
-                    .from('property_metadata')
-                    .upsert(batch, { onConflict: 'cod_ofer' });
-            }
-            console.log(`[Actions] 💾 Synced ${properties.length} properties to property_metadata`);
-        } catch (syncError) {
-            console.warn('[Actions] Auto-sync to property_metadata failed:', syncError);
-        }
-        // --- Auto-Sync ends here ---
-
-        const populations = [...new Set(properties.map(p => p.poblacion).filter(Boolean))].sort() as string[];
-
-        return { success: true, data: properties, isConfigured: true, meta: { populations } };
+        return { success: true, data: formatted, isConfigured: true, meta: { populations } };
     } catch (error: any) {
-        console.error('[Actions] fetchProperties Error:', error);
-        return { success: false, isConfigured: true, error: error.message || 'Error al conectar con Inmovilla' };
+        console.error('[Actions] fetchPropertiesAction Error:', error);
+        return { success: false, isConfigured: true, error: error.message || 'Error loading properties', data: [] };
     }
 }
 
 /**
- * Internal helper - doesn't call headers(), accepts clientIp as parameter
- * Used by cached functions and public getPropertyDetailAction
+ * SIMPLIFIED: Get property detail from Supabase (source of truth)
+ * All data including photos are pre-synced via admin/sync panel
  */
-async function _getPropertyDetailWithIp(
-    id: number,
-    locale: string,
-    clientIp: string
-): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
-    const inmoLang = mapLocaleToInmovillaId(locale);
-
-    const numagencia = process.env.INMOVILLA_AGENCIA;
-    const addnumagencia = process.env.INMOVILLA_ADDAGENCIA || '';
-    const password = process.env.INMOVILLA_PASSWORD;
-    const domain = process.env.INMOVILLA_DOMAIN || 'vidahome.es';
-
-    if (!numagencia || !password) return { success: false, error: 'Credenciales no configuradas' };
-
-    const cacheKey = `prop_detail_v11_${id}_${locale}`;
-    const cachedDetail = apiCache.get<PropertyDetails>(cacheKey);
-    if (cachedDetail) return { success: true, data: cachedDetail };
-
-    // --- STEP 0: Check Supabase FIRST for FULL DATA (Super-fast path) ---
+export async function getPropertyDetailAction(id: number, locale: string = 'es'): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
     try {
         const { supabase } = await import('@/lib/supabase');
-        const { data: meta } = await supabase
+        const { data: meta, error } = await supabase
             .from('property_metadata')
-            .select('cod_ofer, descriptions, full_data')
+            .select('cod_ofer, ref, full_data, descriptions, photos, main_photo')
             .eq('cod_ofer', id)
             .single();
 
-        if (meta && meta.descriptions && meta.full_data) {
-            const descriptions = meta.descriptions as Record<string, string>;
-            const langKey = `description_${locale}`;
-            const translation = descriptions[langKey];
-
-            if (translation || locale === 'es') {
-                console.log(`[Actions] 🚀 SUPABASE-FIRST: Full data HIT for ${id} in '${locale}'`);
-                // Return complete property data with correct description for the locale
-                const fullData = meta.full_data as any;
-                fullData.descripciones = translation || descriptions.description_es || fullData.descripciones;
-                fullData.all_descriptions = descriptions;
-                return {
-                    success: true,
-                    data: fullData
-                };
-            }
-        }
-        console.log(`[Actions] ⏳ Cache MISS for ${id}, fetching from Inmovilla...`);
-    } catch (supaErr) {
-        console.warn('[Actions] Supabase pre-fetch failed, falling back to API:', supaErr);
-    }
-
-    try {
-        const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-        const api = new InmovillaWebApiService(numagencia, password, addnumagencia, inmoLang, clientIp, domain);
-        const details = await api.getPropertyDetails(id);
-
-        if (!details || details.nodisponible || details.prospecto || details.ref === '2494' || details.cod_ofer === 2494) {
-            return { success: false, error: 'La propiedad solicitada no está disponible actualmente' };
+        if (error || !meta) {
+            return { success: false, error: 'Propiedad no encontrada' };
         }
 
-        // --- STEP 2: AI Translation only if Supabase had no cached translation ---
-        const needsTranslation = locale !== 'es' && (!details.all_descriptions || !details.all_descriptions[locale]);
-        const spanishText = details.all_descriptions?.es || (locale === 'es' ? details.descripciones : null);
+        // Get full property data from stored full_data
+        const fullData = meta.full_data as PropertyDetails || {};
 
-        if (needsTranslation && spanishText && spanishText.length > 20) {
-            try {
-                const { translateText } = await import('@/lib/api/translator');
-                console.log(`[Actions] 🤖 AI Translating property ${id} from 'es' to '${locale}'...`);
-                // Timeout de 8 segundos para no bloquear la experiencia del usuario
-                const translated = await translateText(spanishText, 'es', locale, 8000);
+        // Apply correct locale description
+        const descKey = getDescriptionKey(locale);
+        const descriptions = meta.descriptions as Record<string, string> || {};
+        const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones;
 
-                if (translated) {
-                    details.descripciones = translated;
-                    if (!details.all_descriptions) details.all_descriptions = {};
-                    details.all_descriptions[locale] = translated;
-                    console.log(`[Actions] ✅ AI Translation successful for ${id}`);
-                } else {
-                    // Fallback: show Spanish description rather than nothing
-                    if (spanishText && !details.descripciones) {
-                        details.descripciones = spanishText;
-                    }
-                }
-            } catch (transError) {
-                console.warn('[Actions] AI Translation failed, falling back to Spanish:', transError);
-                if (spanishText) details.descripciones = spanishText;
-            }
-        }
+        // Enrich with photos if available
+        const propertyWithPhotos = {
+            ...fullData,
+            cod_ofer: meta.cod_ofer,
+            ref: meta.ref,
+            descripciones: localizedDesc,
+            all_descriptions: descriptions,
+            fotos: meta.photos || [],
+            main_photo: meta.main_photo
+        };
 
-        // --- Auto-Learn: Sync everything to Supabase for the catalog and super-fast path ---
-        try {
-            const { supabaseAdmin } = await import('@/lib/supabase-admin');
-
-            // Fix: Ensure the current locale translation is explicitly in the descriptions map
-            const currentDescriptions = { ...(details.all_descriptions || {}) };
-            if (locale && details.descripciones && !currentDescriptions[locale]) {
-                currentDescriptions[locale] = details.descripciones;
-            }
-
-            const upsertData: any = {
-                cod_ofer: details.cod_ofer,
-                ref: details.ref,
-                full_data: { ...details, all_descriptions: currentDescriptions },
-                descriptions: currentDescriptions,
-                updated_at: new Date().toISOString()
-            };
-
-            if (currentDescriptions.es) {
-                upsertData.description = currentDescriptions.es;
-            } else if (locale === 'es' && details.descripciones) {
-                upsertData.description = details.descripciones;
-            }
-
-            await supabaseAdmin.from('property_metadata').upsert(upsertData, { onConflict: 'cod_ofer' });
-            console.log(`[Actions] 💾 Property ${id} synced to Supabase (Full Data, Locales: ${Object.keys(currentDescriptions).join(', ')})`);
-        } catch (supaError) {
-            console.warn('[Actions] Auto-sync multi-lang metadata failed:', supaError);
-        }
-        // --- Auto-Learn ends here ---
-
-        apiCache.set(cacheKey, details);
-        return { success: true, data: details };
-
+        return { success: true, data: propertyWithPhotos };
     } catch (error: any) {
+        console.error('[Actions] getPropertyDetailAction Error:', error);
         return { success: false, error: error.message };
     }
 }
 
-export async function getPropertyDetailAction(id: number): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
-    const locale = await getLocale();
+/**
+ * SIMPLIFIED: Get featured property IDs from Supabase
+ */
+export async function getFeaturedPropertiesAction(): Promise<number[]> {
+    try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data, error } = await supabase
+            .from('featured_properties')
+            .select('cod_ofer')
+            .order('created_at', { ascending: true });
 
-    const headerList = await headers();
-    let clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
-
-    if (clientIp === '127.0.0.1' || clientIp === '::1') {
-        try {
-            const ipRes = await fetch('https://api.ipify.org?format=json');
-            if (ipRes.ok) {
-                const ipData = await ipRes.json();
-                clientIp = ipData.ip;
-            }
-        } catch (e) {
-            console.warn('[Inmovilla Action] Fallback IP fetch failed for details:', e);
-        }
+        if (error) throw error;
+        return (data || []).map(item => item.cod_ofer);
+    } catch (e) {
+        console.error('Error fetching featured properties:', e);
+        return [];
     }
-
-    return _getPropertyDetailWithIp(id, locale, clientIp);
 }
 
+/**
+ * SIMPLIFIED: Get featured properties with full details from Supabase
+ * All data is pre-synced, no Inmovilla calls
+ */
+export async function getFeaturedPropertiesWithDetailsAction(locale: string): Promise<{ success: boolean; data: any[] }> {
+    try {
+        const featuredIds = await getFeaturedPropertiesAction();
+
+        if (featuredIds.length === 0) return { success: true, data: [] };
+
+        const { supabase } = await import('@/lib/supabase');
+        const { data: metadata, error } = await supabase
+            .from('property_metadata')
+            .select('cod_ofer, full_data, descriptions, main_photo, photos')
+            .in('cod_ofer', featuredIds);
+
+        if (error) throw error;
+
+        const results = featuredIds
+            .map(id => {
+                const meta = metadata?.find(m => m.cod_ofer === id);
+                if (!meta || !meta.full_data) return null;
+
+                const fullData = meta.full_data as PropertyDetails;
+                const descriptions = meta.descriptions as Record<string, string> || {};
+                const descKey = getDescriptionKey(locale);
+                const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones;
+
+                return {
+                    ...fullData,
+                    cod_ofer: meta.cod_ofer,
+                    descripciones: localizedDesc,
+                    all_descriptions: descriptions,
+                    main_photo: meta.main_photo,
+                    fotos: meta.photos || []
+                };
+            })
+            .filter(Boolean);
+
+        return { success: true, data: results };
+    } catch (error: any) {
+        console.error('Error getting featured properties with details:', error);
+        return { success: false, data: [] };
+    }
+}
+
+/**
+ * Update featured properties list
+ */
+export async function updateFeaturedPropertiesAction(ids: number[]) {
+    try {
+        const { supabaseAdmin } = await import('@/lib/supabase-admin');
+
+        const { error: deleteError } = await supabaseAdmin.from('featured_properties').delete().neq('id', 0);
+        if (deleteError) throw deleteError;
+
+        if (ids.length > 0) {
+            const inserts = ids.map(id => ({ cod_ofer: id }));
+            const { error: insertError } = await supabaseAdmin.from('featured_properties').insert(inserts);
+            if (insertError) throw insertError;
+        }
+
+        return { success: true };
+    } catch (e) {
+        console.error('Error updating featured properties:', e);
+        return { success: false, error: 'Error al persistir cambios' };
+    }
+}
 
 import { checkRateLimit } from '@/lib/rate-limit';
 
+/**
+ * ⭐ THE ONLY FUNCTION THAT CALLS INMOVILLA
+ * 
+ * Synchronize properties from Inmovilla to Supabase
+ * Called ONLY from /admin/sync panel
+ * 
+ * Process:
+ * 1. Call Inmovilla getProperties (lista inicial)
+ * 2. Call Inmovilla getPropertyDetails (para cada propiedad → obtener fotos)
+ * 3. Store everything in Supabase property_metadata with clean structure
+ */
+export async function syncPropertiesFromInmovillaAction(): Promise<{
+    success: boolean;
+    synced: number;
+    error?: string;
+}> {
+    const token = process.env.INMOVILLA_TOKEN;
+    const numagencia = process.env.INMOVILLA_AGENCIA;
+    const password = process.env.INMOVILLA_PASSWORD;
+    const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
+
+    if (!numagencia || !password) {
+        return { success: false, synced: 0, error: 'Inmovilla credentials not configured' };
+    }
+
+    try {
+        console.log('[Sync] Starting sync from Inmovilla...');
+
+        // STEP 1: Get property list from Inmovilla
+        const api = createInmovillaApi(token!, authType);
+        const propertiesData = await api.getProperties({ page: 1 });
+
+        if (!propertiesData || propertiesData.length === 0) {
+            return { success: true, synced: 0 };
+        }
+
+        // Filter valid properties
+        const validProperties = propertiesData.filter(p =>
+            !p.nodisponible &&
+            !p.prospecto &&
+            !isNaN(p.cod_ofer) &&
+            p.ref &&
+            p.ref.trim() !== '' &&
+            p.ref !== '2494' &&
+            p.cod_ofer !== 2494
+        );
+
+        console.log(`[Sync] Found ${validProperties.length} valid properties from Inmovilla`);
+
+        const { supabaseAdmin } = await import('@/lib/supabase-admin');
+        let successCount = 0;
+
+        // STEP 2: Process each property
+        for (const baseProp of validProperties) {
+            try {
+                // Get full details for this property to extract photos
+                const details = await api.getPropertyDetails(baseProp.cod_ofer);
+
+                if (!details) continue;
+
+                // Extract photos - handle both array and Record formats
+                let photos: any[] = [];
+                if (Array.isArray(details.fotos)) {
+                    photos = details.fotos;
+                } else if (details.fotos && typeof details.fotos === 'object') {
+                    // Convert Record to array
+                    photos = Object.values(details.fotos).map((f: any) => f?.url || f);
+                }
+                const mainPhoto = photos[0] || null;
+
+                // Prepare data for Supabase
+                const upsertData = {
+                    cod_ofer: baseProp.cod_ofer,
+                    ref: baseProp.ref,
+                    tipo: details.tipo_nombre || baseProp.tipo_nombre || 'Property',
+                    precio: details.precio || 0,
+                    poblacion: details.poblacion || baseProp.poblacion,
+                    // Store Spanish description in key format
+                    descriptions: {
+                        description_es: details.descripciones || baseProp.descripciones || ''
+                    },
+                    // Store full property data for reference
+                    full_data: details,
+                    // Store photos separately for easy display
+                    photos: photos,
+                    main_photo: mainPhoto,
+                    nodisponible: false,
+                    updated_at: new Date().toISOString()
+                };
+
+                // Upsert to Supabase
+                const { error } = await supabaseAdmin
+                    .from('property_metadata')
+                    .upsert(upsertData, { onConflict: 'cod_ofer' });
+
+                if (error) {
+                    console.warn(`[Sync] Error upserting property ${baseProp.cod_ofer}:`, error);
+                } else {
+                    successCount++;
+                }
+            } catch (propError) {
+                console.warn(`[Sync] Error processing property ${baseProp.cod_ofer}:`, propError);
+            }
+        }
+
+        console.log(`[Sync] Successfully synced ${successCount}/${validProperties.length} properties`);
+        return { success: true, synced: successCount };
+    } catch (error: any) {
+        console.error('[Sync] Error during sync:', error);
+        return { success: false, synced: 0, error: error.message };
+    }
+}
+
+/**
+ * Submit lead (contact form submission)
+ * Minimal - only stores to Supabase and optionally Inmovilla
+ */
 export async function submitLeadAction(formData: {
     nombre: string;
     apellidos: string;
@@ -350,157 +324,33 @@ export async function submitLeadAction(formData: {
     }
 
     const token = process.env.INMOVILLA_TOKEN;
-
     const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
 
     try {
-        const api = createInmovillaApi(token!, authType);
-        await api.createClient({
-            nombre: formData.nombre,
-            apellidos: `${formData.apellidos} -- Mensaje: ${formData.mensaje.substring(0, 100)}`,
-            email: formData.email,
-            telefono1: formData.telefono,
-            ...(formData.cod_ofer > 0 ? { cod_ofer: formData.cod_ofer } : {})
-        });
+        // Optional: Send to Inmovilla if configured
+        if (token) {
+            const api = createInmovillaApi(token, authType);
+            await api.createClient({
+                nombre: formData.nombre,
+                apellidos: `${formData.apellidos} -- Mensaje: ${formData.mensaje.substring(0, 100)}`,
+                email: formData.email,
+                telefono1: formData.telefono,
+                ...(formData.cod_ofer > 0 ? { cod_ofer: formData.cod_ofer } : {})
+            });
+        }
 
-        try {
-            const { supabase } = await import('@/lib/supabase');
-            if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
-                await supabase.from('leads').insert([{
-                    ...formData,
-                    created_at: new Date().toISOString()
-                }]);
-            }
-        } catch (supaError) {
-            console.warn('Supabase backup failed (non-critical):', supaError);
+        // Store in Supabase
+        const { supabase } = await import('@/lib/supabase');
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
+            await supabase.from('leads').insert([{
+                ...formData,
+                created_at: new Date().toISOString()
+            }]);
         }
 
         return { success: true };
     } catch (error: any) {
         console.error('Lead Submission Error:', error);
         return { success: false, error: error.message };
-    }
-}
-
-const getCachedFeaturedIds = unstable_cache(
-    async () => {
-        const { supabase } = await import('@/lib/supabase');
-        const { data, error } = await supabase
-            .from('featured_properties')
-            .select('cod_ofer')
-            .order('created_at', { ascending: true });
-
-        if (error) throw error;
-        return data.map(item => item.cod_ofer);
-    },
-    ['featured_ids_v1'],
-    { revalidate: 3600, tags: ['featured_properties'] }
-);
-
-export async function getFeaturedPropertiesAction(): Promise<number[]> {
-    try {
-        return await getCachedFeaturedIds();
-    } catch (e) {
-        console.error('Error fetching featured properties from Supabase:', e);
-        return [];
-    }
-}
-
-export async function getFeaturedPropertiesWithDetailsAction(locale: string): Promise<{ success: boolean; data: any[] }> {
-    // Use cached version per locale for better performance
-    return await getCachedFeaturedPropertiesForLocale(locale);
-}
-
-// Cached version that varies by locale - improves SSR performance
-const getCachedFeaturedPropertiesForLocale = unstable_cache(
-    async (locale: string) => {
-        const featuredIds = await getFeaturedPropertiesAction();
-
-        if (featuredIds.length === 0) return { success: true, data: [] };
-
-        try {
-            // --- BATCH FAST PATH ---
-            const { supabase } = await import('@/lib/supabase');
-            const { data: metadata, error } = await supabase
-                .from('property_metadata')
-                .select('cod_ofer, full_data, descriptions')
-                .in('cod_ofer', featuredIds);
-
-            if (error) throw error;
-
-            const results: any[] = [];
-            const missingIds: number[] = [];
-
-            featuredIds.forEach(id => {
-                const meta = metadata?.find(m => m.cod_ofer === id);
-                if (meta && meta.full_data) {
-                    const data = meta.full_data as PropertyDetails;
-                    // Check for current locale translation
-                    const translation = meta.descriptions?.[locale] || data.all_descriptions?.[locale];
-
-                    if (translation || locale === 'es') {
-                        if (translation) data.descripciones = translation;
-                        // Ensure the data object has the correct descriptions map for consistency
-                        if (!data.all_descriptions) data.all_descriptions = meta.descriptions || {};
-                        results.push(data);
-                        return;
-                    }
-                }
-                // If any property is missing or lacks translation, queue for individual fetch
-                missingIds.push(id);
-            });
-
-            if (missingIds.length > 0) {
-                console.log(`[Actions] Featured: ${missingIds.length} properties missing from bulk cache, fetching individually...`);
-                // Use internal helper with default IP to avoid calling headers() inside cache scope
-                const individualPromises = missingIds.map(id => _getPropertyDetailWithIp(id, locale, '127.0.0.1'));
-                const individualResults = await Promise.all(individualPromises);
-
-                individualResults.forEach(res => {
-                    if (res.success && res.data) {
-                        results.push(res.data);
-                    }
-                });
-            }
-
-            // Sort results to match original featuredIds order
-            const sortedResults = featuredIds
-                .map(id => results.find(r => r.cod_ofer === id))
-                .filter(Boolean);
-
-            return { success: true, data: sortedResults };
-        } catch (error) {
-            console.error('Error enriching featured properties:', error);
-            // Fallback to individual fetching if batch fails
-            const featuredIds = await getFeaturedPropertiesAction();
-            // Use internal helper with default IP to avoid calling headers() inside cache scope
-            const detailPromises = featuredIds.map((id: number) => _getPropertyDetailWithIp(id, locale, '127.0.0.1'));
-            const results = await Promise.all(detailPromises);
-            const validDetails = results.filter(res => res.success && res.data).map(res => res.data);
-            return { success: true, data: validDetails };
-        }
-    },
-    ['featured_with_details'],
-    { revalidate: 3600, tags: ['featured_properties'] } // Cache per locale for 1 hour
-);
-
-export async function updateFeaturedPropertiesAction(ids: number[]) {
-    try {
-        const { supabaseAdmin } = await import('@/lib/supabase-admin');
-
-        const { error: deleteError } = await supabaseAdmin.from('featured_properties').delete().neq('id', 0);
-        if (deleteError) throw deleteError;
-
-        if (ids.length > 0) {
-            const inserts = ids.map(id => ({ cod_ofer: id }));
-            const { error: insertError } = await supabaseAdmin.from('featured_properties').insert(inserts);
-            if (insertError) throw insertError;
-        }
-
-        revalidateTag('inmovilla_property_list', {});
-        return { success: true };
-    } catch (e) {
-        console.error('Error updating featured properties in Supabase:', e);
-        return { success: false, error: 'Error al persistir cambios' };
     }
 }

@@ -15,7 +15,7 @@ export async function generateMetadata(
     parent: ResolvingMetadata
 ): Promise<Metadata> {
     const { id, locale } = await params;
-    const result = await getPropertyDetailAction(parseInt(id));
+    const result = await getPropertyDetailAction(parseInt(id), locale);
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
 
     if (!result.success || !result.data) {
@@ -56,7 +56,7 @@ export async function generateMetadata(
 
 export default async function PropertyDetailPage({ params }: Props) {
     const { id, locale } = await params;
-    const result = await getPropertyDetailAction(parseInt(id));
+    const result = await getPropertyDetailAction(parseInt(id), locale);
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
     const tIndex = await getTranslations({ locale: locale as string, namespace: 'Index' });
 
