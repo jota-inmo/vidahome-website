@@ -2,31 +2,30 @@
  * Perplexity AI Configuration
  * Centralized model configuration to easily switch models without code changes
  *
- * Model Format: provider/model (e.g., "perplexity/llama-3.1-sonar-small-128k-online")
- * API Endpoint: https://api.perplexity.ai/chat/completions (legacy)
- *              https://api.perplexity.ai/v1/responses (new)
+ * Current valid models (Feb 2026):
+ * - sonar: Lightweight search model (recommended - fast, cheap)
+ * - sonar-pro: Advanced search model
+ * - sonar-reasoning-pro: Complex reasoning with Chain of Thought
+ * - sonar-deep-research: Expert-level research
  */
 
 export const PERPLEXITY_CONFIG = {
-  // Read from environment variable, fallback to current model
-  // Format: provider/model (e.g., "perplexity/llama-3.1-sonar-small-128k-online")
-  model: process.env.PERPLEXITY_MODEL || 'perplexity/llama-3.1-sonar-small-128k-online',
+  // Read from environment variable, fallback to sonar (lightweight, cost-effective)
+  model: process.env.PERPLEXITY_MODEL || 'sonar',
   
-  // Available models for reference (provider/model format)
+  // Available models for reference (Feb 2026)
   availableModels: {
-    'sonar-small': 'perplexity/llama-3.1-sonar-small-128k-online',
-    'sonar-large': 'perplexity/llama-3.1-sonar-large-128k-online',
-    'sonar-huge': 'perplexity/llama-3.1-sonar-huge-128k-online',
+    'sonar': 'sonar',  // Lightweight search - RECOMMENDED
+    'sonar-pro': 'sonar-pro',  // Advanced search
+    'reasoning': 'sonar-reasoning-pro',  // Complex reasoning
+    'research': 'sonar-deep-research',  // Deep research
   },
 
   // Temperature for consistent translations
   temperature: 0.2,
   
-  // Legacy API endpoint (still works, simpler)
+  // API endpoint (chat/completions accepts sonar models)
   apiUrl: 'https://api.perplexity.ai/chat/completions',
-  
-  // New API endpoint (supports reasoning, tools, etc.)
-  apiUrlV1: 'https://api.perplexity.ai/v1/responses',
 };
 
 export const getPerplexityModel = (): string => {

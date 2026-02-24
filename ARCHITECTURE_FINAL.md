@@ -221,9 +221,9 @@ El modelo Perplexity está **completamente centralizado** y puede cambiarse sin 
 **Archivo centralizado**: `src/config/perplexity.ts`
 
 ```typescript
-// Lectura de variable de ambiente con fallback inteligente (formato: provider/model)
+// Lectura de variable de ambiente con fallback inteligente
 export function getPerplexityModel(): string {
-  return process.env.PERPLEXITY_MODEL || 'perplexity/llama-3.1-sonar-small-128k-online';
+  return process.env.PERPLEXITY_MODEL || 'sonar';
 }
 
 // Objeto de configuración completo
@@ -232,9 +232,10 @@ export const PERPLEXITY_CONFIG = {
   apiUrl: 'https://api.perplexity.ai/chat/completions',
   temperature: 0.2,
   availableModels: {
-    small: 'perplexity/llama-3.1-sonar-small-128k-online',
-    large: 'perplexity/llama-3.1-sonar-large-128k-online',
-    huge: 'perplexity/llama-3.1-sonar-huge-128k-online',
+    sonar: 'sonar',
+    pro: 'sonar-pro',
+    reasoning: 'sonar-reasoning-pro',
+    research: 'sonar-deep-research',
   }
 };
 ```
@@ -244,12 +245,12 @@ export const PERPLEXITY_CONFIG = {
 **Opción 1: Via Environment Variable (Recomendado)**
 ```bash
 # En Vercel Settings → Environment Variables, agrega:
-PERPLEXITY_MODEL=perplexity/llama-3.1-sonar-small-128k-online
+PERPLEXITY_MODEL=sonar
 ```
 
 **Opción 2: Default Fallback**
 Si no está configurada, usa automáticamente:
-- `perplexity/llama-3.1-sonar-small-128k-online` (pequeño, rápido, económico)
+- `sonar` (ligero, rápido, económico)
 
 ### 🚀 Cambiar de Modelo (Futuro-Proof)
 
@@ -259,10 +260,11 @@ Si Perplexity descontinúa un modelo nuevamente:
 3. **Sin código, sin redeploy, sin commits**
 4. Cambio instantáneo ✨
 
-### 📋 Modelos Disponibles
-- `perplexity/llama-3.1-sonar-small-128k-online` - Recomendado (balance velocidad/calidad)
-- `perplexity/llama-3.1-sonar-large-128k-online` - Mayor capacidad
-- `perplexity/llama-3.1-sonar-huge-128k-online` - Máxima capacidad
+### 📋 Modelos Disponibles (Feb 2026)
+- `sonar` - Recomendado (ligero, rápido, económico)
+- `sonar-pro` - Advanced search model
+- `sonar-reasoning-pro` - Complex reasoning
+- `sonar-deep-research` - Expert-level research
 
 ---
 
