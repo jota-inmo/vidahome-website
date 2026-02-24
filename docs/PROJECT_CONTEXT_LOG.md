@@ -80,17 +80,25 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ---
 
+### 10. Traducción Automática PRO (Perplexity AI Engine)
+- **Migración de Datos**: Se evolucionó el esquema de `property_metadata` (JSONB) a una tabla plana `properties` para mejorar el rendimiento de las consultas SQL y facilitar el soporte de múltiples idiomas (ES, EN, FR, DE, IT).
+- **Integración de Perplexity API**:
+    - **Edge Function**: Implementada en `supabase/functions/translate-properties`. Utiliza el modelo `sonar-small-online`.
+    - **Prompt Experto**: Diseñado específicamente para el sector inmobiliario de lujo, asegurando que términos como "dormitorios", "m2" y "ascensor" se traduzcan correctamente en 4 idiomas simultáneos.
+    - **Control de Costes**: Cada traducción genera un log en `translation_log` con el conteo de tokens y coste estimado en euros.
+- **Panel de control (Admin)**:
+    - **Botón de Acción Masiva**: Permite traducir todos los anuncios pendientes con un solo clic.
+    - **Feedback de Progreso**: El panel de administración muestra estadísticas en tiempo real del proceso (traducidos, errores y coste).
+- **Soporte Italiano (IT)**: Añadido como idioma oficial del sistema.
+
 ## 🎛️ En Curso (In Progress)
 
-- **Monitoreo de Rendimiento**: Verificando que la carga en homepage sea rápida en es, en, y futuros idiomas.
+- **Validación de Datos**: Verificando la precisión de las traducciones generadas por Perplexity en los 4 idiomas destino.
 
 ---
-
-## 📅 Próximos Pasos (Pendiente)
 
 1.  **Mejoras SEO**: Refinar los metadatos de las fichas individuales.
-2.  **Dashboard Admin**: Vista para forzar sincronización de idiomas.
-3.  **Refactor de Limpieza**: Aplicar el motor de limpieza de textos de forma recursiva a todos los idiomas guardados.
+2.  **Refactor de Limpieza**: Aplicar el motor de limpieza de textos de forma recursiva a todos los idiomas guardados.
 
 ---
-*Última actualización: 23/02/2026 (18:30) por Antigravity AI.*
+*Última actualización: 24/02/2026 (10:05) por Antigravity AI.*

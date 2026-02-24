@@ -9,7 +9,10 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "api:test": "tsx src/scripts/test-api.ts"
+    "api:test": "tsx src/scripts/test-api.ts",
+    "translate:metadata": "tsx scripts/translate-property-metadata.ts",
+    "translate:gemini": "tsx scripts/translate-with-gemini.ts",
+    "fill:placeholders": "tsx scripts/fill-placeholder-translations.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",

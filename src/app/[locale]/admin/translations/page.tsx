@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { getPropertiesForTranslationAction, savePropertyTranslationAction } from '@/app/actions/translations';
+import { getPropertiesForTranslationAction, savePropertyTranslationAction, runAutoTranslationAction } from '@/app/actions/translations';
 import { checkAuthAction, logoutAction } from '@/app/actions';
 import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/routing';
-import { Languages, Save, ArrowLeft, Search, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Languages, Save, ArrowLeft, Search, CheckCircle2, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 
 export default function TranslationsAdmin() {
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedProp, setSelectedProp] = useState<any | null>(null);
-    const [editData, setEditData] = useState<{ es: string, en: string, fr: string, de: string }>({ es: '', en: '', fr: '', de: '' });
+    const [editData, setEditData] = useState<{ es: string, en: string, fr: string, de: string, it: string, pl: string }>({ es: '', en: '', fr: '', de: '', it: '', pl: '' });
     const [saving, setSaving] = useState(false);
+    const [translating, setTranslating] = useState(false);
+    const [translationResult, setTranslationResult] = useState<any | null>(null);
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
     const [searchTerm, setSearchTerm] = useState('');
     const router = useRouter();
@@ -40,12 +42,13 @@ export default function TranslationsAdmin() {
 
     const handleSelectProp = (prop: any) => {
         setSelectedProp(prop);
-        const descs = prop.descriptions || {};
         setEditData({
-            es: descs.es || prop.description || '',
-            en: descs.en || '',
-            fr: descs.fr || '',
-            de: descs.de || ''
+            es: prop.description_es || '',
+            en: prop.description_en || '',
+            fr: prop.description_fr || '',
+            de: prop.description_de || '',
+            it: prop.description_it || '',
+            pl: prop.description_pl || ''
         });
         setMessage({ text: '', type: null });
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -54,10 +57,10 @@ export default function TranslationsAdmin() {
     const handleSave = async () => {
         if (!selectedProp) return;
         setSaving(true);
-        const res = await savePropertyTranslationAction(selectedProp.cod_ofer, editData);
+        const res = await savePropertyTranslationAction(selectedProp.property_id, editData);
         if (res.success) {
             setMessage({ text: 'Traducciones guardadas correctamente', type: 'success' });
-            loadProperties(); // Reload to show updated data in list
+            loadProperties();
             setTimeout(() => {
                 if (window.confirm('¿Deseas volver a la lista?')) {
                     setSelectedProp(null);
@@ -67,6 +70,20 @@ export default function TranslationsAdmin() {
             setMessage({ text: res.error || 'Error al guardar', type: 'error' });
         }
         setSaving(false);
+    };
+
+    const handleAutoTranslate = async () => {
+        setTranslating(true);
+        setTranslationResult(null);
+        const res = await runAutoTranslationAction();
+        if (res.success) {
+            setTranslationResult(res);
+            setMessage({ text: `¡Traducción completada! ${res.translated} anuncios procesados.`, type: 'success' });
+            loadProperties();
+        } else {
+            setMessage({ text: res.error || 'Error en la traducción automática', type: 'error' });
+        }
+        setTranslating(false);
     };
 
     const filteredProperties = properties.filter(p =>
@@ -84,15 +101,55 @@ export default function TranslationsAdmin() {
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-20 px-8">
             <div className="max-w-6xl mx-auto">
                 <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-                    <div>
+                    <div className="flex-1">
                         <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-4 block">Gestión de Contenido</span>
                         <h1 className="text-4xl md:text-5xl font-serif text-[#0a192f] dark:text-white">Fábrica de <span className="italic text-slate-400">Traducciones</span></h1>
                         <p className="mt-4 text-slate-500 font-light">Edita y perfecciona las descripciones en múltiples idiomas.</p>
                     </div>
-                    <Link href="/admin" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-all">
-                        <ArrowLeft size={14} /> Volver al Panel
-                    </Link>
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <button
+                            onClick={handleAutoTranslate}
+                            disabled={translating}
+                            className={`flex items-center gap-3 px-6 py-4 rounded-sm text-[10px] uppercase tracking-widest font-bold transition-all shadow-xl group ${translating ? 'bg-slate-100 text-slate-400' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:scale-105 active:scale-95 shadow-blue-500/20'}`}
+                        >
+                            {translating ? (
+                                <><Loader2 size={16} className="animate-spin" /> Procesando con Perplexity...</>
+                            ) : (
+                                <><Sparkles size={16} className="text-blue-200 group-hover:animate-pulse" /> Traducir anuncios pendientes</>
+                            )}
+                        </button>
+                        <Link href="/admin" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-all underline decoration-slate-200 underline-offset-8">
+                            <ArrowLeft size={14} /> Volver al Panel
+                        </Link>
+                    </div>
                 </header>
+
+                {translationResult && (
+                    <div className="mb-12 p-8 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-sm animate-in slide-in-from-top-4 duration-500">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                            <div className="flex-1">
+                                <h4 className="text-sm font-bold uppercase tracking-widest text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                                    <CheckCircle2 size={16} /> Resultado del Proceso
+                                </h4>
+                                <div className="grid grid-cols-3 gap-8 mt-6">
+                                    <div>
+                                        <p className="text-[10px] text-blue-600/60 uppercase tracking-tighter mb-1">Traducidos</p>
+                                        <p className="text-2xl font-serif text-blue-900 dark:text-white">{translationResult.translated}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-blue-600/60 uppercase tracking-tighter mb-1">Errores</p>
+                                        <p className="text-2xl font-serif text-blue-900 dark:text-white">{translationResult.errors}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-blue-600/60 uppercase tracking-tighter mb-1">Coste Estimado</p>
+                                        <p className="text-2xl font-serif text-blue-900 dark:text-white">{translationResult.cost_estimate}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onClick={() => setTranslationResult(null)} className="text-[10px] uppercase font-bold tracking-widest text-blue-400 hover:text-blue-900">Cerrar</button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                     {/* Lista de Propiedades */}
@@ -125,13 +182,15 @@ export default function TranslationsAdmin() {
                                             </div>
                                             <div className="flex gap-2 items-center">
                                                 <div className="flex -space-x-1">
-                                                    {prop.descriptions?.es && <span title="Español" className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900 text-[8px] flex items-center justify-center font-bold text-blue-600 dark:text-blue-300 border border-white dark:border-slate-900 uppercase">ES</span>}
-                                                    {prop.descriptions?.en && <span title="Inglés" className="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-900 text-[8px] flex items-center justify-center font-bold text-emerald-600 dark:text-emerald-300 border border-white dark:border-slate-900 uppercase">EN</span>}
-                                                    {prop.descriptions?.fr && <span title="Francés" className="w-4 h-4 rounded-full bg-amber-100 dark:bg-amber-900 text-[8px] flex items-center justify-center font-bold text-amber-600 dark:text-amber-300 border border-white dark:border-slate-900 uppercase">FR</span>}
-                                                    {prop.descriptions?.de && <span title="Alemán" className="w-4 h-4 rounded-full bg-purple-100 dark:bg-purple-900 text-[8px] flex items-center justify-center font-bold text-purple-600 dark:text-purple-300 border border-white dark:border-slate-900 uppercase">DE</span>}
+                                                    {prop.description_es && <span title="Español" className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900 text-[8px] flex items-center justify-center font-bold text-blue-600 dark:text-blue-300 border border-white dark:border-slate-900 uppercase">ES</span>}
+                                                    {prop.description_en && <span title="Inglés" className="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-900 text-[8px] flex items-center justify-center font-bold text-emerald-600 dark:text-emerald-300 border border-white dark:border-slate-900 uppercase">EN</span>}
+                                                    {prop.description_fr && <span title="Francés" className="w-4 h-4 rounded-full bg-amber-100 dark:bg-amber-900 text-[8px] flex items-center justify-center font-bold text-amber-600 dark:text-amber-300 border border-white dark:border-slate-900 uppercase">FR</span>}
+                                                    {prop.description_de && <span title="Alemán" className="w-4 h-4 rounded-full bg-purple-100 dark:bg-purple-900 text-[8px] flex items-center justify-center font-bold text-purple-600 dark:text-purple-300 border border-white dark:border-slate-900 uppercase">DE</span>}
+                                                    {prop.description_it && <span title="Italiano" className="w-4 h-4 rounded-full bg-rose-100 dark:bg-rose-900 text-[8px] flex items-center justify-center font-bold text-rose-600 dark:text-rose-300 border border-white dark:border-slate-900 uppercase">IT</span>}
+                                                    {prop.description_pl && <span title="Polaco" className="w-4 h-4 rounded-full bg-cyan-100 dark:bg-cyan-900 text-[8px] flex items-center justify-center font-bold text-cyan-600 dark:text-cyan-300 border border-white dark:border-slate-900 uppercase">PL</span>}
                                                 </div>
                                                 <span className="text-[10px] text-slate-400 font-light truncate">
-                                                    {(prop.descriptions?.es || prop.description || '').substring(0, 40)}...
+                                                    {(prop.description_es || '').substring(0, 40)}...
                                                 </span>
                                             </div>
                                         </div>
@@ -160,7 +219,7 @@ export default function TranslationsAdmin() {
                                     </button>
                                     <div className="flex-1 lg:flex-none">
                                         <h3 className="text-2xl font-serif text-slate-900 dark:text-white">Editando <span className="italic text-slate-400">{selectedProp.ref}</span></h3>
-                                        <p className="text-xs text-slate-400 mt-1">Sincronizado con Supabase (JSONB Metadata)</p>
+                                        <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Perplexity AI Engine Ready</p>
                                     </div>
                                     <button
                                         onClick={handleSave}
@@ -229,6 +288,32 @@ export default function TranslationsAdmin() {
                                                 onChange={(e) => setEditData({ ...editData, de: e.target.value })}
                                                 className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-sm text-sm font-light leading-relaxed focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] custom-scrollbar"
                                                 placeholder="Deutsche Version..."
+                                            />
+                                        </div>
+
+                                        {/* Italiano */}
+                                        <div>
+                                            <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-3">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Italiano / Italiano
+                                            </label>
+                                            <textarea
+                                                value={editData.it}
+                                                onChange={(e) => setEditData({ ...editData, it: e.target.value })}
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-sm text-sm font-light leading-relaxed focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] custom-scrollbar"
+                                                placeholder="Versione italiana..."
+                                            />
+                                        </div>
+
+                                        {/* Polaco */}
+                                        <div>
+                                            <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-3">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Polaco / Polski
+                                            </label>
+                                            <textarea
+                                                value={editData.pl}
+                                                onChange={(e) => setEditData({ ...editData, pl: e.target.value })}
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-sm text-sm font-light leading-relaxed focus:outline-none focus:border-blue-500 transition-colors min-h-[100px] custom-scrollbar"
+                                                placeholder="Polska wersja..."
                                             />
                                         </div>
                                     </div>
