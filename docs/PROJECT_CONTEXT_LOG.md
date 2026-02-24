@@ -80,25 +80,53 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ---
 
-### 10. Traducción Automática PRO (Perplexity AI Engine)
-- **Migración de Datos**: Se evolucionó el esquema de `property_metadata` (JSONB) a una tabla plana `properties` para mejorar el rendimiento de las consultas SQL y facilitar el soporte de múltiples idiomas (ES, EN, FR, DE, IT).
+### 10. Traducción Automática PRO (Perplexity AI Engine + Server Actions)
+- **Arquitectura Final (Producción)**:
+    - **Server Actions** (`src/app/actions/translate-perplexity.ts`): Core logic que:
+      - Llama a Perplexity API con modelo `sonar-small-online`
+      - Actualiza `property_metadata.descriptions` JSON con traducciones
+      - Registra todas las traducciones en `translation_log` (éxito/error, tokens, costo)
+    - **Admin Panel** (`src/app/[locale]/admin/translations/page.tsx`):
+      - Carga lista de propiedades desde `property_metadata`
+      - Permite edición manual de traducciones en 5 idiomas (EN, FR, DE, IT, PL)
+      - Botón de auto-traducción dispara `translatePropertiesAction()`
+    - **API Routes** (`src/app/api/admin/translations/*`):
+      - GET `/api/admin/translations` - Listar propiedades
+      - POST `/api/admin/translations/run` - Ejecutar auto-traducción
+      - POST `/api/admin/translations/save` - Guardar edits manuales
+
 - **Integración de Perplexity API**:
-    - **Edge Function**: Implementada en `supabase/functions/translate-properties`. Utiliza el modelo `sonar-small-online`.
-    - **Prompt Experto**: Diseñado específicamente para el sector inmobiliario de lujo, asegurando que términos como "dormitorios", "m2" y "ascensor" se traduzcan correctamente en 4 idiomas simultáneos.
-    - **Control de Costes**: Cada traducción genera un log en `translation_log` con el conteo de tokens y coste estimado en euros.
-- **Panel de control (Admin)**:
-    - **Botón de Acción Masiva**: Permite traducir todos los anuncios pendientes con un solo clic.
-    - **Feedback de Progreso**: El panel de administración muestra estadísticas en tiempo real del proceso (traducidos, errores y coste).
-- **Soporte Italiano (IT)**: Añadido como idioma oficial del sistema.
+    - Modelo: `sonar-small-online` (balanceado entre velocidad y calidad)
+    - Idiomas soportados: Inglés (EN), Francés (FR), Alemán (DE), Italiano (IT), Polaco (PL)
+    - Prompt experto para sector inmobiliario de lujo
 
-## 🎛️ En Curso (In Progress)
+- **Características**:
+    - ✅ Evita errores JWT usando `supabaseAdmin` (SERVER_ROLE_KEY)
+    - ✅ Auto-merge: nuevas traducciones se fusionan con existentes (no sobrescriben)
+    - ✅ Logging completo: `translation_log` registra ejecuciones (tokens, costo estimado)
+    - ✅ Interfaz amigable para edición manual
+    - ✅ Control de cache: `revalidateTag()` invalidate datos después de cambios
 
-- **Validación de Datos**: Verificando la precisión de las traducciones generadas por Perplexity en los 4 idiomas destino.
+- **Build Fixes Completados**:
+    - ✅ **Commit 0311cae**: Movida Edge Function a `supabase/functions/` (fuera del root)
+    - ✅ **Commit 54fe3af**: Actualizado `tsconfig.json` para excluir carpeta `supabase/`
+    - ✅ **Commit c55beae**: Corregido import `createClient` → `supabaseAdmin` en API routes
+    - ✅ **Commit b6d91e7**: Añadido type guard `'translated' in res` para manejo correcto de tipos
+    - ✅ **Commit 8c1964f**: Corregida firma `revalidateTag()` (añadido segundo argumento options object) para Next.js 16.1.6
+
+## ✅ Completado
+
+- ✅ Sistema de traducción con Perplexity AI operacional
+- ✅ Admin panel funcional para edición de traducciones
+- ✅ Build pipeline limpio sin errores TypeScript
+- ✅ Arquitectura de servidor segura (sin Edge Functions con JWT)
+- ✅ Logging de auditoría en `translation_log`
+
+## 🎯 Próximas Mejoras (Opcionales)
+
+1. **Validación automática**: Revisar precisión de traducciones Perplexity en todos los idiomas
+2. **Mejoras SEO**: Metadatos dinámicos por idioma
+3. **Refactor de Limpieza**: Aplicar motor de limpieza de textos a todos los idiomas guardados
 
 ---
-
-1.  **Mejoras SEO**: Refinar los metadatos de las fichas individuales.
-2.  **Refactor de Limpieza**: Aplicar el motor de limpieza de textos de forma recursiva a todos los idiomas guardados.
-
----
-*Última actualización: 24/02/2026 (10:05) por Antigravity AI.*
+*Última actualización: 24/02/2026 (12:30) - Server Actions + Perplexity integrados. Build exitoso. Admin panel listo.*

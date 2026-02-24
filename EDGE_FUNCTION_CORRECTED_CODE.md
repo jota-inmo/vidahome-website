@@ -1,12 +1,25 @@
-# 🔧 Edge Function - CORRECTED CODE FOR property_metadata TABLE
+# 🔧 Edge Function - DEPRECATED ⚠️
 
-> **IMPORTANTE**: Debes **ACTUALIZAR la Edge Function en Supabase** con este código
+> **STATUS**: ⚠️ **No longer used** - Migrated to Server Actions
 
-## 📍 Ubicación
-Supabase Console → Functions → `translate-properties` → Editar
+**Razón**: Evitar errores JWT y simplificar la autenticación. Ahora usamos **Next.js Server Actions** con `supabaseAdmin` en lugar de Edge Functions.
 
-## 🔴 Problema
-La Edge Function actual busca en tabla `properties`, pero TÚ tienes `property_metadata`.
+## 📍 Ubicación Actual (Referencia Solamente)
+`supabase/functions/translate-properties/index.ts` - Kept as reference only
+
+## ⚡ NUEVA ARQUITECTURA - Server Actions (ACTUALMENTE EN USO)
+
+Ver `src/app/actions/translate-perplexity.ts` y `src/app/actions/translations.ts` para la implementación actual.
+
+### Por qué Server Actions en lugar de Edge Functions:
+1. ✅ Evita errores JWT de autenticación
+2. ✅ Más simple: acceso directo a `supabaseAdmin` (SERVICE_ROLE_KEY)
+3. ✅ Mejor control de errores y logging
+4. ✅ No requiere despliegue separado
+
+---
+
+## 🔴 Código Anterior (Referencia Histórica)
 
 ## ✅ Código Correcto
 

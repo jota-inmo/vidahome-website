@@ -1,6 +1,17 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-**Nota de Desarrollo**: Para ver los cambios y mejoras realizados en la integración con la **API del Catastro**, consulta el archivo [CHANGELOG.md](./CHANGELOG.md).
+**Nota de Desarrollo**: Para ver los cambios y mejoras realizadas, consulta:
+- [CHANGELOG.md](./CHANGELOG.md) - Integración con API del Catastro
+- [TRANSLATION_SYSTEM_FINAL.md](./TRANSLATION_SYSTEM_FINAL.md) - Sistema de traducción con Perplexity AI ✅
+
+## 🌍 Sistema de Traducción (✅ Producción)
+El proyecto incluye un sistema automático de traducción para descripciones de propiedades:
+- **Idiomas**: Español, Inglés, Francés, Alemán, Italiano, Polaco
+- **Engine**: Perplexity AI (`sonar-small-online`)
+- **Admin Panel**: Edición manual + auto-traducción en `/admin/translations`
+- **Auditoría**: Tabla `translation_log` registra todas las traducciones
+
+📖 **Documentación Completa**: [TRANSLATION_SYSTEM_FINAL.md](./TRANSLATION_SYSTEM_FINAL.md)
 
 ## 🚀 Calidad y Pruebas
 Este proyecto cuenta con una suite de tests automatizados con **Vitest**:
