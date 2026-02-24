@@ -5,29 +5,85 @@ import { revalidateTag } from 'next/cache';
 
 export async function getPropertiesForTranslationAction() {
     try {
-        const { data, error } = await supabaseAdmin
-            .from('property_metadata')
-            .select('cod_ofer, descriptions, ref')
-            .order('cod_ofer', { ascending: true });
-
-        if (error) throw error;
+        // Step 1: Get properties from Inmovilla API (like the catalog does)
+        const { InmovillaWebApiService } = await import('@/lib/api/web-service');
+        const { INMOVILLA_LANG, INMOVILLA_NUMAGENCIA, INMOVILLA_PASSWORD, INMOVILLA_ADDNUMAGENCIA } = process.env;
         
-        // Transform data to match admin page expectations
-        const transformed = data?.map((prop: any) => ({
+        let properties = [];
+        try {
+            const api = new InmovillaWebApiService(
+                INMOVILLA_NUMAGENCIA,
+                INMOVILLA_PASSWORD,
+                INMOVILLA_ADDNUMAGENCIA,
+                INMOVILLA_LANG,
+                '127.0.0.1',
+                'vidahome.es'
+            );
+            const result = await api.getPropertyList(30, 1); // First 30 properties
+            properties = result?.properties || [];
+        } catch (apiError) {
+            console.warn('[Translations] Inmovilla API fetch failed:', apiError);
+            // Fallback to property_metadata if API fails
+            const { data, error } = await supabaseAdmin
+                .from('property_metadata')
+                .select('*')
+                .order('cod_ofer', { ascending: true })
+                .limit(50);
+            
+            if (error) throw error;
+            properties = data || [];
+        }
+
+        // Step 2: Enrich with Supabase translations (like the catalog does)
+        try {
+            const { data: metadata } = await supabaseAdmin
+                .from('property_metadata')
+                .select('cod_ofer, descriptions, full_data, ref');
+
+            if (metadata && metadata.length > 0) {
+                properties = properties.map((p: any) => {
+                    const meta = metadata.find(m => m.cod_ofer === p.cod_ofer);
+                    if (!meta) return p;
+
+                    let descriptions = meta.descriptions as Record<string, string> || {};
+                    
+                    // Use full_data ref if available
+                    const ref = meta.ref || (meta.full_data as any)?.ref || p.ref;
+
+                    return {
+                        ...p,
+                        ref,
+                        descriptions,
+                        description_es: descriptions.description_es || descriptions.descripciones || p.descripciones || '',
+                        description_en: descriptions.description_en || '',
+                        description_fr: descriptions.description_fr || '',
+                        description_de: descriptions.description_de || '',
+                        description_it: descriptions.description_it || '',
+                        description_pl: descriptions.description_pl || '',
+                    };
+                });
+            }
+        } catch (supaError) {
+            console.warn('[Translations] Supabase enrichment failed:', supaError);
+        }
+
+        // Step 3: Transform for admin editor expectations
+        const transformed = properties.map((prop: any) => ({
             property_id: prop.cod_ofer,
             cod_ofer: prop.cod_ofer,
             ref: prop.ref || `Property ${prop.cod_ofer}`,
-            description_es: prop.descriptions?.description_es || prop.descriptions?.descripciones || '',
-            description_en: prop.descriptions?.description_en || '',
-            description_fr: prop.descriptions?.description_fr || '',
-            description_de: prop.descriptions?.description_de || '',
-            description_it: prop.descriptions?.description_it || '',
-            description_pl: prop.descriptions?.description_pl || '',
-        })) || [];
+            descripciones: prop.descripciones || prop.description_es || '',
+            description_es: prop.description_es || prop.descripciones || '',
+            description_en: prop.description_en || '',
+            description_fr: prop.description_fr || '',
+            description_de: prop.description_de || '',
+            description_it: prop.description_it || '',
+            description_pl: prop.description_pl || '',
+        }));
         
         return { success: true, data: transformed };
     } catch (error) {
-        console.error('Error fetching properties:', error);
+        console.error('[Translations] Error fetching properties:', error);
         return { success: false, error: 'Error al cargar propiedades' };
     }
 }
