@@ -174,8 +174,15 @@ export async function fetchPropertiesAction(): Promise<{
     }
 }
 
-export async function getPropertyDetailAction(id: number): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
-    const locale = await getLocale();
+/**
+ * Internal helper - doesn't call headers(), accepts clientIp as parameter
+ * Used by cached functions and public getPropertyDetailAction
+ */
+async function _getPropertyDetailWithIp(
+    id: number,
+    locale: string,
+    clientIp: string
+): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
     const inmoLang = mapLocaleToInmovillaId(locale);
 
     const numagencia = process.env.INMOVILLA_AGENCIA;
@@ -218,21 +225,6 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         console.log(`[Actions] ⏳ Cache MISS for ${id}, fetching from Inmovilla...`);
     } catch (supaErr) {
         console.warn('[Actions] Supabase pre-fetch failed, falling back to API:', supaErr);
-    }
-
-    const headerList = await headers();
-    let clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
-
-    if (clientIp === '127.0.0.1' || clientIp === '::1') {
-        try {
-            const ipRes = await fetch('https://api.ipify.org?format=json');
-            if (ipRes.ok) {
-                const ipData = await ipRes.json();
-                clientIp = ipData.ip;
-            }
-        } catch (e) {
-            console.warn('[Inmovilla Action] Fallback IP fetch failed for details:', e);
-        }
     }
 
     try {
@@ -310,6 +302,28 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
         return { success: false, error: error.message };
     }
 }
+
+export async function getPropertyDetailAction(id: number): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
+    const locale = await getLocale();
+
+    const headerList = await headers();
+    let clientIp = headerList.get('x-forwarded-for')?.split(',')[0] || headerList.get('x-real-ip') || '127.0.0.1';
+
+    if (clientIp === '127.0.0.1' || clientIp === '::1') {
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            if (ipRes.ok) {
+                const ipData = await ipRes.json();
+                clientIp = ipData.ip;
+            }
+        } catch (e) {
+            console.warn('[Inmovilla Action] Fallback IP fetch failed for details:', e);
+        }
+    }
+
+    return _getPropertyDetailWithIp(id, locale, clientIp);
+}
+
 
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -438,7 +452,8 @@ const getCachedFeaturedPropertiesForLocale = unstable_cache(
 
             if (missingIds.length > 0) {
                 console.log(`[Actions] Featured: ${missingIds.length} properties missing from bulk cache, fetching individually...`);
-                const individualPromises = missingIds.map(id => getPropertyDetailAction(id));
+                // Use internal helper with default IP to avoid calling headers() inside cache scope
+                const individualPromises = missingIds.map(id => _getPropertyDetailWithIp(id, locale, '127.0.0.1'));
                 const individualResults = await Promise.all(individualPromises);
 
                 individualResults.forEach(res => {
@@ -458,7 +473,8 @@ const getCachedFeaturedPropertiesForLocale = unstable_cache(
             console.error('Error enriching featured properties:', error);
             // Fallback to individual fetching if batch fails
             const featuredIds = await getFeaturedPropertiesAction();
-            const detailPromises = featuredIds.map((id: number) => getPropertyDetailAction(id));
+            // Use internal helper with default IP to avoid calling headers() inside cache scope
+            const detailPromises = featuredIds.map((id: number) => _getPropertyDetailWithIp(id, locale, '127.0.0.1'));
             const results = await Promise.all(detailPromises);
             const validDetails = results.filter(res => res.success && res.data).map(res => res.data);
             return { success: true, data: validDetails };
