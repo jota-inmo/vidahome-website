@@ -181,9 +181,9 @@ async function verifyTranslations(): Promise<void> {
 
   // Get sample of translated properties
   const { data, error } = await supabase
-    .from("properties")
-    .select("property_id, description_es, description_en, description_fr")
-    .not("description_en", "is", null)
+    .from("property_metadata")
+    .select("cod_ofer, descriptions")
+    .not("descriptions", "is", null)
     .limit(3);
 
   if (error) {
@@ -198,12 +198,13 @@ async function verifyTranslations(): Promise<void> {
 
   console.log("\n📍 Sample translated properties:\n");
   for (const prop of data) {
+    const descriptions = prop.descriptions as Record<string, string>;
     console.log(
-      `Property ${prop.property_id}:`
+      `Property ${prop.cod_ofer}:`
     );
-    console.log(`  [ES]: ${(prop.description_es || "").substring(0, 60)}...`);
-    console.log(`  [EN]: ${(prop.description_en || "").substring(0, 60)}...`);
-    console.log(`  [FR]: ${(prop.description_fr || "").substring(0, 60)}...`);
+    console.log(`  [ES]: ${(descriptions?.description_es || "").substring(0, 60)}...`);
+    console.log(`  [EN]: ${(descriptions?.description_en || "").substring(0, 60)}...`);
+    console.log(`  [FR]: ${(descriptions?.description_fr || "").substring(0, 60)}...`);
     console.log("");
   }
 }

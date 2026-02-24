@@ -96,24 +96,25 @@ export async function fetchPropertiesAction(): Promise<{
         // --- Enrichment with Supabase Metadata starts here ---
         try {
             const { supabase } = await import('@/lib/supabase');
-            // Check both tables for compatibility during migration
+            // Fetch from property_metadata (source of truth for translations)
             const { data: metadata } = await supabase
-                .from('properties')
-                .select('property_id, description_es, description_en, description_fr, description_de, description_it, description_pl');
+                .from('property_metadata')
+                .select('cod_ofer, descriptions');
 
             if (metadata && metadata.length > 0) {
                 properties = properties.map(p => {
-                    const meta = metadata.find(m => m.property_id === p.cod_ofer);
-                    if (!meta) return p;
+                    const meta = metadata.find(m => m.cod_ofer === p.cod_ofer);
+                    if (!meta || !meta.descriptions) return p;
 
                     let bestDescription = p.descripciones;
-                    const langKey = `description_${locale}` as keyof typeof meta;
-                    const translated = meta[langKey];
+                    const descriptions = meta.descriptions as Record<string, string>;
+                    const langKey = `description_${locale}`;
+                    const translated = descriptions[langKey];
 
                     if (translated) {
-                        bestDescription = translated as string;
-                    } else if (meta.description_es) {
-                        bestDescription = meta.description_es;
+                        bestDescription = translated;
+                    } else if (descriptions.description_es) {
+                        bestDescription = descriptions.description_es;
                     }
 
                     return {
@@ -155,32 +156,25 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
     try {
         const { supabase } = await import('@/lib/supabase');
         const { data: meta } = await supabase
-            .from('properties')
-            .select('*')
-            .eq('property_id', id)
+            .from('property_metadata')
+            .select('cod_ofer, descriptions, full_data')
+            .eq('cod_ofer', id)
             .single();
 
-        if (meta) {
-            const langKey = `description_${locale}` as keyof typeof meta;
-            const translation = meta[langKey];
+        if (meta && meta.descriptions) {
+            const descriptions = meta.descriptions as Record<string, string>;
+            const langKey = `description_${locale}`;
+            const translation = descriptions[langKey];
 
             if (translation || locale === 'es') {
                 console.log(`[Actions] 🚀 SUPABASE-FIRST: Translation HIT for ${id} in '${locale}'`);
-                // If we had full_data we would use it, but for now we prioritize description
                 return {
                     success: true,
                     data: {
                         cod_ofer: id,
-                        ref: meta.ref || '',
-                        descripciones: (translation || meta.description_es) as string,
-                        all_descriptions: {
-                            es: meta.description_es,
-                            en: meta.description_en,
-                            fr: meta.description_fr,
-                            de: meta.description_de,
-                            it: meta.description_it,
-                            pl: meta.description_pl
-                        }
+                        ref: '',
+                        descripciones: (translation || descriptions.description_es) as string,
+                        all_descriptions: descriptions
                     } as any
                 };
             }
