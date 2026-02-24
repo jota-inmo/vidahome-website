@@ -60,6 +60,10 @@
         "rent": "Rent",
         "placeholder": "Property or Reference...",
         "locationDefault": "Entire province",
+        "button": "Search",
+        "noResults": "No records available with these filters.",
+        "in": "in",
+        "propertyIn": "Property in",
         "priceUnderRequest": "Price under request",
         "explore": "Explore"
     },

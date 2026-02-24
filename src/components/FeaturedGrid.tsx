@@ -13,13 +13,15 @@ import React from 'react';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { LuxuryPropertyCard } from './LuxuryPropertyCard';
 import { getFeaturedPropertiesWithDetailsAction } from '@/app/actions';
+import { getLocale } from 'next-intl/server';
 
 export async function FeaturedGrid() {
     let featured: PropertyListEntry[] = [];
     let error: string | null = null;
 
     try {
-        const res = await getFeaturedPropertiesWithDetailsAction();
+        const locale = await getLocale();
+        const res = await getFeaturedPropertiesWithDetailsAction(locale);
         if (res.success && res.data) {
             featured = res.data;
         } else {

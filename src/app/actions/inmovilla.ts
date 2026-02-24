@@ -392,9 +392,7 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
     }
 }
 
-export async function getFeaturedPropertiesWithDetailsAction(): Promise<{ success: boolean; data: any[] }> {
-    const locale = await getLocale();
-
+export async function getFeaturedPropertiesWithDetailsAction(locale: string): Promise<{ success: boolean; data: any[] }> {
     // Use cached version per locale for better performance
     return await getCachedFeaturedPropertiesForLocale(locale);
 }
