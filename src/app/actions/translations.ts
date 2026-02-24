@@ -73,7 +73,7 @@ export async function savePropertyTranslationAction(property_id: number, descrip
         });
 
         // Revalidate tags to ensure the website reflects changes
-        revalidateTag('inmovilla_property_list');
+        revalidateTag('inmovilla_property_list', {});
 
         return { success: true };
     } catch (error) {
@@ -96,7 +96,7 @@ export async function runAutoTranslationAction(propertyIds?: number[]) {
         );
 
         // Revalidate to show updated content
-        revalidateTag('inmovilla_property_list');
+        revalidateTag('inmovilla_property_list', {});
 
         return { success: true, ...result };
     } catch (error: any) {
