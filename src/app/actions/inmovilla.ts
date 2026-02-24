@@ -33,7 +33,7 @@ export async function fetchPropertiesAction(): Promise<{
         const { supabase } = await import('@/lib/supabase');
         const { data: properties, error } = await supabase
             .from('property_metadata')
-            .select('cod_ofer, ref, tipo, precio, descripciones:descriptions->>description_es, main_photo, poblacion, nodisponible, prospecto, fechaact')
+            .select('cod_ofer, ref, tipo, precio, descripciones:descriptions->>description_es, main_photo, poblacion, nodisponible')
             .eq('nodisponible', false)
             .order('cod_ofer', { ascending: false });
 
