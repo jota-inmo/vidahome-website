@@ -2,7 +2,6 @@
 
 import { createInmovillaApi } from '@/lib/api/properties';
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
-import { revalidateTag } from 'next/cache';
 
 /**
  * Helper to map next-intl locale to description key
@@ -68,13 +67,13 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
             return { success: false, error: 'Propiedad no encontrada' };
         }
 
-        // Get full property data from stored full_data
-        const fullData = meta.full_data as PropertyDetails || {};
+        // Get full property data from stored full_data (with fallback)
+        const fullData = (meta.full_data as PropertyDetails) || {};
 
         // Apply correct locale description
         const descKey = getDescriptionKey(locale);
-        const descriptions = meta.descriptions as Record<string, string> || {};
-        const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones;
+        const descriptions = (meta.descriptions as Record<string, string>) || {};
+        const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
 
         // Enrich with photos if available
         const propertyWithPhotos = {
@@ -119,11 +118,18 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
  */
 export async function getFeaturedPropertiesWithDetailsAction(locale: string): Promise<{ success: boolean; data: any[] }> {
     try {
-        const featuredIds = await getFeaturedPropertiesAction();
-
-        if (featuredIds.length === 0) return { success: true, data: [] };
-
         const { supabase } = await import('@/lib/supabase');
+        
+        // Get featured properties WITH ORDER
+        const { data: featured, error: featError } = await supabase
+            .from('featured_properties')
+            .select('cod_ofer, orden')
+            .order('orden', { ascending: true });
+
+        if (featError) throw featError;
+        if (!featured || featured.length === 0) return { success: true, data: [] };
+
+        const featuredIds = featured.map(f => f.cod_ofer);
         const { data: metadata, error } = await supabase
             .from('property_metadata')
             .select('cod_ofer, full_data, descriptions, main_photo, photos')
@@ -131,15 +137,16 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
 
         if (error) throw error;
 
-        const results = featuredIds
-            .map(id => {
-                const meta = metadata?.find(m => m.cod_ofer === id);
+        // Preserve order from featured_properties table
+        const results = featured
+            .map(featuredItem => {
+                const meta = metadata?.find(m => m.cod_ofer === featuredItem.cod_ofer);
                 if (!meta || !meta.full_data) return null;
 
-                const fullData = meta.full_data as PropertyDetails;
+                const fullData = meta.full_data as PropertyDetails || {};
                 const descriptions = meta.descriptions as Record<string, string> || {};
                 const descKey = getDescriptionKey(locale);
-                const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones;
+                const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
 
                 return {
                     ...fullData,
@@ -166,7 +173,8 @@ export async function updateFeaturedPropertiesAction(ids: number[]) {
     try {
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
 
-        const { error: deleteError } = await supabaseAdmin.from('featured_properties').delete().neq('id', 0);
+        // Delete all existing featured properties (featured_properties has cod_ofer as PRIMARY KEY, not 'id')
+        const { error: deleteError } = await supabaseAdmin.from('featured_properties').delete().gt('cod_ofer', 0);
         if (deleteError) throw deleteError;
 
         if (ids.length > 0) {
@@ -286,7 +294,7 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                     successCount++;
                 }
             } catch (propError) {
-                console.warn(`[Sync] Error processing property ${baseProp.cod_ofer}:`, propError);
+                console.error(`[Sync] Error processing property ${baseProp.cod_ofer}:`, propError);
             }
         }
 
