@@ -89,10 +89,9 @@ export async function syncAllPropertiesAction() {
         let hasMore = true;
 
         while (hasMore) {
-            const result = await api.getPropertyList(100, page);
-            const properties = result?.properties || [];
+            const properties = await api.getProperties({ page });
             
-            if (properties.length === 0) {
+            if (!properties || properties.length === 0) {
                 hasMore = false;
             } else {
                 allProperties.push(...properties);
