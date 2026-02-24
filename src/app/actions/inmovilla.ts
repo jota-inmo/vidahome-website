@@ -161,21 +161,20 @@ export async function getPropertyDetailAction(id: number): Promise<{ success: bo
             .eq('cod_ofer', id)
             .single();
 
-        if (meta && meta.descriptions) {
+        if (meta && meta.descriptions && meta.full_data) {
             const descriptions = meta.descriptions as Record<string, string>;
             const langKey = `description_${locale}`;
             const translation = descriptions[langKey];
 
             if (translation || locale === 'es') {
-                console.log(`[Actions] 🚀 SUPABASE-FIRST: Translation HIT for ${id} in '${locale}'`);
+                console.log(`[Actions] 🚀 SUPABASE-FIRST: Full data HIT for ${id} in '${locale}'`);
+                // Return complete property data with correct description for the locale
+                const fullData = meta.full_data as any;
+                fullData.descripciones = translation || descriptions.description_es || fullData.descripciones;
+                fullData.all_descriptions = descriptions;
                 return {
                     success: true,
-                    data: {
-                        cod_ofer: id,
-                        ref: '',
-                        descripciones: (translation || descriptions.description_es) as string,
-                        all_descriptions: descriptions
-                    } as any
+                    data: fullData
                 };
             }
         }
