@@ -12,6 +12,7 @@
     "api:test": "tsx src/scripts/test-api.ts",
     "translate:metadata": "tsx scripts/translate-property-metadata.ts",
     "translate:gemini": "tsx scripts/translate-with-gemini.ts",
+    "translate:perplexity": "tsx scripts/translate-with-perplexity.ts",
     "fill:placeholders": "tsx scripts/fill-placeholder-translations.ts"
   },
   "dependencies": {
