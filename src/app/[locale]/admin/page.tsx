@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkAuthAction, logoutAction } from '@/app/actions';
 import { Link } from '@/i18n/routing';
-import { LayoutDashboard, Film, Star, LogOut, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Film, Star, LogOut, ExternalLink, Languages } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [authorized, setAuthorized] = useState<boolean | null>(null);
@@ -55,8 +55,8 @@ export default function AdminDashboard() {
         {
             title: 'Traducciones',
             desc: 'Editar descripciones en varios idiomas',
-            icon: <LayoutDashboard className="w-6 h-6" />, // Changed to a more appropriate icon later if needed
-            href: '/admin/translations',
+            icon: <Languages className="w-6 h-6" />,
+            href: '/admin/translations-hub',
             color: 'from-fuchsia-500 to-pink-600'
         }
     ];
