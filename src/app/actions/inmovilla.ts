@@ -138,6 +138,33 @@ export async function fetchPropertiesAction(): Promise<{
         }
         // --- Enrichment ends here ---
 
+        // --- Auto-Sync: Save all properties to property_metadata (single source of truth) ---
+        try {
+            const { supabaseAdmin } = await import('@/lib/supabase-admin');
+            const upsertBatch = properties.map((p: any) => ({
+                cod_ofer: p.cod_ofer,
+                ref: p.ref,
+                descriptions: {
+                    description_es: p.descripciones || '',
+                },
+                full_data: p, // Store complete property data for reference
+                updated_at: new Date().toISOString()
+            }));
+
+            // Upsert in batches to avoid timeout
+            const batchSize = 10;
+            for (let i = 0; i < upsertBatch.length; i += batchSize) {
+                const batch = upsertBatch.slice(i, i + batchSize);
+                await supabaseAdmin
+                    .from('property_metadata')
+                    .upsert(batch, { onConflict: 'cod_ofer' });
+            }
+            console.log(`[Actions] 💾 Synced ${properties.length} properties to property_metadata`);
+        } catch (syncError) {
+            console.warn('[Actions] Auto-sync to property_metadata failed:', syncError);
+        }
+        // --- Auto-Sync ends here ---
+
         const populations = [...new Set(properties.map(p => p.poblacion).filter(Boolean))].sort() as string[];
 
         return { success: true, data: properties, isConfigured: true, meta: { populations } };
