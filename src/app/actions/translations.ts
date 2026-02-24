@@ -5,36 +5,17 @@ import { revalidateTag } from 'next/cache';
 
 export async function getPropertiesForTranslationAction() {
     try {
-        // Step 1: Get properties from Inmovilla API (like the catalog does)
-        const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-        const { INMOVILLA_LANG, INMOVILLA_NUMAGENCIA, INMOVILLA_PASSWORD, INMOVILLA_ADDNUMAGENCIA } = process.env;
+        // Step 1: Reuse the same fetcher as the catalog
+        const { fetchPropertiesAction } = await import('@/app/actions/inmovilla');
+        const result = await fetchPropertiesAction();
         
-        let properties = [];
-        try {
-            const api = new InmovillaWebApiService(
-                INMOVILLA_NUMAGENCIA,
-                INMOVILLA_PASSWORD,
-                INMOVILLA_ADDNUMAGENCIA,
-                INMOVILLA_LANG,
-                '127.0.0.1',
-                'vidahome.es'
-            );
-            const result = await api.getPropertyList(30, 1); // First 30 properties
-            properties = result?.properties || [];
-        } catch (apiError) {
-            console.warn('[Translations] Inmovilla API fetch failed:', apiError);
-            // Fallback to property_metadata if API fails
-            const { data, error } = await supabaseAdmin
-                .from('property_metadata')
-                .select('*')
-                .order('cod_ofer', { ascending: true })
-                .limit(50);
-            
-            if (error) throw error;
-            properties = data || [];
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to fetch properties');
         }
 
-        // Step 2: Enrich with Supabase translations (like the catalog does)
+        let properties = result.data || [];
+
+        // Step 2: Enrich with Supabase full_data (for ref and other fields)
         try {
             const { data: metadata } = await supabaseAdmin
                 .from('property_metadata')
@@ -45,9 +26,7 @@ export async function getPropertiesForTranslationAction() {
                     const meta = metadata.find(m => m.cod_ofer === p.cod_ofer);
                     if (!meta) return p;
 
-                    let descriptions = meta.descriptions as Record<string, string> || {};
-                    
-                    // Use full_data ref if available
+                    const descriptions = meta.descriptions as Record<string, string> || {};
                     const ref = meta.ref || (meta.full_data as any)?.ref || p.ref;
 
                     return {

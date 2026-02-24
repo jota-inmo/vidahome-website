@@ -4,41 +4,27 @@ import { NextResponse } from "next/server";
 /**
  * GET /api/admin/translations
  * Returns all properties with their translations
- * Same data source as the catalog (Inmovilla API + Supabase enrichment)
+ * Same data source as the catalog (via fetchPropertiesAction)
  * Requires admin authentication
  */
 export async function GET(request: Request) {
   try {
     // TODO: Add authentication check here
 
-    // Step 1: Get properties from Inmovilla API
-    const { InmovillaWebApiService } = await import('@/lib/api/web-service');
-    const { INMOVILLA_LANG, INMOVILLA_NUMAGENCIA, INMOVILLA_PASSWORD, INMOVILLA_ADDNUMAGENCIA } = process.env;
+    // Step 1: Reuse the same fetcher as the catalog
+    const { fetchPropertiesAction } = await import('@/app/actions/inmovilla');
+    const result = await fetchPropertiesAction();
     
-    let properties = [];
-    try {
-      const api = new InmovillaWebApiService(
-        INMOVILLA_NUMAGENCIA,
-        INMOVILLA_PASSWORD,
-        INMOVILLA_ADDNUMAGENCIA,
-        INMOVILLA_LANG,
-        '127.0.0.1',
-        'vidahome.es'
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'Failed to fetch properties' },
+        { status: 400 }
       );
-      const result = await api.getPropertyList(50, 1);
-      properties = result?.properties || [];
-    } catch (apiError) {
-      console.warn('[API Translations] Inmovilla API fetch failed:', apiError);
-      // Fallback to property_metadata
-      const { data } = await supabaseAdmin
-        .from('property_metadata')
-        .select('*')
-        .order('cod_ofer', { ascending: true })
-        .limit(50);
-      properties = data || [];
     }
 
-    // Step 2: Enrich with Supabase translations
+    let properties = result.data || [];
+
+    // Step 2: Enrich with Supabase full_data (for ref and other metadata)
     const { data: metadata } = await supabaseAdmin
       .from('property_metadata')
       .select('cod_ofer, descriptions, full_data, ref');
