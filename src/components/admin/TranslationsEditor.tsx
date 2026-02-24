@@ -156,9 +156,7 @@ export function TranslationsEditor() {
             <div className="mb-4">
               <h4 className="font-bold text-gray-700 mb-2">Spanish (Source)</h4>
               <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-                {prop.descriptions.description_es ||
-                  prop.descriptions.descripciones ||
-                  "No Spanish description"}
+                {prop.descriptions.description_es || "No Spanish description"}
               </p>
             </div>
 
