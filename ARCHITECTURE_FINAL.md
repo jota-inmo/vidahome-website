@@ -221,9 +221,9 @@ El modelo Perplexity está **completamente centralizado** y puede cambiarse sin 
 **Archivo centralizado**: `src/config/perplexity.ts`
 
 ```typescript
-// Lectura de variable de ambiente con fallback inteligente
+// Lectura de variable de ambiente con fallback inteligente (formato: provider/model)
 export function getPerplexityModel(): string {
-  return process.env.PERPLEXITY_MODEL || 'llama-3.1-sonar-small-128k-online';
+  return process.env.PERPLEXITY_MODEL || 'perplexity/llama-3.1-sonar-small-128k-online';
 }
 
 // Objeto de configuración completo
@@ -232,9 +232,9 @@ export const PERPLEXITY_CONFIG = {
   apiUrl: 'https://api.perplexity.ai/chat/completions',
   temperature: 0.2,
   availableModels: {
-    small: 'llama-3.1-sonar-small-128k-online',
-    large: 'llama-3.1-sonar-large-128k-online',
-    huge: 'llama-3.1-sonar-huge-128k-online',
+    small: 'perplexity/llama-3.1-sonar-small-128k-online',
+    large: 'perplexity/llama-3.1-sonar-large-128k-online',
+    huge: 'perplexity/llama-3.1-sonar-huge-128k-online',
   }
 };
 ```
@@ -244,12 +244,12 @@ export const PERPLEXITY_CONFIG = {
 **Opción 1: Via Environment Variable (Recomendado)**
 ```bash
 # En Vercel Settings → Environment Variables, agrega:
-PERPLEXITY_MODEL=llama-3.1-sonar-small-128k-online
+PERPLEXITY_MODEL=perplexity/llama-3.1-sonar-small-128k-online
 ```
 
 **Opción 2: Default Fallback**
 Si no está configurada, usa automáticamente:
-- `llama-3.1-sonar-small-128k-online` (pequeño, rápido, económico)
+- `perplexity/llama-3.1-sonar-small-128k-online` (pequeño, rápido, económico)
 
 ### 🚀 Cambiar de Modelo (Futuro-Proof)
 
@@ -260,9 +260,9 @@ Si Perplexity descontinúa un modelo nuevamente:
 4. Cambio instantáneo ✨
 
 ### 📋 Modelos Disponibles
-- `llama-3.1-sonar-small-128k-online` - Recomendado (balance velocidad/calidad)
-- `llama-3.1-sonar-large-128k-online` - Mayor capacidad
-- `llama-3.1-sonar-huge-128k-online` - Máxima capacidad
+- `perplexity/llama-3.1-sonar-small-128k-online` - Recomendado (balance velocidad/calidad)
+- `perplexity/llama-3.1-sonar-large-128k-online` - Mayor capacidad
+- `perplexity/llama-3.1-sonar-huge-128k-online` - Máxima capacidad
 
 ---
 
