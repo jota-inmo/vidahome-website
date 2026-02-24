@@ -99,22 +99,32 @@ export async function fetchPropertiesAction(): Promise<{
             // Fetch from property_metadata (source of truth for translations)
             const { data: metadata } = await supabase
                 .from('property_metadata')
-                .select('cod_ofer, descriptions');
+                .select('cod_ofer, descriptions, full_data');
 
             if (metadata && metadata.length > 0) {
                 properties = properties.map(p => {
                     const meta = metadata.find(m => m.cod_ofer === p.cod_ofer);
-                    if (!meta || !meta.descriptions) return p;
+                    if (!meta) return p;
 
                     let bestDescription = p.descripciones;
-                    const descriptions = meta.descriptions as Record<string, string>;
-                    const langKey = `description_${locale}`;
-                    const translated = descriptions[langKey];
+                    
+                    // Try translations first
+                    if (meta.descriptions) {
+                        const descriptions = meta.descriptions as Record<string, string>;
+                        const langKey = `description_${locale}`;
+                        const translated = descriptions[langKey];
 
-                    if (translated) {
-                        bestDescription = translated;
-                    } else if (descriptions.description_es) {
-                        bestDescription = descriptions.description_es;
+                        if (translated) {
+                            bestDescription = translated;
+                        } else if (descriptions.description_es) {
+                            bestDescription = descriptions.description_es;
+                        }
+                    }
+                    
+                    // Fallback to full_data if no description found
+                    if (!bestDescription && meta.full_data) {
+                        const fullData = meta.full_data as any;
+                        bestDescription = fullData.descripciones;
                     }
 
                     return {
