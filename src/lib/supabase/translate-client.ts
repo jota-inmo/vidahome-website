@@ -43,10 +43,17 @@ export async function translateProperties(
   batchSize?: number
 ): Promise<TranslationResponse> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl) {
     throw new Error(
       "Missing NEXT_PUBLIC_SUPABASE_URL environment variable"
+    );
+  }
+
+  if (!supabaseAnonKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable"
     );
   }
 
@@ -67,6 +74,7 @@ export async function translateProperties(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${supabaseAnonKey}`,
       },
       body: JSON.stringify(payload),
     });
