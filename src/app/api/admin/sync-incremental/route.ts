@@ -19,9 +19,9 @@ export async function GET(request: NextRequest) {
         console.log('[API] GET /api/admin/sync-incremental called');
         console.log('[API] Auth header:', request.headers.get('authorization'));
 
-        // Get batch size from query params (default 10)
+        // Get batch size from query params (default 8 for 2-minute interval)
         const url = new URL(request.url);
-        const batchSize = Math.min(parseInt(url.searchParams.get('batchSize') || '10'), 30);
+        const batchSize = Math.min(parseInt(url.searchParams.get('batchSize') || '8'), 30);
 
         // Call incremental sync
         const result = await syncPropertiesIncrementalAction(batchSize);
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         console.log('[API] POST /api/admin/sync-incremental called');
         
         const body = await request.json().catch(() => ({}));
-        const batchSize = Math.min(body.batchSize || 10, 30);
+        const batchSize = Math.min(body.batchSize || 8, 30);
 
         console.log('[API] Requesting sync with batchSize:', batchSize);
 

@@ -2,8 +2,9 @@ name: Sync Properties Incrementally
 
 on:
   schedule:
-    # Run every minute (GitHub Actions minimum is 1 minute)
-    - cron: '*/1 * * * *'
+    # Run every 2 minutes (optimized to stay under Inmovilla rate limit)
+    # 1 x getProperties + 8 x getPropertyDetails = 9 calls per 2 min (~4.5/min)
+    - cron: '*/2 * * * *'
   
   # Allow manual trigger from Actions tab
   workflow_dispatch:
@@ -19,7 +20,7 @@ jobs:
           curl -v -X POST \
             -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}" \
             -H "Content-Type: application/json" \
-            -d '{"batchSize": 10}' \
+            -d '{"batchSize": 8}' \
             https://vidahome-website.vercel.app/api/admin/sync-incremental
         env:
           SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
