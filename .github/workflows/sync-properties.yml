@@ -1,0 +1,33 @@
+name: Sync Properties Incrementally
+
+on:
+  schedule:
+    # Run every minute (GitHub Actions minimum is 1 minute)
+    - cron: '*/1 * * * *'
+  
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    name: Sync Inmovilla Properties to Supabase
+    
+    steps:
+      - name: Trigger incremental sync
+        run: |
+          curl -v -X POST \
+            -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"batchSize": 10}' \
+            https://vidahome-website.vercel.app/api/admin/sync-incremental
+        env:
+          SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
+
+      - name: Log completion
+        if: success()
+        run: echo "✅ Property sync batch completed at $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+      - name: Handle failure
+        if: failure()
+        run: echo "❌ Property sync batch failed"
