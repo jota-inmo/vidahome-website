@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/sync/cron",
+      "description": "Sync properties from Inmovilla every hour from 08:00 to 20:00 UTC (10:00-22:00 Madrid CET winter / 09:00-21:00 Madrid CEST summer)",
+      "schedule": "0 8-20 * * *"
+    }
+  ]
+}

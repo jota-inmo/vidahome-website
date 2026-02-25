@@ -232,6 +232,7 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                 const fullData = meta.full_data as PropertyDetails || {};
                 const descriptions = meta.descriptions as Record<string, string> || {};
                 const descKey = getDescriptionKey(locale);
+                // Try to get the translation for the requested locale, fallback to Spanish
                 const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
                 
                 // Get features for this property
@@ -290,15 +291,118 @@ export async function updateFeaturedPropertiesAction(ids: number[]) {
 import { checkRateLimit } from '@/lib/rate-limit';
 
 /**
+ * Helper: Record price change in audit table
+ */
+async function recordPriceChange(
+    supabaseAdmin: any,
+    cod_ofer: number,
+    oldPrice: number | null,
+    newPrice: number,
+    notes?: string
+) {
+    try {
+        const priceChange = oldPrice ? newPrice - oldPrice : null;
+        const percentageChange = oldPrice && oldPrice !== 0 
+            ? ((newPrice - oldPrice) / oldPrice) * 100 
+            : null;
+
+        await supabaseAdmin.from('price_audit').insert({
+            cod_ofer,
+            old_price: oldPrice,
+            new_price: newPrice,
+            price_change: priceChange,
+            percentage_change: percentageChange,
+            changed_by: 'system',
+            notes: notes || `Auto-synced from Inmovilla${oldPrice ? ' price updated' : ' new property'}`,
+        });
+
+        if (oldPrice && oldPrice !== newPrice) {
+            const change = priceChange! > 0 ? '📈' : '📉';
+            const percent = Math.abs(percentageChange!).toFixed(1);
+            console.log(`[Sync] ${change} COD ${cod_ofer}: €${oldPrice} → €${newPrice} (${percent}%)`);
+        }
+    } catch (error) {
+        console.warn(`[Sync] Error recording price change for ${cod_ofer}:`, error);
+    }
+}
+
+/**
+ * Helper: Smart update - only updates price + new photos, preserves existing data
+ */
+async function smartUpdateProperty(
+    supabaseAdmin: any,
+    cod_ofer: number,
+    newData: any,
+    existingData: any
+) {
+    try {
+        // Preserve existing critical data
+        const updateData: any = {
+            cod_ofer: cod_ofer,
+            precio: newData.precio, // ALWAYS update price
+            updated_at: new Date().toISOString(),
+        };
+
+        // Only update photos IF they didn't exist before OR if count changed
+        const existingPhotoCount = existingData.photos?.length || 0;
+        const newPhotoCount = newData.photos?.length || 0;
+
+        if (newPhotoCount > 0 && newPhotoCount !== existingPhotoCount) {
+            updateData.photos = newData.photos;
+            updateData.main_photo = newData.main_photo;
+        }
+
+        // Keep existing descriptions (translated manually)
+        if (existingData.descriptions) {
+            updateData.descriptions = existingData.descriptions;
+        } else {
+            // Only set Spanish if we don't have descriptions yet
+            updateData.descriptions = {
+                description_es: newData.descriptions?.description_es || ''
+            };
+        }
+
+        // Keep existing full_data but update certain fields
+        const updatedFullData = {
+            ...(existingData.full_data || newData.full_data),
+            // Update only metadata fields, preserve original descriptions
+            tipo_nombre: newData.tipo_nombre,
+            poblacion: newData.poblacion,
+            habitat: newData.habitat,
+            numagencia: newData.numagencia,
+            fotoletra: newData.fotoletra,
+            numfotos: newData.numfotos,
+            // Price is in full_data too, keep it synced
+            precio: newData.precio,
+            precioinmo: newData.precioinmo,
+        };
+
+        updateData.full_data = updatedFullData;
+
+        // Update in Supabase
+        const { error } = await supabaseAdmin
+            .from('property_metadata')
+            .update(updateData)
+            .eq('cod_ofer', cod_ofer);
+
+        return { success: !error, error };
+    } catch (error) {
+        console.error(`[Sync] Error in smartUpdateProperty for ${cod_ofer}:`, error);
+        return { success: false, error };
+    }
+}
+
+/**
  * ⭐ THE ONLY FUNCTION THAT CALLS INMOVILLA
  * 
  * Synchronize properties from Inmovilla to Supabase
- * Called ONLY from /admin/sync panel
+ * Called ONLY from /admin/sync panel OR cron jobs
  * 
- * Process:
- * 1. Call Inmovilla getProperties (lista inicial)
- * 2. Call Inmovilla getPropertyDetails (para cada propiedad → obtener fotos)
- * 3. Store everything in Supabase property_metadata with clean structure
+ * SMART SYNC:
+ * - Creates new properties with all data
+ * - Updates existing properties ONLY for: prices, photos (if count changed), metadata
+ * - PRESERVES: translations, manual descriptions, existing metadata
+ * - TRACKS: price changes in price_audit table
  */
 export async function syncPropertiesFromInmovillaAction(): Promise<{
     success: boolean;
@@ -341,6 +445,18 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
 
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
         let successCount = 0;
+        let newCount = 0;
+        let updatedCount = 0;
+        let priceChanges = 0;
+
+        // Get all existing properties ONCE for comparison
+        const { data: existingProps } = await supabaseAdmin
+            .from('property_metadata')
+            .select('cod_ofer, precio, descriptions, full_data, photos, main_photo');
+
+        const existingMap = new Map(
+            (existingProps || []).map(p => [p.cod_ofer, p])
+        );
 
         // STEP 2: Process each property
         for (const baseProp of validProperties) {
@@ -351,7 +467,6 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                 if (!details) continue;
 
                 // Build photo URLs using numfotos, numagencia, and fotoletra
-                // These fields are returned by Inmovilla API but fotos field is just a status string
                 let photos: string[] = [];
                 const numFotos = (details as any).numfotos ? parseInt((details as any).numfotos as string) : 0;
                 const numAgencia = (details as any).numagencia || baseProp.numagencia || '';
@@ -365,43 +480,93 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                 }
                 
                 const mainPhoto = photos[0] || null;
+                const newPrice = details.precio || 0;
 
-                // Prepare data for Supabase
-                const upsertData = {
-                    cod_ofer: baseProp.cod_ofer,
-                    ref: baseProp.ref,
-                    tipo: details.tipo_nombre || baseProp.tipo_nombre || 'Property',
-                    precio: details.precio || 0,
-                    poblacion: details.poblacion || baseProp.poblacion,
-                    // Store Spanish description in key format
-                    descriptions: {
-                        description_es: details.descripciones || baseProp.descripciones || ''
-                    },
-                    // Store full property data for reference
-                    full_data: details,
-                    // Store photos - constructed URLs array
-                    photos: photos,
-                    main_photo: mainPhoto,
-                    nodisponible: false,
-                    updated_at: new Date().toISOString()
-                };
+                // Check if property exists
+                const existing = existingMap.get(baseProp.cod_ofer);
 
-                // Upsert to Supabase
-                const { error } = await supabaseAdmin
-                    .from('property_metadata')
-                    .upsert(upsertData, { onConflict: 'cod_ofer' });
+                if (existing) {
+                    // EXISTING PROPERTY - Smart update only
+                    
+                    // Check for price change
+                    const oldPrice = existing.precio || null;
+                    if (oldPrice !== newPrice) {
+                        priceChanges++;
+                        await recordPriceChange(supabaseAdmin, baseProp.cod_ofer, oldPrice, newPrice);
+                    }
 
-                if (error) {
-                    console.warn(`[Sync] Error upserting property ${baseProp.cod_ofer}:`, error);
+                    // Prepare update data (preserves translations & descriptions)
+                    const newData = {
+                        tipo_nombre: details.tipo_nombre || baseProp.tipo_nombre || 'Property',
+                        precio: newPrice,
+                        poblacion: details.poblacion || baseProp.poblacion,
+                        descripciones: details.descripciones || baseProp.descripciones || '',
+                        numagencia: (details as any).numagencia || baseProp.numagencia,
+                        fotoletra: (details as any).fotoletra || baseProp.fotoletra,
+                        numfotos: (details as any).numfotos || baseProp.numfotos,
+                        habitat: details.habitat,
+                        precioinmo: details.precioinmo,
+                        full_data: details,
+                        photos: photos,
+                        main_photo: mainPhoto,
+                        descriptions: {
+                            description_es: details.descripciones || baseProp.descripciones || ''
+                        }
+                    };
+
+                    const result = await smartUpdateProperty(
+                        supabaseAdmin,
+                        baseProp.cod_ofer,
+                        newData,
+                        existing
+                    );
+
+                    if (result.success) {
+                        updatedCount++;
+                        successCount++;
+                    }
                 } else {
-                    successCount++;
+                    // NEW PROPERTY - Create with all data
+                    const insertData = {
+                        cod_ofer: baseProp.cod_ofer,
+                        ref: baseProp.ref,
+                        tipo: details.tipo_nombre || baseProp.tipo_nombre || 'Property',
+                        precio: newPrice,
+                        poblacion: details.poblacion || baseProp.poblacion,
+                        descriptions: {
+                            description_es: details.descripciones || baseProp.descripciones || ''
+                        },
+                        full_data: details,
+                        photos: photos,
+                        main_photo: mainPhoto,
+                        nodisponible: false,
+                        updated_at: new Date().toISOString()
+                    };
+
+                    const { error } = await supabaseAdmin
+                        .from('property_metadata')
+                        .insert(insertData);
+
+                    if (!error) {
+                        newCount++;
+                        successCount++;
+                        // Record as new property (no price change)
+                        await recordPriceChange(supabaseAdmin, baseProp.cod_ofer, null, newPrice, 'New property synced');
+                    } else {
+                        console.warn(`[Sync] Error inserting property ${baseProp.cod_ofer}:`, error);
+                    }
                 }
             } catch (propError) {
                 console.error(`[Sync] Error processing property ${baseProp.cod_ofer}:`, propError);
             }
         }
 
-        console.log(`[Sync] Successfully synced ${successCount}/${validProperties.length} properties`);
+        console.log(`[Sync] Sync completed:`);
+        console.log(`  ✅ New: ${newCount}`);
+        console.log(`  🔄 Updated: ${updatedCount}`);
+        console.log(`  💰 Price changes: ${priceChanges}`);
+        console.log(`  📊 Total: ${successCount}/${validProperties.length}`);
+        
         return { success: true, synced: successCount };
     } catch (error: any) {
         console.error('[Sync] Error during sync:', error);

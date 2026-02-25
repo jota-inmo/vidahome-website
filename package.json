@@ -19,7 +19,9 @@
     "backfill-property-features": "tsx scripts/backfill-property-features.ts",
     "finalize-backfill": "tsx scripts/finalize-backfill.ts",
     "verify-room-distinction": "tsx scripts/verify-room-distinction.ts",
-    "check:property-features": "tsx scripts/check-property-features.ts"
+    "check:property-features": "tsx scripts/check-property-features.ts",
+    "setup:price-audit": "tsx scripts/setup-price-audit.ts",
+    "check:price-audit": "tsx scripts/check-price-audit.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
