@@ -9,8 +9,9 @@ dotenv.config();
 // ============================================================================
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/translate-properties`;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY!;
+const PERPLEXITY_API_URL = "https://api.perplexity.ai/openai/v1/chat/completions";
 
 const BATCH_SIZE = 10; // Match Edge Function limit
 const DELAY_BETWEEN_BATCHES = 2000; // 2 seconds between batches
@@ -61,13 +62,9 @@ async function translatePropertiesViaEdgeFunction(): Promise<void> {
 
     // Query properties that have Spanish but missing other languages
     const { data: propertiesToTranslate, error: fetchError } = await supabase
-      .from("properties")
-      .select("property_id")
-      .not("description_es", "is", null)
-      .neq("description_es", "")
-      .or(
-        "description_en.is.null,description_fr.is.null,description_de.is.null,description_it.is.null,description_pl.is.null"
-      );
+      .from("property_metadata")
+      .select("cod_ofer, descriptions")
+      .not("descriptions", "is", null);
 
     if (fetchError) {
       throw new Error(`Failed to fetch properties: ${fetchError.message}`);
@@ -78,8 +75,16 @@ async function translatePropertiesViaEdgeFunction(): Promise<void> {
       return;
     }
 
-    const totalProperties = propertiesToTranslate.length;
-    const propertyIds = propertiesToTranslate.map((p) => p.property_id);
+    // Filter properties that have Spanish description but missing other languages
+    const needsTranslation = propertiesToTranslate.filter((prop: any) => {
+      const desc = prop.descriptions || {};
+      const hasSp = desc.description_es || desc.descripciones;
+      const missingLang = !desc.description_en || !desc.description_fr || !desc.description_de || !desc.description_it || !desc.description_pl;
+      return hasSp && missingLang;
+    });
+
+    const totalProperties = needsTranslation.length;
+    const propertyIds = needsTranslation.map((p: any) => p.cod_ofer);
 
     logProgress(
       `✅ Found ${totalProperties} properties needing translation`
@@ -91,6 +96,11 @@ async function translatePropertiesViaEdgeFunction(): Promise<void> {
     let totalErrors = 0;
     let totalCost = 0;
 
+    // Initialize Supabase with service role key (no JWT issues)
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: { persistSession: false },
+    });
+
     for (let i = 0; i < propertyIds.length; i += BATCH_SIZE) {
       const batch = propertyIds.slice(i, i + BATCH_SIZE);
       const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
@@ -101,38 +111,159 @@ async function translatePropertiesViaEdgeFunction(): Promise<void> {
       );
 
       try {
-        const response = await fetch(EDGE_FUNCTION_URL, {
+        // Fetch properties from Supabase
+        const { data: properties } = await supabaseAdmin
+          .from("property_metadata")
+          .select("cod_ofer, descriptions")
+          .in("cod_ofer", batch);
+
+        if (!properties || properties.length === 0) {
+          logProgress(`⚠️  No properties found for batch ${batchNumber}`);
+          continue;
+        }
+
+        // Extract Spanish descriptions
+        const sourceTexts = properties
+          .map((prop: any) => {
+            const desc = prop.descriptions || {};
+            const spanishText = desc.description_es || desc.descripciones || "";
+            return {
+              cod_ofer: prop.cod_ofer,
+              text: spanishText.substring(0, 500),
+            };
+          })
+          .filter((item: any) => item.text);
+
+        if (sourceTexts.length === 0) {
+          logProgress(`⚠️  No Spanish descriptions in batch ${batchNumber}`);
+          continue;
+        }
+
+        // Build professional prompt
+        const prompt = `You are a world-class real estate marketing expert with 15+ years of international luxury property experience across Spain, the UK, France, Germany, Italy, and Eastern Europe.
+
+Your task is to translate luxury property descriptions from Spanish to multiple languages. Your translations must be:
+
+## TRANSLATION PRINCIPLES (NOT LITERAL):
+1. **Professional Tone**: Market the property to international luxury buyers. Adapt language to appeal to each cultural market
+2. **Cultural Adaptation**: 
+   - English (UK/US): Sophisticated, concise, emphasizes location prestige and investment value
+   - French: Elegant, poetic, emphasizes lifestyle and French refinement standards
+   - German: Precise, detailed, emphasizes technical features and construction quality
+   - Italian: Warm, evocative, emphasizes aesthetics and Mediterranean lifestyle
+   - Polish: Direct, practical, emphasizes functional features and investment potential
+
+3. **Vocabulary Preservation**: Maintain real estate terminology accurately in each language
+4. **Local Market Knowledge**: Understand the Valencian/Spanish geography references and adapt them naturally
+
+Return ONLY a valid JSON object (no markdown, no code blocks):
+{
+  "translations": [
+    {
+      "cod_ofer": 12345,
+      "en": "English translation",
+      "fr": "French translation",
+      "de": "German translation",
+      "it": "Italian translation",
+      "pl": "Polish translation"
+    }
+  ]
+}
+
+Spanish property descriptions:
+${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}`).join("\n---\n")}`;
+
+        // Call Perplexity API directly
+        const perplexityResponse = await fetch(PERPLEXITY_API_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
           },
           body: JSON.stringify({
-            property_ids: batch,
+            model: "llama-3.1-sonar-small-128k-online",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are an elite international real estate marketing expert with 15+ years translating luxury property listings. Your translations are culturally adapted, never literal.",
+              },
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+            temperature: 0.4,
           }),
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
+        if (!perplexityResponse.ok) {
+          const errorText = await perplexityResponse.text();
           throw new Error(
-            `Edge Function error: ${response.status} - ${errorText}`
+            `Perplexity API error: ${perplexityResponse.status} - ${errorText}`
           );
         }
 
-        const result: TranslationResponse = await response.json();
+        const perplexityData = await perplexityResponse.json();
+        const usage = perplexityData.usage || {
+          prompt_tokens: 0,
+          completion_tokens: 0,
+        };
+        const totalTokens = usage.prompt_tokens + usage.completion_tokens;
+        const batchCost = (totalTokens / 1000) * 0.0002;
+
+        // Parse and save translations
+        let translations: any[] = [];
+        try {
+          const content = perplexityData.choices[0]?.message?.content || "{}";
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
+          translations = parsed.translations || [];
+        } catch (parseError) {
+          logProgress(`❌ Failed to parse response`);
+          throw parseError;
+        }
+
+        // Update Supabase
+        for (const translation of translations) {
+          try {
+            const { cod_ofer, en, fr, de, it, pl } = translation;
+
+            // Get existing descriptions
+            const { data: existing } = await supabaseAdmin
+              .from("property_metadata")
+              .select("descriptions")
+              .eq("cod_ofer", cod_ofer)
+              .single();
+
+            // Merge translations
+            const updated = {
+              ...(existing?.descriptions || {}),
+              description_en: en,
+              description_fr: fr,
+              description_de: de,
+              description_it: it,
+              description_pl: pl,
+            };
+
+            await supabaseAdmin
+              .from("property_metadata")
+              .update({ descriptions: updated })
+              .eq("cod_ofer", cod_ofer);
+
+            totalTranslated++;
+          } catch (err) {
+            totalErrors++;
+            logProgress(`  ❌ Failed to update ${translation.cod_ofer}`);
+          }
+        }
 
         logProgress(
-          `✓ Batch ${batchNumber}: ${result.translated} translated, ${result.errors} errors`
+          `✓ Batch ${batchNumber}: ${translations.length} translated`
         );
-        logProgress(`💰 Cost estimate: ${result.cost_estimate}`);
+        logProgress(`💰 Batch cost: €${batchCost.toFixed(4)}`);
 
-        totalTranslated += result.translated;
-        totalErrors += result.errors;
-
-        // Extract numeric cost from string like "0.0025€"
-        const costMatch = result.cost_estimate.match(/[\d.]+/);
-        if (costMatch) {
-          totalCost += parseFloat(costMatch[0]);
+        totalCost += batchCost;
         }
 
         // Delay between batches to avoid rate limiting
