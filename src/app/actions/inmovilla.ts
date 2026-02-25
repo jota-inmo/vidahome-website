@@ -22,7 +22,7 @@ function getDescriptionKey(locale: string): string {
  * SIMPLIFIED: Fetch properties from Supabase (source of truth)
  * No Inmovilla calls - all data is pre-synced via admin/sync panel
  */
-export async function fetchPropertiesAction(): Promise<{
+export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
     success: boolean;
     data?: PropertyListEntry[];
     error?: string;
@@ -32,7 +32,7 @@ export async function fetchPropertiesAction(): Promise<{
     try {
         const { supabase } = await import('@/lib/supabase');
         
-        // Get property metadata with all necessary fields
+        // Get property metadata with all necessary fields including descriptions for i18n
         const { data: properties, error } = await supabase
             .from('property_metadata')
             .select(`
@@ -43,7 +43,8 @@ export async function fetchPropertiesAction(): Promise<{
                 poblacion,
                 nodisponible,
                 main_photo,
-                full_data
+                full_data,
+                descriptions
             `)
             .eq('nodisponible', false)
             .order('cod_ofer', { ascending: false });
@@ -63,15 +64,20 @@ export async function fetchPropertiesAction(): Promise<{
         const featuresMap = new Map((features || []).map((f: any) => [f.cod_ofer, f]));
 
         // Map database records to PropertyListEntry format
+        const descKey = getDescriptionKey(locale);
         const formatted: PropertyListEntry[] = (properties || []).map((row: any) => {
             const fullData = row.full_data || {};
             const feat = featuresMap.get(row.cod_ofer);
+            const descriptions = (row.descriptions as Record<string, string>) || {};
             
             // Use feature data if available, otherwise fall back to full_data
             // Try property_features first, then habdobles (most reliable), then habitaciones
             const habitaciones = feat?.habitaciones || fullData.habdobles || fullData.habitaciones || 0;
             const banyos = feat?.banos || fullData.banyos || 0;
             const m_cons = feat?.superficie || fullData.m_cons || 0;
+
+            // Apply locale-specific description, fallback to Spanish
+            const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
             
             return {
                 cod_ofer: row.cod_ofer,
@@ -88,7 +94,7 @@ export async function fetchPropertiesAction(): Promise<{
                 habitaciones: habitaciones,
                 banyos: banyos,
                 m_cons: m_cons,
-                descripciones: fullData.descripciones,
+                descripciones: localizedDesc,
                 tipo_nombre: fullData.tipo_nombre,
                 numagencia: fullData.numagencia,
                 fotoletra: fullData.fotoletra,

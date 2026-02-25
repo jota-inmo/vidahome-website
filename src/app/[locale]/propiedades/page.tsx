@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import { fetchPropertiesAction } from '@/app/actions';
 import { PropertyCatalogClient } from './PropertyCatalogClient';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PropiedadesPage() {
-    const result = await fetchPropertiesAction();
+    const locale = await getLocale();
+    const result = await fetchPropertiesAction(locale);
     const properties = result.success ? (result.data || []) : [];
     const populations = result.meta?.populations || [];
     const error = result.success ? null : result.error;
