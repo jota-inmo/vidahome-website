@@ -307,6 +307,159 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
 }
 
 /**
+ * ⭐ INCREMENTAL SYNC - Syncs 10 properties at a time
+ * 
+ * Good for automated cron jobs (call every 30 seconds)
+ * - Reads from Inmovilla
+ * - Tracks progress in sync_progress table
+ * - Processes 10 properties per call to avoid rate limits & conflicts
+ * 
+ * Usage: Call this from a cron job every 30 seconds
+ * Example: `curl https://vidahome-website.vercel.app/api/admin/sync-incremental`
+ */
+export async function syncPropertiesIncrementalAction(batchSize: number = 10): Promise<{
+    success: boolean;
+    synced: number;
+    total: number;
+    isComplete: boolean;
+    error?: string;
+}> {
+    const token = process.env.INMOVILLA_TOKEN;
+    const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
+
+    if (!token) {
+        return { success: false, synced: 0, total: 0, isComplete: false, error: 'Inmovilla token not configured' };
+    }
+
+    try {
+        const { supabaseAdmin } = await import('@/lib/supabase-admin');
+
+        // Get current sync progress
+        const { data: progress } = await supabaseAdmin
+            .from('sync_progress')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        const api = createInmovillaApi(token, authType);
+        
+        // Get ALL properties to find pagination point
+        const allProperties = await api.getProperties({ page: 1 });
+        if (!allProperties || allProperties.length === 0) {
+            return { success: true, synced: 0, total: 0, isComplete: true };
+        }
+
+        // Filter valid properties
+        const validProperties = allProperties.filter(p =>
+            !p.nodisponible &&
+            !p.prospecto &&
+            !isNaN(p.cod_ofer) &&
+            p.ref &&
+            p.ref.trim() !== '' &&
+            p.ref !== '2494' &&
+            p.cod_ofer !== 2494
+        );
+
+        // Find where to resume
+        const lastSyncedIndex = progress?.last_synced_cod_ofer 
+            ? validProperties.findIndex(p => p.cod_ofer === progress.last_synced_cod_ofer)
+            : -1;
+        
+        const startIndex = lastSyncedIndex + 1;
+        const endIndex = Math.min(startIndex + batchSize, validProperties.length);
+        const batch = validProperties.slice(startIndex, endIndex);
+
+        if (batch.length === 0) {
+            // All done!
+            await supabaseAdmin
+                .from('sync_progress')
+                .insert({
+                    last_synced_cod_ofer: validProperties[validProperties.length - 1].cod_ofer,
+                    total_synced: validProperties.length,
+                    status: 'idle',
+                    error_message: null
+                });
+            
+            console.log('[Sync] ✅ All properties synced!');
+            return { success: true, synced: 0, total: validProperties.length, isComplete: true };
+        }
+
+        let successCount = 0;
+        let lastCodOfer = progress?.last_synced_cod_ofer || 0;
+
+        // Process batch
+        for (const prop of batch) {
+            try {
+                const details = await api.getPropertyDetails(prop.cod_ofer);
+                if (!details) continue;
+
+                let photos: any[] = [];
+                if (Array.isArray(details.fotos)) {
+                    photos = details.fotos;
+                } else if (details.fotos && typeof details.fotos === 'object') {
+                    photos = Object.values(details.fotos).map((f: any) => f?.url || f);
+                }
+                const mainPhoto = photos[0] || null;
+
+                const upsertData = {
+                    cod_ofer: prop.cod_ofer,
+                    ref: prop.ref,
+                    tipo: details.tipo_nombre || prop.tipo_nombre || 'Property',
+                    precio: details.precio || 0,
+                    poblacion: details.poblacion || prop.poblacion,
+                    descriptions: {
+                        description_es: details.descripciones || prop.descripciones || ''
+                    },
+                    full_data: details,
+                    photos: photos,
+                    main_photo: mainPhoto,
+                    nodisponible: false,
+                    updated_at: new Date().toISOString()
+                };
+
+                // Upsert to Supabase (individual inserts avoid conflict issues)
+                const { error } = await supabaseAdmin
+                    .from('property_metadata')
+                    .upsert(upsertData, { onConflict: 'cod_ofer' });
+
+                if (!error) {
+                    successCount++;
+                    lastCodOfer = prop.cod_ofer;
+                } else {
+                    console.warn(`[Sync] Error upserting ${prop.cod_ofer}:`, error);
+                }
+            } catch (e) {
+                console.error(`[Sync] Error processing ${prop.cod_ofer}:`, e);
+            }
+        }
+
+        // Update progress
+        await supabaseAdmin
+            .from('sync_progress')
+            .insert({
+                last_synced_cod_ofer: lastCodOfer,
+                total_synced: (progress?.total_synced || 0) + successCount,
+                status: 'idle',
+                error_message: null
+            });
+
+        const isComplete = endIndex >= validProperties.length;
+        console.log(`[Sync] Batch complete: ${successCount}/${batch.length} synced. Progress: ${endIndex}/${validProperties.length}`);
+
+        return {
+            success: true,
+            synced: successCount,
+            total: validProperties.length,
+            isComplete
+        };
+    } catch (error: any) {
+        console.error('[Sync] Incremental sync error:', error);
+        return { success: false, synced: 0, total: 0, isComplete: false, error: error.message };
+    }
+}
+
+/**
  * Submit lead (contact form submission)
  * Minimal - only stores to Supabase and optionally Inmovilla
  */
