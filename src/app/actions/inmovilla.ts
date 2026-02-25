@@ -443,10 +443,16 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
 
                 if (!error) {
                     // Also upsert to property_features for fast querying
+                    const habitacionesSimples = details.habitaciones || 0;
+                    const habitacionesDobles = details.habdobles || 0;
+                    const totalHabitaciones = habitacionesSimples + habitacionesDobles;
+
                     const featureData = {
                         cod_ofer: prop.cod_ofer,
                         precio: details.precio || 0,
-                        habitaciones: details.habitaciones || 0,
+                        habitaciones: totalHabitaciones,
+                        habitaciones_simples: habitacionesSimples,
+                        habitaciones_dobles: habitacionesDobles,
                         banos: details.banyos || 0,
                         superficie: details.m_utiles || details.m_cons || 0,
                         plantas: Math.max(0, details.planta || 0),

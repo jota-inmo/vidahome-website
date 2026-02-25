@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS public.property_features (
   
   -- Core metrics
   precio NUMERIC(12, 2) DEFAULT 0,
-  habitaciones INTEGER,
+  habitaciones INTEGER,  -- Total (simples + dobles)
+  habitaciones_simples INTEGER DEFAULT 0,
+  habitaciones_dobles INTEGER DEFAULT 0,
   banos INTEGER,
   superficie NUMERIC(10, 2),  -- m2
   

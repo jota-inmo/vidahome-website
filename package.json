@@ -15,7 +15,11 @@
     "translate:perplexity": "tsx scripts/translate-with-perplexity.ts",
     "fill:placeholders": "tsx scripts/fill-placeholder-translations.ts",
     "sync:manual": "tsx scripts/manual-sync.ts",
-    "check:translations": "tsx scripts/check-translations.ts"
+    "check:translations": "tsx scripts/check-translations.ts",
+    "backfill-property-features": "tsx scripts/backfill-property-features.ts",
+    "finalize-backfill": "tsx scripts/finalize-backfill.ts",
+    "verify-room-distinction": "tsx scripts/verify-room-distinction.ts",
+    "check:property-features": "tsx scripts/check-property-features.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
