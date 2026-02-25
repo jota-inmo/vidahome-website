@@ -30,6 +30,15 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
     // Use real Inmovilla image if available, fallback to high-end architectural images
     const imageUrl = property.mainImage || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop`;
 
+    // Debug logging
+    if (property.cod_ofer === 28189625) {
+        console.log('[LuxuryPropertyCard] Property 28189625:', {
+            mainImage: property.mainImage,
+            imageUrl: imageUrl,
+            ref: property.ref
+        });
+    }
+
     return (
         <a href={`/propiedades/${property.cod_ofer}`} className="group block h-full">
             <div className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-900 rounded-sm overflow-hidden transition-all duration-700 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] flex flex-col h-full text-left">
@@ -41,7 +50,17 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                         fill
                         className={`object-cover transition-all duration-[1.5s] ease-out group-hover:scale-105 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
                             }`}
-                        onLoad={() => setImageLoaded(true)}
+                        onLoad={() => {
+                            setImageLoaded(true);
+                            if (property.cod_ofer === 28189625) {
+                                console.log('[LuxuryPropertyCard] Image loaded for 28189625');
+                            }
+                        }}
+                        onError={() => {
+                            if (property.cod_ofer === 28189625) {
+                                console.error('[LuxuryPropertyCard] Image error for 28189625:', imageUrl);
+                            }
+                        }}
                         loading="lazy"
                     />
 
