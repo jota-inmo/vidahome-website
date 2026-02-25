@@ -211,9 +211,18 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ---
 
-## 13. Query Optimization con Property Features Table (2026-02-25)
+## 13. Multilingual Footer & Query Optimization (2026-02-25)
 
-### 🚀 Denormalización de Datos Frecuentes
+### 🌍 Multilingual Capabilities Indicator
+- **Footer Added**: "Nous parlons français. We speak English. Mówimy po polsku. Parliamo italiano."
+- **Purpose**: Display identical in all language descriptions to showcase agency speaks multiple languages
+- **Implementation**:
+  - Modified `translate-direct.ts` to append footer to new translations
+  - Created `add-multilingual-footer.ts` for batch updates to existing properties
+  - Updated 49 existing properties with footer (27 already had it)
+- **Automatic**: All future translationsinclude footer automatically
+
+### 🚀 Denormalización de Datos Frecuentes (Property Features Table)
 - **Problema**: Listados y filtrados requieren hacer muchas llamadas a `property_metadata` o a Inmovilla para obtener precio, rooms, baths, área
 - **Solución**: Nueva tabla `property_features` en Supabase con campos altamente indexados
 - **Tabla Creada**: 
@@ -247,4 +256,4 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ---
 
-*Última actualización: 25/02/2026 (18:00) - Professional translations (24/24) ✅ | Rate limit optimized ✅ | Property features table created ✅ | Auto-population implemented ✅ | Next: Query optimization on frontend.*
+*Última actualización: 25/02/2026 (18:15) - Multilingual footer (49 updated) ✅ | Property features table ✅ | Auto-population ✅ | Rate limit optimized ✅ | Professional translations (24/24) ✅*

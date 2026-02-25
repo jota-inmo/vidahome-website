@@ -1,8 +1,17 @@
 # Changelog - Catastro Integration Fixes
 
-## [2026-02-25] - Property Features Table & Query Optimization
+## [2026-02-25] - Multilingual Footer & Property Features Table
 
-### 🚀 Creación de Tabla Denormalizada para Consultas Rápidas
+### 🌍 Multilingual Capabilities Indicator
+- **Added Footer**: "Nous parlons français. We speak English. Mówimy po polsku. Parliamo italiano."
+- **Placement**: Appears identical in all language descriptions to showcase agency multilingual capabilities
+- **Scope**: Updated 49 existing properties + all future translations automatically include footer
+- **Implementation**:
+  - Modified `translate-direct.ts` to auto-append footer to new translations
+  - Created `add-multilingual-footer.ts` for batch updates
+  - Footer added to descriptions in: ES, EN, FR, DE, IT, PL
+
+### 🚀 Property Features Table for Query Optimization
 - **Nueva Tabla `property_features`**: Almacena atributos frecuentemente consultados (precio, habitaciones, baños, superficie)
 - **Auto-población**: El sistema de sincronización incremental (`syncPropertiesIncrementalAction`) ahora automáticamente llena `property_features` junto con `property_metadata`
 - **Campos Sincroniados**: precio, habitaciones, baños, superficie, plantas, ascensor, parking, terraza, synced_at
