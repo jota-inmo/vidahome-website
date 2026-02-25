@@ -15,6 +15,7 @@
     "translate:perplexity": "tsx scripts/translate-with-perplexity.ts",
     "fill:placeholders": "tsx scripts/fill-placeholder-translations.ts",
     "sync:manual": "tsx scripts/manual-sync.ts",
+    "audit:inmovilla": "npx tsx scripts/audit-vs-inmovilla.ts",
     "check:translations": "tsx scripts/check-translations.ts",
     "backfill-property-features": "tsx scripts/backfill-property-features.ts",
     "finalize-backfill": "tsx scripts/finalize-backfill.ts",
