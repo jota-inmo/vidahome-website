@@ -8,6 +8,7 @@ import { cleanDescription } from '@/lib/utils/text-cleaner';
 import { useTranslations, useLocale } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
+import { Link } from '@/i18n/routing';
 
 
 interface LuxuryPropertyCardProps {
@@ -31,7 +32,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
     const imageUrl = property.mainImage || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop`;
 
     return (
-        <a href={`/propiedades/${property.cod_ofer}`} className="group block h-full">
+        <Link href={`/propiedades/${property.cod_ofer}`} className="group block h-full">
             <div className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-900 rounded-sm overflow-hidden transition-all duration-700 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] flex flex-col h-full text-left">
                 {/* Container de Imagen con Lazy Loading */}
                 <div className="relative aspect-[16/11] overflow-hidden bg-slate-50 dark:bg-slate-900">
@@ -102,6 +103,6 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     </div>
                 </div>
             </div>
-        </a>
+        </Link>
     );
 };
