@@ -120,11 +120,11 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
     try {
         const { supabase } = await import('@/lib/supabase');
         
-        // Get featured properties WITH ORDER
+        // Get featured properties (sin ORDER BY orden porque esa columna no existe)
         const { data: featured, error: featError } = await supabase
             .from('featured_properties')
-            .select('cod_ofer, orden')
-            .order('orden', { ascending: true });
+            .select('cod_ofer')
+            .order('created_at', { ascending: true });
 
         if (featError) throw featError;
         if (!featured || featured.length === 0) return { success: true, data: [] };
