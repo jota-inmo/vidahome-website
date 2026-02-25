@@ -68,7 +68,8 @@ export async function fetchPropertiesAction(): Promise<{
             const feat = featuresMap.get(row.cod_ofer);
             
             // Use feature data if available, otherwise fall back to full_data
-            const habitaciones = feat?.habitaciones || fullData.habitaciones || 0;
+            // Try property_features first, then habdobles (most reliable), then habitaciones
+            const habitaciones = feat?.habitaciones || fullData.habdobles || fullData.habitaciones || 0;
             const banyos = feat?.banos || fullData.banyos || 0;
             const m_cons = feat?.superficie || fullData.m_cons || 0;
             
@@ -111,23 +112,38 @@ export async function fetchPropertiesAction(): Promise<{
 export async function getPropertyDetailAction(id: number, locale: string = 'es'): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
     try {
         const { supabase } = await import('@/lib/supabase');
-        const { data: meta, error } = await supabase
-            .from('property_metadata')
-            .select('cod_ofer, ref, full_data, descriptions, photos, main_photo')
-            .eq('cod_ofer', id)
-            .single();
+        
+        // Get property metadata and features in parallel
+        const [{ data: meta, error }, { data: features }] = await Promise.all([
+            supabase
+                .from('property_metadata')
+                .select('cod_ofer, ref, full_data, descriptions, photos, main_photo')
+                .eq('cod_ofer', id)
+                .single(),
+            supabase
+                .from('property_features')
+                .select('cod_ofer, habitaciones, banos, superficie')
+                .eq('cod_ofer', id)
+                .maybeSingle()
+        ]);
 
         if (error || !meta) {
             return { success: false, error: 'Propiedad no encontrada' };
         }
 
-        // Get full property data from stored full_data (with fallback)
+        // Get full property data from stored full_data
         const fullData = (meta.full_data as PropertyDetails) || {};
+        const feat = features || null;
 
         // Apply correct locale description
         const descKey = getDescriptionKey(locale);
         const descriptions = (meta.descriptions as Record<string, string>) || {};
         const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
+
+        // Use same logic as fetchPropertiesAction for consistent data
+        const habitaciones = feat?.habitaciones || fullData.habdobles || fullData.habitaciones || 0;
+        const banyos = feat?.banos || fullData.banyos || 0;
+        const m_cons = feat?.superficie || fullData.m_cons || 0;
 
         // Enrich with photos if available
         const propertyWithPhotos = {
@@ -137,7 +153,11 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
             descripciones: localizedDesc,
             all_descriptions: descriptions,
             fotos_lista: meta.photos || [],
-            main_photo: meta.main_photo
+            main_photo: meta.main_photo,
+            mainImage: meta.main_photo,
+            habitaciones: habitaciones,
+            banyos: banyos,
+            m_cons: m_cons
         };
 
         return { success: true, data: propertyWithPhotos };
@@ -174,7 +194,7 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
     try {
         const { supabase } = await import('@/lib/supabase');
         
-        // Get featured properties (sin ORDER BY orden porque esa columna no existe)
+        // Get featured properties
         const { data: featured, error: featError } = await supabase
             .from('featured_properties')
             .select('cod_ofer')
@@ -184,14 +204,26 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
         if (!featured || featured.length === 0) return { success: true, data: [] };
 
         const featuredIds = featured.map(f => f.cod_ofer);
-        const { data: metadata, error } = await supabase
-            .from('property_metadata')
-            .select('cod_ofer, full_data, descriptions, main_photo, photos')
-            .in('cod_ofer', featuredIds);
+
+        // Get metadata and features in parallel (same as fetchPropertiesAction)
+        const [{ data: metadata, error }, { data: features, error: featError2 }] = await Promise.all([
+            supabase
+                .from('property_metadata')
+                .select('cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion')
+                .in('cod_ofer', featuredIds),
+            supabase
+                .from('property_features')
+                .select('cod_ofer, habitaciones, banos, superficie')
+                .in('cod_ofer', featuredIds)
+        ]);
 
         if (error) throw error;
+        if (featError2) console.warn('[getFeaturedPropertiesWithDetailsAction] Error fetching features:', featError2);
 
-        // Preserve order from featured_properties table
+        // Create features lookup map
+        const featuresMap = new Map((features || []).map((f: any) => [f.cod_ofer, f]));
+
+        // Preserve order from featured_properties table and format correctly
         const results = featured
             .map(featuredItem => {
                 const meta = metadata?.find(m => m.cod_ofer === featuredItem.cod_ofer);
@@ -201,14 +233,25 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                 const descriptions = meta.descriptions as Record<string, string> || {};
                 const descKey = getDescriptionKey(locale);
                 const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
+                
+                // Get features for this property
+                const feat = featuresMap.get(meta.cod_ofer);
+                
+                // Use same logic as fetchPropertiesAction for consistent data
+                const habitaciones = feat?.habitaciones || fullData.habdobles || fullData.habitaciones || 0;
+                const banyos = feat?.banos || fullData.banyos || 0;
+                const m_cons = feat?.superficie || fullData.m_cons || 0;
 
                 return {
                     ...fullData,
                     cod_ofer: meta.cod_ofer,
+                    ref: meta.ref,
+                    mainImage: meta.main_photo,
+                    habitaciones: habitaciones,
+                    banyos: banyos,
+                    m_cons: m_cons,
                     descripciones: localizedDesc,
-                    all_descriptions: descriptions,
-                    main_photo: meta.main_photo,
-                    fotos: meta.photos || []
+                    fotos_lista: meta.photos || []
                 };
             })
             .filter(Boolean);
