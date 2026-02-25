@@ -1,12 +1,11 @@
 /**
  * Scheduled sync endpoint for Vercel Cron
- * Runs every 6 hours to sync properties from Inmovilla
+ * Runs hourly (10h-21h Madrid) to sync properties from Inmovilla
  * 
  * Setup:
- * 1. Add to vercel.json:
- *    "crons": [{"path": "/api/sync/cron", "schedule": "0 */6 * * *"}]
+ * 1. Add to vercel.json: crons schedule "0 8-20 * * *" (UTC: 08:00-20:00)
  * 2. Deploy to Vercel
- * 3. Check logs in Vercel Dashboard → Cron
+ * 3. Check logs in Vercel Dashboard ➜ Function Logs ➜ Crons
  */
 
 import { syncPropertiesFromInmovillaAction } from '@/app/actions/inmovilla';

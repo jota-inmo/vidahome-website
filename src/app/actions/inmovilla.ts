@@ -504,7 +504,6 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                         numagencia: (details as any).numagencia || baseProp.numagencia,
                         fotoletra: (details as any).fotoletra || baseProp.fotoletra,
                         numfotos: (details as any).numfotos || baseProp.numfotos,
-                        habitat: details.habitat,
                         precioinmo: details.precioinmo,
                         full_data: details,
                         photos: photos,
