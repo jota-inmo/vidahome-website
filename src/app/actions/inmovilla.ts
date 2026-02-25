@@ -442,6 +442,28 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                     .upsert(upsertData, { onConflict: 'cod_ofer' });
 
                 if (!error) {
+                    // Also upsert to property_features for fast querying
+                    const featureData = {
+                        cod_ofer: prop.cod_ofer,
+                        precio: details.precio || 0,
+                        habitaciones: details.habitaciones || 0,
+                        banos: details.banyos || 0,
+                        superficie: details.m_utiles || details.m_cons || 0,
+                        plantas: Math.max(0, details.planta || 0),
+                        ascensor: Boolean(details.ascensor),
+                        parking: Boolean(details.garaje),
+                        terraza: Boolean(details.terraza),
+                        synced_at: new Date().toISOString()
+                    };
+
+                    const { error: featureError } = await supabaseAdmin
+                        .from('property_features')
+                        .upsert(featureData, { onConflict: 'cod_ofer' });
+
+                    if (featureError) {
+                        console.warn(`[Sync] Error upserting features for ${prop.cod_ofer}:`, featureError);
+                    }
+
                     successCount++;
                     lastCodOfer = prop.cod_ofer;
                 } else {
