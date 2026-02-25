@@ -170,5 +170,20 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 3. **Historial**: Versiones de traducciones por idioma
 4. **Optimización**: Caché inteligente de traducciones frecuentes
 
+## 🚀 Roadmap Estratégico: Independencia de Inmovilla (6-8 meses)
+
+**Ver documento completo**: [PRODUCT_INDEPENDENCE_ROADMAP.md](./PRODUCT_INDEPENDENCE_ROADMAP.md)
+
+**Resumen Ejecutivo**:
+- Fase 1: Infraestructura Supabase Pro + Storage (Semanas 1-4)
+- Fase 2: Sincronización de fotos desde Inmovilla → Supabase Storage (Semanas 5-8)
+- Fase 3: Integración vidahome-encargo ↔ vidahome-website (Semanas 9-12)
+- Fase 4: APIs Idealista + Fotocasa para multiplicar publicaciones (Semanas 13-20)
+- Fase 5: Prescindir gradualmente de Inmovilla (Semanas 21-26)
+- Fase 6: Optimizaciones finales + Documentación (Semanas 27-30)
+- Fase 7: Monitoreo y mantenimiento (Ongoing)
+
+**Beneficio Clave**: De "sincronizar datos de Inmovilla" a "publicar en 3 portales desde un único panel".
+
 ---
 *Última actualización: 25/02/2026 (Sync optimization) - Rate limit resolved. Cron now runs every 2 minutes with batch size 8. 18/77 properties synced. ETA 16-20 minutes for full sync.*
