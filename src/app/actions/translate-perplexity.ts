@@ -133,7 +133,9 @@ Your task is to translate luxury property descriptions from Spanish to multiple 
 - You know what international buyers seek in each market segment
 - You've successfully marketed properties to: UK investment funds, French wealthy individuals, German retirees, Italian lifestyle seekers, Polish entrepreneurs
 
-Return ONLY a valid JSON object with this structure (no markdown, no code blocks, no explanation):
+CRITICAL INSTRUCTION: Your entire response must be ONLY the JSON object below. Do NOT write any text before or after the JSON. Do NOT say "I appreciate", "Sure", "Here is" or anything else. Start your response with { and end with }.
+
+Return ONLY this JSON structure:
 {
   "translations": [
     {
@@ -146,6 +148,8 @@ Return ONLY a valid JSON object with this structure (no markdown, no code blocks
     }
   ]
 }
+
+Do NOT include markdown, code blocks, explanations, or any text outside the JSON object.
 
 Spanish luxury property descriptions to translate (these are real estate listings in Spain):
 ${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}`).join("\n---\n")}`;
@@ -163,7 +167,7 @@ ${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}
           {
             role: "system",
             content:
-              "You are an elite international real estate marketing expert with 15+ years translating luxury property listings across European markets (Spain, UK, France, Germany, Italy, Poland). Your translations are never literal—they are professionally adapted to appeal to each market's cultural preferences and buyer expectations. You understand that effective real estate translation requires more than language conversion; it requires market-specific positioning and emotional resonance. Your goal is to make Spanish properties equally compelling to international luxury buyers across all five languages.",
+              "You are a JSON-only translation API for real estate listings. You MUST respond with ONLY valid JSON—never any explanatory text, greetings, apologies, or markdown. Your response MUST start with { and end with }. You are an elite real estate marketing expert translating Spanish luxury property listings into English, French, German, Italian and Polish for international buyers. Adapt the tone culturally for each market while preserving all factual details.",
           },
           {
             role: "user",
@@ -193,8 +197,20 @@ ${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}
     let translations: TranslationResult[] = [];
     try {
       const content = perplexityData.choices[0]?.message?.content || "{}";
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
+
+      // Robust JSON extraction: find first { and last } to handle conversational preamble
+      const firstBrace = content.indexOf('{');
+      const lastBrace = content.lastIndexOf('}');
+      let jsonStr = content;
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonStr = content.substring(firstBrace, lastBrace + 1);
+      } else {
+        // No JSON object found at all - log for debugging
+        console.error("No JSON found in Perplexity response. Content preview:", content.substring(0, 200));
+        throw new Error("Perplexity returned no JSON object in response");
+      }
+
+      const parsed = JSON.parse(jsonStr);
       translations = parsed.translations || [];
     } catch (parseError) {
       console.error("Failed to parse Perplexity response:", parseError);
