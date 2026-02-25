@@ -254,6 +254,16 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 - Preparación para Growth Phase (Supabase Pro + Storage)
 - Escalable para 1000+ propiedades sin degradación
 
+### 🔄 Tabla `properties` - Mejor Estructura (PENDIENTE REVISIÓN)
+- **Observación**: Existe tabla `properties` con mejor estructura que `property_metadata`:
+  - Columnas separadas: description_es, description_en, description_fr, description_de, description_it, description_pl
+  - Más limpia, legible, eficiente para queries por idioma
+- **Decision PENDIENTE**: Cuando se complete 77/77 sync, revisar alineación de tablas:
+  - ¿Usar `properties` como tabla principal?
+  - ¿Consolidar `property_metadata` + `properties` en una sola?
+  - ¿Mantener ambas para diferentes casos de uso?
+- **Timeline**: Después de completar captura de datos (actualmente 50/77)
+
 ---
 
-*Última actualización: 25/02/2026 (18:15) - Multilingual footer (49 updated) ✅ | Property features table ✅ | Auto-population ✅ | Rate limit optimized ✅ | Professional translations (24/24) ✅*
+*Última actualización: 25/02/2026 (18:45) - Sync: 50/77 propiedades ✅ | Multilingual footer (49 updated) ✅ | Property features table ✅ | PENDING: Table structure optimization post-sync*
