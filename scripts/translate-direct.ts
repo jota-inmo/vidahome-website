@@ -7,6 +7,9 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY!;
 
+// Multilingual footer - appears identical in all languages to indicate language capabilities
+const MULTILINGUAL_FOOTER = "\n\nNous parlons français. We speak English. Mówimy po polsku. Parliamo italiano.";
+
 console.log(`✓ Supabase configured`);
 if (!PERPLEXITY_API_KEY) {
   console.error("❌ PERPLEXITY_API_KEY not found in environment");
@@ -148,11 +151,11 @@ ${descriptions}`;
 
           const updated = {
             ...(existing?.descriptions || {}),
-            description_en: trans.en,
-            description_fr: trans.fr,
-            description_de: trans.de,
-            description_it: trans.it,
-            description_pl: trans.pl,
+            description_en: (trans.en || "") + MULTILINGUAL_FOOTER,
+            description_fr: (trans.fr || "") + MULTILINGUAL_FOOTER,
+            description_de: (trans.de || "") + MULTILINGUAL_FOOTER,
+            description_it: (trans.it || "") + MULTILINGUAL_FOOTER,
+            description_pl: (trans.pl || "") + MULTILINGUAL_FOOTER,
           };
 
           await supabase
