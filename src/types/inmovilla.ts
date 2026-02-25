@@ -27,8 +27,8 @@ export interface PropertyListEntry {
     tipo?: string;
     precio?: number;
     main_photo?: string;
-    habitaciones?: number;
     habdobles?: number;
+}
 
 export interface PropertyDetails {
     cod_ofer: number;
@@ -70,7 +70,6 @@ export interface PropertyDetails {
     latitud?: string | number;
     longitud?: string | number;
     all_descriptions?: Record<string, string>;
-    habitaciones?: number;
     habdobles?: number;
     // Additional fields can be added here as needed
 }

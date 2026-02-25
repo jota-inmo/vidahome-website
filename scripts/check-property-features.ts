@@ -72,12 +72,16 @@ async function checkPropertyFeatures() {
     .from("property_metadata")
     .select("*", { count: "exact", head: true });
 
-  console.log(`  • property_metadata: ${metaCount} rows`);
+  console.log(`  • property_metadata: ${metaCount || 0} rows`);
   console.log(`  • property_features: ${stats.total} rows`);
-  console.log(`  • Coverage: ${((stats.total/metaCount)*100).toFixed(0)}%`);
+  if (metaCount) {
+    console.log(`  • Coverage: ${((stats.total / metaCount) * 100).toFixed(0)}%`);
+  }
 
-  if (stats.total < metaCount) {
-    console.log(`  ⚠️  Missing: ${metaCount - stats.total} properties need feature data`);
+  if (metaCount && stats.total < metaCount) {
+    console.log(
+      `  ⚠️  Missing: ${metaCount - stats.total} properties need feature data`
+    );
   }
 }
 
