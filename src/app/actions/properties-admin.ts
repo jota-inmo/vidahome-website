@@ -37,9 +37,9 @@ export async function getPropertiesSummaryAction(): Promise<{
     const { data: metadata, error: metaError } = await supabaseAdmin
       .from("property_metadata")
       .select(
-        "cod_ofer, ref, tipo, precio, poblacion, nodisponible, main_photo, descriptions, updated_at"
+        "cod_ofer, ref, tipo, precio, poblacion, nodisponible, main_photo, descriptions, full_data, updated_at"
       )
-      .order("ref", { ascending: true });
+      .order("cod_ofer", { ascending: true });
 
     if (metaError) throw new Error(metaError.message);
 
@@ -56,20 +56,28 @@ export async function getPropertiesSummaryAction(): Promise<{
     const rows: PropertySummaryRow[] = (metadata || []).map((m: any) => {
       const f = featMap.get(m.cod_ofer) as any;
       const d = (m.descriptions as Record<string, string>) || {};
+      const fd = (m.full_data as Record<string, any>) || {};
+
+      // Fallback chain: dedicated column → full_data field → default
+      const tipo = m.tipo && m.tipo !== 'Property' ? m.tipo : (fd.tipo_nombre || fd.tipo || m.tipo || '');
+      const poblacion = m.poblacion || fd.poblacion || fd.municipio || '';
+      const precio = m.precio || fd.precioinmo || fd.precio || 0;
+      const ref = m.ref || fd.ref || `#${m.cod_ofer}`;
+
       return {
         cod_ofer: m.cod_ofer,
-        ref: m.ref || `#${m.cod_ofer}`,
-        tipo: m.tipo || "",
-        poblacion: m.poblacion || "",
-        precio: m.precio || 0,
+        ref,
+        tipo,
+        poblacion,
+        precio,
         nodisponible: m.nodisponible || false,
         main_photo: m.main_photo || null,
         updated_at: m.updated_at || "",
-        superficie: f?.superficie ?? null,
-        habitaciones: f?.habitaciones ?? null,
+        superficie: f?.superficie ?? fd.m_cons ?? null,
+        habitaciones: f?.habitaciones ?? fd.habitaciones ?? null,
         habitaciones_simples: f?.habitaciones_simples ?? null,
-        habitaciones_dobles: f?.habitaciones_dobles ?? null,
-        banos: f?.banos ?? null,
+        habitaciones_dobles: f?.habitaciones_dobles ?? (fd.habdobles ?? null),
+        banos: f?.banos ?? fd.banyos ?? null,
         description_es: d.description_es || "",
         description_en: d.description_en || "",
         description_fr: d.description_fr || "",
