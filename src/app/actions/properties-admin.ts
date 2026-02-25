@@ -1,0 +1,151 @@
+"use server";
+
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+export interface PropertySummaryRow {
+  cod_ofer: number;
+  ref: string;
+  tipo: string;
+  poblacion: string;
+  precio: number;
+  nodisponible: boolean;
+  superficie: number | null;
+  habitaciones: number | null;
+  habitaciones_simples: number | null;
+  habitaciones_dobles: number | null;
+  banos: number | null;
+  description_es: string;
+  description_en: string;
+  description_fr: string;
+  description_de: string;
+  description_it: string;
+  description_pl: string;
+  main_photo: string | null;
+  updated_at: string;
+}
+
+/**
+ * Fetch all properties with merged data from property_metadata + property_features
+ * Equivalent to the property_summary VIEW
+ */
+export async function getPropertiesSummaryAction(): Promise<{
+  success: boolean;
+  data?: PropertySummaryRow[];
+  error?: string;
+}> {
+  try {
+    const { data: metadata, error: metaError } = await supabaseAdmin
+      .from("property_metadata")
+      .select(
+        "cod_ofer, ref, tipo, precio, poblacion, nodisponible, main_photo, descriptions, updated_at"
+      )
+      .order("ref", { ascending: true });
+
+    if (metaError) throw new Error(metaError.message);
+
+    const { data: features } = await supabaseAdmin
+      .from("property_features")
+      .select(
+        "cod_ofer, superficie, habitaciones, habitaciones_simples, habitaciones_dobles, banos"
+      );
+
+    const featMap = new Map(
+      (features || []).map((f: any) => [f.cod_ofer, f])
+    );
+
+    const rows: PropertySummaryRow[] = (metadata || []).map((m: any) => {
+      const f = featMap.get(m.cod_ofer) as any;
+      const d = (m.descriptions as Record<string, string>) || {};
+      return {
+        cod_ofer: m.cod_ofer,
+        ref: m.ref || `#${m.cod_ofer}`,
+        tipo: m.tipo || "",
+        poblacion: m.poblacion || "",
+        precio: m.precio || 0,
+        nodisponible: m.nodisponible || false,
+        main_photo: m.main_photo || null,
+        updated_at: m.updated_at || "",
+        superficie: f?.superficie ?? null,
+        habitaciones: f?.habitaciones ?? null,
+        habitaciones_simples: f?.habitaciones_simples ?? null,
+        habitaciones_dobles: f?.habitaciones_dobles ?? null,
+        banos: f?.banos ?? null,
+        description_es: d.description_es || "",
+        description_en: d.description_en || "",
+        description_fr: d.description_fr || "",
+        description_de: d.description_de || "",
+        description_it: d.description_it || "",
+        description_pl: d.description_pl || "",
+      };
+    });
+
+    return { success: true, data: rows };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Update property descriptions (all languages at once)
+ */
+export async function updatePropertyDescriptionsAction(
+  cod_ofer: number,
+  descriptions: {
+    description_es: string;
+    description_en: string;
+    description_fr: string;
+    description_de: string;
+    description_it: string;
+    description_pl: string;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data: existing } = await supabaseAdmin
+      .from("property_metadata")
+      .select("descriptions")
+      .eq("cod_ofer", cod_ofer)
+      .single();
+
+    const merged = {
+      ...(existing?.descriptions || {}),
+      ...descriptions,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabaseAdmin
+      .from("property_metadata")
+      .update({ descriptions: merged })
+      .eq("cod_ofer", cod_ofer);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Update property physical features
+ */
+export async function updatePropertyFeaturesAction(
+  cod_ofer: number,
+  features: {
+    superficie?: number;
+    habitaciones?: number;
+    habitaciones_simples?: number;
+    habitaciones_dobles?: number;
+    banos?: number;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabaseAdmin
+      .from("property_features")
+      .update({ ...features, updated_at: new Date().toISOString() })
+      .eq("cod_ofer", cod_ofer);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}

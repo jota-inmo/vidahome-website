@@ -222,4 +222,36 @@ Las peticiones a la API de Inmovilla dependen del idioma detectado. El parámetr
 
 ---
 
-*Documento actualizado el 23/02/2026 (17:45) por Antigravity AI.*
+---
+
+## 9. Panel de Administración
+
+La ruta `/admin` ofrece acceso centralizado a todos los módulos de gestión:
+
+| Ruta | Función |
+| :--- | :--- |
+| `/admin/hero` | Gestión de vídeos y textos del banner principal |
+| `/admin/featured` | Selección de las 6 propiedades destacadas en home |
+| `/admin/settings` | Datos de agencia: teléfono, horarios, contacto |
+| `/admin/translations-hub` | Traducciones automáticas (Perplexity) y manuales |
+| `/admin/sync` | Sincronización manual con el CRM Inmovilla |
+| `/admin/properties` | **Portfolio completo**: ver y editar todas las propiedades |
+
+### `/admin/properties` — Ficha de Propiedades
+Muestra en tabla todas las propiedades del portfolio con los datos consolidados de `property_metadata` + `property_features`:
+- **Columnas visibles**: Ref, Tipo, Población, Superficie m², Hab. simples, Hab. dobles, Baños, cobertura de textos (6 idiomas)
+- **Indicador de textos**: puntos de colores (verde = traducción disponible, gris = vacío) con ratio x/6
+- **Edición inline**: al hacer clic en una fila se despliega un panel de edición con:
+  - Características físicas (superficie, habitaciones simples/dobles, baños)
+  - Textos en los 6 idiomas mediante pestañas (ES, EN, FR, DE, IT, PL)
+- **Búsqueda**: filtro en tiempo real por referencia, tipo o población
+- **Acciones de servidor**: `getPropertiesSummaryAction`, `updatePropertyDescriptionsAction`, `updatePropertyFeaturesAction` en `src/app/actions/properties-admin.ts`
+
+Para consultar los datos en bruto puedes usar la VIEW de Supabase definida en `sql/property_summary_view.sql`:
+```sql
+SELECT * FROM property_summary;
+```
+
+---
+
+*Documento actualizado el 25/02/2026 por Antigravity AI.*
