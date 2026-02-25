@@ -124,6 +124,32 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
   - ✅ **Commit 9345e5f**: Funciones de traducción para Hero y Blog
   - ✅ **Commit 0f332a0**: Hub centralizado, API routes, componentes
 
+## 12. Sistema de Sincronización Incremental de Propiedades (25/02/2026)
+- **Problema Identificado**: Arquitectura original dispersaba llamadas a Inmovilla por toda la app, multiplicando rate limits
+- **Solución Implementada**:
+  - **Sincronización Centralizada**: Nueva action `syncPropertiesIncrementalAction()` en `src/app/actions/inmovilla.ts`
+  - **Batch Processing**: Procesa 10 propiedades por ciclo usando tabla `sync_progress` para tracking persistente
+  - **API Endpoint**: `/api/admin/sync-incremental` para integración con GitHub Actions
+  - **GitHub Actions Cron**: Workflow automático que ejecuta sync cada minuto
+  - **Supabase Source of Truth**: Todos los reads públicos usan `property_metadata` (Supabase), no Inmovilla directamente
+- **Logros**:
+  - ✅ 18 de 77 propiedades sincronizadas exitosamente
+  - ✅ Base arquitectónica sólida para expansión
+  - ✅ Logging detallado [Sync Inc] para debugging
+
+### 12a. Optimización de Rate Limit Inmovilla (25/02/2026 v2)
+- **Problema**: Inmovilla tiene límite de 10 llamadas/minuto, pero implementación hacía 1 + 10 = 11 llamadas
+- **Causa Raíz**: Workflow ejecutaba cron cada 1 minuto con batch size de 10 propiedades
+- **Solución (Commit a8d737e)**:
+  - Cron interval: `*/1 * * * *` → `*/2 * * * *` (ahora cada 2 minutos)
+  - Batch size: 10 → 8 propiedades por ciclo
+  - Resultado: 1 + 8 = 9 llamadas cada 2 minutos = ~4.5 llamadas/minuto (bien bajo del límite)
+- **Impacto**:
+  - Throughput: ~4 propiedades sincronizadas por minuto (8 cada 2 min)
+  - ETA para sincronizar 77: ~16-20 minutos desde ahora (18/77 ya hechas)
+  - Cero errores rate limit esperados
+  - Sistema de sync estable y escalable
+
 ## ✅ Completado
 
 - ✅ Sistema de traducción con Perplexity AI (Propiedades, Banners, Blog)
@@ -133,6 +159,9 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 - ✅ Arquitectura segura (Server Actions sin JWT)
 - ✅ Logging de auditoría completo en `translation_log`
 - ✅ Consolidación de datos: todas las fuentes se consultan desde `property_metadata`
+- ✅ Sistema de sincronización incremental de Inmovilla (GitHub Actions + Supabase)
+- ✅ Optimización de rate limit: 9 llamadas cada 2 minutos (4.5/min promedio)
+- ✅ 18/77 propiedades sincronizadas (en progreso)
 
 ## 🎯 Próximas Mejoras (Opcionales)
 
@@ -142,4 +171,4 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 4. **Optimización**: Caché inteligente de traducciones frecuentes
 
 ---
-*Última actualización: 24/02/2026 (14:45) - Translation Hub multicontenido completado. Propiedades + Banner + Blog integrados en una sola interfaz. Build exitoso.*
+*Última actualización: 25/02/2026 (Sync optimization) - Rate limit resolved. Cron now runs every 2 minutes with batch size 8. 18/77 properties synced. ETA 16-20 minutes for full sync.*

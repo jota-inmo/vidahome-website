@@ -1,5 +1,20 @@
 # Changelog - Catastro Integration Fixes
 
+## [2026-02-25] - Inmovilla Sync Rate Limit Optimization
+
+### 🚀 Optimización del Sistema de Sincronización
+- **Reducción de Frecuencia de Cron**: Changed GitHub Actions workflow from every 1 minute (`*/1 * * * *`) to every 2 minutes (`*/2 * * * *`)
+- **Ajuste del Batch Size**: Reduced batch size from 10 to 8 properties per sync in `/api/admin/sync-incremental`
+- **Respeto de Límites de Tasa**: API calls per batch now: 1 + 8 = 9 calls per 2 minutes (~4.5 calls/min average) vs previous 11/min
+- **Resultado**: Stays comfortably under Inmovilla API's 10 calls/minute rate limit while maintaining ~4 properties/minute throughput
+
+### 📊 Impacto
+- Elimina los errores de rate limiting que detenían la sincronización
+- Permite sincronizar los 77 propiedades de inventario sin interrupciones
+- Mantiene throughput óptimo: 8 propiedades cada 2 minutos (~16 min para completar sync de 77 propiedades)
+
+---
+
 ## [2026-02-14] - Catastro Search and Selection Optimization
 
 ### 🚀 Mejoras en la Búsqueda y Selección
