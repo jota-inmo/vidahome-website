@@ -50,25 +50,43 @@ export async function fetchPropertiesAction(): Promise<{
 
         if (error) throw error;
 
+        // Also get property features for accurate room/bath counts
+        const { data: features, error: featError } = await supabase
+            .from('property_features')
+            .select('cod_ofer, habitaciones, habitaciones_simples, habitaciones_dobles, banos, superficie');
+        
+        if (featError) {
+            console.warn('[Actions] Error fetching features:', featError);
+        }
+        
+        // Create a lookup map for features
+        const featuresMap = new Map((features || []).map((f: any) => [f.cod_ofer, f]));
+
         // Map database records to PropertyListEntry format
         const formatted: PropertyListEntry[] = (properties || []).map((row: any) => {
             const fullData = row.full_data || {};
+            const feat = featuresMap.get(row.cod_ofer);
+            
+            // Use feature data if available, otherwise fall back to full_data
+            const habitaciones = feat?.habitaciones || fullData.habitaciones || 0;
+            const banyos = feat?.banos || fullData.banyos || 0;
+            const m_cons = feat?.superficie || fullData.m_cons || 0;
             
             return {
                 cod_ofer: row.cod_ofer,
                 ref: row.ref,
                 tipo: row.tipo,
-                precio: row.precio,
+                precio: row.precio || fullData.precioinmo || 0,
                 poblacion: row.poblacion,
                 nodisponible: row.nodisponible,
                 mainImage: row.main_photo,
-                // Extract from full_data if available
+                // Use accurate data from property_features or full_data fallback
                 keyacci: fullData.keyacci,
                 precioinmo: fullData.precioinmo,
                 precioalq: fullData.precioalq,
-                habitaciones: fullData.habitaciones,
-                banyos: fullData.banyos,
-                m_cons: fullData.m_cons,
+                habitaciones: habitaciones,
+                banyos: banyos,
+                m_cons: m_cons,
                 descripciones: fullData.descripciones,
                 tipo_nombre: fullData.tipo_nombre,
                 numagencia: fullData.numagencia,

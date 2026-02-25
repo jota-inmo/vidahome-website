@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { PropertySearch, SearchFilters } from '@/components/PropertySearch';
 import { LuxuryPropertyCard } from '@/components/LuxuryPropertyCard';
-import { PhotoDebugWidget } from '@/components/PhotoDebugWidget';
 import { useTranslations } from 'next-intl';
 
 interface PropertyCatalogClientProps {
@@ -42,7 +41,6 @@ export function PropertyCatalogClient({ initialProperties, populations }: Proper
 
     return (
         <>
-            <PhotoDebugWidget properties={initialProperties} />
             <PropertySearch onSearch={handleSearch} populations={populations} />
 
             <main className="px-8 max-w-[1600px] mx-auto pb-32">
