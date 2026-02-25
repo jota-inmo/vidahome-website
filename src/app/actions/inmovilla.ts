@@ -324,29 +324,45 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
     isComplete: boolean;
     error?: string;
 }> {
+    console.log('[Sync Inc] Starting incremental sync with batchSize:', batchSize);
+    
     const token = process.env.INMOVILLA_TOKEN;
     const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
 
     if (!token) {
+        console.error('[Sync Inc] INMOVILLA_TOKEN not configured');
         return { success: false, synced: 0, total: 0, isComplete: false, error: 'Inmovilla token not configured' };
     }
 
     try {
+        console.log('[Sync Inc] Getting Supabase admin client...');
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
 
         // Get current sync progress
-        const { data: progress } = await supabaseAdmin
+        console.log('[Sync Inc] Fetching current progress from sync_progress...');
+        const { data: progress, error: progressError } = await supabaseAdmin
             .from('sync_progress')
             .select('*')
             .order('created_at', { ascending: false })
             .limit(1)
             .single();
 
+        if (progressError && progressError.code !== 'PGRST116') { // PGRST116 = no rows found
+            console.error('[Sync Inc] Error fetching progress:', progressError);
+        }
+
+        console.log('[Sync Inc] Current progress:', progress);
+
         const api = createInmovillaApi(token, authType);
         
         // Get ALL properties to find pagination point
+        console.log('[Sync Inc] Fetching ALL properties from Inmovilla API...');
         const allProperties = await api.getProperties({ page: 1 });
+        
+        console.log('[Sync Inc] Received properties from API:', allProperties?.length || 0);
+        
         if (!allProperties || allProperties.length === 0) {
+            console.log('[Sync Inc] No properties returned from API');
             return { success: true, synced: 0, total: 0, isComplete: true };
         }
 
@@ -360,6 +376,8 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
             p.ref !== '2494' &&
             p.cod_ofer !== 2494
         );
+
+        console.log('[Sync Inc] Valid properties after filtering:', validProperties.length);
 
         // Find where to resume
         const lastSyncedIndex = progress?.last_synced_cod_ofer 
@@ -435,7 +453,8 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
         }
 
         // Update progress
-        await supabaseAdmin
+        console.log('[Sync Inc] Updating sync_progress with:', { lastCodOfer, successCount, totalSynced: (progress?.total_synced || 0) + successCount });
+        const { error: updateError } = await supabaseAdmin
             .from('sync_progress')
             .insert({
                 last_synced_cod_ofer: lastCodOfer,
@@ -444,8 +463,14 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                 error_message: null
             });
 
+        if (updateError) {
+            console.error('[Sync Inc] Error updating sync_progress:', updateError);
+        } else {
+            console.log('[Sync Inc] ✅ sync_progress updated successfully');
+        }
+
         const isComplete = endIndex >= validProperties.length;
-        console.log(`[Sync] Batch complete: ${successCount}/${batch.length} synced. Progress: ${endIndex}/${validProperties.length}`);
+        console.log(`[Sync Inc] Batch complete: ${successCount}/${batch.length} synced. Progress: ${endIndex}/${validProperties.length}`);
 
         return {
             success: true,
@@ -454,7 +479,7 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
             isComplete
         };
     } catch (error: any) {
-        console.error('[Sync] Incremental sync error:', error);
+        console.error('[Sync Inc] Incremental sync error:', error);
         return { success: false, synced: 0, total: 0, isComplete: false, error: error.message };
     }
 }

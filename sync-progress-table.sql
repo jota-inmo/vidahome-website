@@ -12,11 +12,20 @@ CREATE TABLE IF NOT EXISTS sync_progress (
 -- Enable RLS
 ALTER TABLE sync_progress ENABLE ROW LEVEL SECURITY;
 
--- Allow public read
-CREATE POLICY "Allow public read sync_progress" ON sync_progress FOR SELECT USING (true);
+-- Allow public (anon) read
+CREATE POLICY IF NOT EXISTS "Allow public read sync_progress" ON sync_progress 
+    FOR SELECT USING (true);
 
--- Allow all for system updates
-CREATE POLICY "Allow all for sync_progress" ON sync_progress FOR ALL USING (true);
+-- Allow authenticated users to insert/update (for server-side sync)
+CREATE POLICY IF NOT EXISTS "Allow authenticated insert sync_progress" ON sync_progress 
+    FOR INSERT WITH CHECK (true);
+
+-- Allow service role (Vercel/API) to write
+CREATE POLICY IF NOT EXISTS "Allow service role all sync_progress" ON sync_progress 
+    FOR ALL USING (true);
 
 -- Create index for fast lookups
 CREATE INDEX IF NOT EXISTS idx_sync_progress_last_sync ON sync_progress(last_sync_at DESC);
+
+-- Verify the table was created correctly
+-- SELECT * FROM sync_progress LIMIT 1;

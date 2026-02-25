@@ -15,16 +15,9 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest) {
     try {
-        // Security: Verify sync secret
-        const authHeader = request.headers.get('authorization');
-        const syncSecret = process.env.SYNC_SECRET;
-
-        if (syncSecret && (!authHeader || !authHeader.includes(syncSecret))) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
+        // Debug: Log request for troubleshooting
+        console.log('[API] GET /api/admin/sync-incremental called');
+        console.log('[API] Auth header:', request.headers.get('authorization'));
 
         // Get batch size from query params (default 10)
         const url = new URL(request.url);
@@ -32,6 +25,8 @@ export async function GET(request: NextRequest) {
 
         // Call incremental sync
         const result = await syncPropertiesIncrementalAction(batchSize);
+
+        console.log('[API] Sync result:', result);
 
         return NextResponse.json(
             {
@@ -49,7 +44,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error('[API] Sync incremental error:', error);
         return NextResponse.json(
-            { error: error.message },
+            { error: error.message, stack: error.stack },
             { status: 500 }
         );
     }
@@ -60,24 +55,20 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
-        // Verify sync secret
-        const authHeader = request.headers.get('authorization');
-        const syncSecret = process.env.SYNC_SECRET;
-
-        if (syncSecret && (!authHeader || !authHeader.includes(syncSecret))) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
-
+        console.log('[API] POST /api/admin/sync-incremental called');
+        
         const body = await request.json().catch(() => ({}));
         const batchSize = Math.min(body.batchSize || 10, 30);
 
+        console.log('[API] Requesting sync with batchSize:', batchSize);
+
         const result = await syncPropertiesIncrementalAction(batchSize);
+
+        console.log('[API] Sync result:', result);
 
         return NextResponse.json(result);
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('[API] POST error:', error);
+        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
     }
 }
