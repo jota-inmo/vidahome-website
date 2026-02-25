@@ -144,7 +144,9 @@ export function PropertyDetailClient({ property, features }: PropertyDetailClien
 
                         <div className="prose prose-slate dark:prose-invert max-w-none mb-20">
                             <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg font-light whitespace-pre-line">
-                                {property.descripciones
+                                {property.all_descriptions && property.all_descriptions[`description_${locale}`]
+                                    ? cleanDescription(property.all_descriptions[`description_${locale}`])
+                                    : property.descripciones
                                     ? cleanDescription(property.descripciones)
                                     : 'Esta propiedad excepcional representa la excelencia en el servicio inmobiliario y el diseño contemporáneo.'}
                             </p>
