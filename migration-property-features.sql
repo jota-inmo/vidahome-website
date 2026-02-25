@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.property_features (
   CHECK (precio >= 0),
   CHECK (habitaciones >= 0),
   CHECK (banos >= 0),
-  CHECK (superficie > 0)
+  CHECK (superficie >= 0)
 );
 
 -- Indexes for fast querying
