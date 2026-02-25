@@ -1,5 +1,11 @@
 # Product Independence Roadmap: Prescindir de Inmovilla (6-8 meses)
 
+⚠️ **NOTA IMPORTANTE**: Este documento es una **estrategia a LARGO PLAZO (6-8 meses)**. 
+
+**PRIORIDAD ACTUAL (Feb 2026)**: Completar sincronización de 77 propiedades en vidahome-website y asegurar estabilidad de catálogo público. Este roadmap entra en fase de implementación UNA VEZ la web esté 100% estable y todas las propiedades sincronizadas.
+
+---
+
 **Objetivo**: Migrar de arquitectura dependiente de Inmovilla CRM a sistema autónomo con Supabase como fuente única, agregando capacidad de publicación multi-portal (Idealista, Fotocasa).
 
 **Estado Actual** (2026-02-25):

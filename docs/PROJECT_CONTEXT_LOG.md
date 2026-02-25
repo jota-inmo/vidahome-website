@@ -174,7 +174,13 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 **Ver documento completo**: [PRODUCT_INDEPENDENCE_ROADMAP.md](./PRODUCT_INDEPENDENCE_ROADMAP.md)
 
-**Resumen Ejecutivo**:
+⚠️ **IMPORTANTE**: Este roadmap es estrategia a **LARGO PLAZO (junio-agosto 2026)**. Actualmente (febrero 2026) la **prioridad es estabilidad**:
+- ✅ Sincronizar 77/77 propiedades completamente
+- ✅ Validar descripciones, fotos, metadatos en production
+- ✅ Asegurar performance y UX de vidahome-website
+- ✅ Una vez 100% estable → comenzar Fase 1 del roadmap
+
+**Resumen Ejecutivo** (para cuando sea momento):
 - Fase 1: Infraestructura Supabase Pro + Storage (Semanas 1-4)
 - Fase 2: Sincronización de fotos desde Inmovilla → Supabase Storage (Semanas 5-8)
 - Fase 3: Integración vidahome-encargo ↔ vidahome-website (Semanas 9-12)
@@ -183,7 +189,7 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 - Fase 6: Optimizaciones finales + Documentación (Semanas 27-30)
 - Fase 7: Monitoreo y mantenimiento (Ongoing)
 
-**Beneficio Clave**: De "sincronizar datos de Inmovilla" a "publicar en 3 portales desde un único panel".
+**Beneficio Clave** (futuro): De "sincronizar datos de Inmovilla" a "publicar en 3 portales desde un único panel".
 
 ---
-*Última actualización: 25/02/2026 (Sync optimization) - Rate limit resolved. Cron now runs every 2 minutes with batch size 8. 18/77 properties synced. ETA 16-20 minutes for full sync.*
+*Última actualización: 25/02/2026 (16:30) - Rate limit optimization deployed. Awaiting completion of 77/77 property sync. Strategic roadmap documented for 6-8 month independence plan.*
