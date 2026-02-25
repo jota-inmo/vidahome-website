@@ -10,16 +10,18 @@
 
 **Simplest, built-in to Vercel**
 
+**Automatically syncs properties once per day at 7 AM Madrid time**
+
 #### What happens:
 ```
-Every 6 hours automatically:
+Daily at 7:00 AM Madrid time automatically:
   Vercel calls GET /api/sync/cron
     ↓
   Endpoint executes syncPropertiesFromInmovillaAction()
     ↓
   Properties synced silently
     ↓
-  New properties appear on website
+  New/updated properties appear on website
 ```
 
 #### Setup (4 steps):
@@ -36,7 +38,7 @@ CRON_SECRET=your-secret-key-here
 **3. Deploy to Vercel:**
 ```powershell
 git add .
-git commit -m "feat: add automated property sync via Vercel Cron"
+git commit -m "feat: add automated property sync via Vercel Cron (daily 7 AM Madrid)"
 git push origin main
 ```
 
@@ -46,19 +48,18 @@ git push origin main
 
 #### Schedule options (in UTC):
 ```
-Every 6 hours:           "0 */6 * * *"
-Every 3 hours:           "0 */3 * * *"
-Every 1 hour (all day):  "0 * * * *"
-Every 1 hour 10-21h*:    "0 10-21 * * *"  ← Current (Madrid daytime)
-Every 12 hours:          "0 */12 * * *"
-Every day at 10:00:      "0 10 * * *"
+Daily at 7:00 AM Madrid:   "0 6 * * *"    ← Current (6 AM UTC winter, 5 AM UTC summer)
+Every 6 hours:             "0 */6 * * *"
+Every 3 hours:             "0 */3 * * *"
+Every 1 hour (all day):    "0 * * * *"
+Every 12 hours:            "0 */12 * * *"
+Every day at 10:00:        "0 10 * * *"
 ```
 
 *⚠️ **IMPORTANT - Timezone Conversion:**
 - Cron uses **UTC** time
 - Madrid is **UTC+1** (winter/CET) or **UTC+2** (summer/CEST)
-- So "0 10-21 * * *" in UTC = **11:00-22:00 Madrid time (winter)** or **09:00-20:00 Madrid time (summer)**
-- For **"each hour from 10:00-21:00 Madrid time"** use: `"0 8-20 * * *"` (covers both timezones)
+- So "0 6 * * *" in UTC = **7:00 AM Madrid time (winter)** or **8:00 AM Madrid time (summer)**
 
 Edit in `vercel.json`:
 ```json
@@ -66,7 +67,7 @@ Edit in `vercel.json`:
   "crons": [
     {
       "path": "/api/sync/cron",
-      "schedule": "0 8-20 * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }

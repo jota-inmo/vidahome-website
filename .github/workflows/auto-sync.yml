@@ -2,10 +2,9 @@ name: Auto-sync Properties from Inmovilla
 
 on:
   schedule:
-    # Runs every hour from 08:00 to 20:00 UTC
-    # This is 10:00-22:00 Madrid time in winter (CET UTC+1)
-    # or 09:00-21:00 Madrid time in summer (CEST UTC+2)
-    - cron: '0 8-20 * * *'
+    # Runs daily at 07:00 Madrid time (06:00 UTC in winter, 05:00 UTC in summer)
+    # Limited to 1 cron per day on Vercel Hobby plan
+    - cron: '0 6 * * *'
   # Allow manual trigger
   workflow_dispatch:
 
