@@ -150,6 +150,24 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
   - Cero errores rate limit esperados
   - Sistema de sync estable y escalable
 
+## 12b. Traducciones Profesionales Multiidioma (25/02/2026 v3)
+- **Problema**: Traducciones literales con LinkedIn no resonaban culturalmente con compradores internacionales
+- **Solución (Commit c90a4e2)**:
+  - Creado `scripts/translate-direct.ts` usando Perplexity API directamente
+  - Nuevo prompt de 15+ años de experiencia en lujo inmobiliario internacional
+  - Guías específicas por mercado:
+    * **English**: Enfoque inversión + prestigio localización
+    * **French**: Elegancia + estándar refinamiento francés
+    * **German**: Precisión técnica + calidad construcción
+    * **Italian**: Estética + lifestyle mediterráneo  
+    * **Polish**: Características prácticas + potencial inversión
+  - Temperature: 0.2 → 0.4 (tono más natural y atractivo)
+- **Resultados**:
+  - ✅ 24/24 propiedades traducidas (EN, FR, DE, IT, PL)
+  - ✅ Descripciones culturalmente adaptadas, no literales
+  - ✅ Mantiene terminología inmobiliaria precisa en cada idioma
+  - ✅ Totalmente desplegado y funcional
+
 ## ✅ Completado
 
 - ✅ Sistema de traducción con Perplexity AI (Propiedades, Banners, Blog)
@@ -192,4 +210,4 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 **Beneficio Clave** (futuro): De "sincronizar datos de Inmovilla" a "publicar en 3 portales desde un único panel".
 
 ---
-*Última actualización: 25/02/2026 (16:30) - Rate limit optimization deployed. Awaiting completion of 77/77 property sync. Strategic roadmap documented for 6-8 month independence plan.*
+*Última actualización: 25/02/2026 (17:30) - Professional translations COMPLETE. 24/24 properties with EN/FR/DE/IT/PL descriptions. Perplexity prompt optimized for cultural adaptation. Sync: 77/77 complete. All systems operational.*
