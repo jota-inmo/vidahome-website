@@ -159,6 +159,7 @@ export default function PropertiesAdminPage() {
                             <div>
                                 <span className="text-xs uppercase tracking-widest text-teal-400">{selected.ref}</span>
                                 <h2 className="text-xl font-serif mt-1">{selected.tipo} · {selected.poblacion}</h2>
+                                <p className="text-white/40 text-sm mt-0.5">{selected.precio ? selected.precio.toLocaleString('es-ES') + ' €' : '—'}</p>
                             </div>
                             <button onClick={() => setSelected(null)} className="text-white/40 hover:text-white transition-colors">
                                 <X size={20} />
@@ -264,7 +265,7 @@ export default function PropertiesAdminPage() {
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-white/10 text-left">
-                                {['Ref', 'Tipo', 'Población', 'Sup. m²', 'Hab.S', 'Hab.D', 'Baños', 'Textos', ''].map(h => (
+                                {['Ref', 'Tipo', 'Precio', 'Población', 'Sup. m²', 'Hab.S', 'Hab.D', 'Baños', 'Textos', ''].map(h => (
                                     <th key={h} className="pb-3 pr-4 text-[10px] uppercase tracking-widest text-white/30 font-normal whitespace-nowrap">{h}</th>
                                 ))}
                             </tr>
@@ -277,7 +278,8 @@ export default function PropertiesAdminPage() {
                                     onClick={() => handleSelect(p)}
                                 >
                                     <td className="py-3 pr-4 font-mono text-teal-400 whitespace-nowrap">{p.ref}</td>
-                                    <td className="py-3 pr-4 text-white/70 whitespace-nowrap">{p.tipo}</td>
+                                    <td className="py-3 pr-4 text-white/70 whitespace-nowrap">{p.tipo || '—'}</td>
+                                    <td className="py-3 pr-4 text-white/70 whitespace-nowrap tabular-nums">{p.precio ? p.precio.toLocaleString('es-ES') + ' €' : '—'}</td>
                                     <td className="py-3 pr-4 text-white/70 whitespace-nowrap">{p.poblacion}</td>
                                     <td className="py-3 pr-4 text-white/50">{p.superficie ?? '—'}</td>
                                     <td className="py-3 pr-4 text-white/50">{p.habitaciones_simples ?? '—'}</td>
