@@ -48,7 +48,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                         src={imageUrl}
                         alt={`Property ${property.ref}`}
                         fill
-                        className={`object-cover transition-all duration-[1.5s] ease-out group-hover:scale-105 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
+                        className={`object-cover transition-all duration-[1.5s] ease-out group-hover:scale-105 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-50 scale-110'
                             }`}
                         onLoad={() => {
                             setImageLoaded(true);
@@ -60,8 +60,11 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                             if (property.cod_ofer === 28189625) {
                                 console.error('[LuxuryPropertyCard] Image error for 28189625:', imageUrl);
                             }
+                            // Fallback: set as loaded even on error to show something
+                            setImageLoaded(true);
                         }}
                         loading="lazy"
+                        priority={false}
                     />
 
                     <div className="absolute top-6 left-6">
