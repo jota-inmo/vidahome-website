@@ -31,16 +31,52 @@ export async function fetchPropertiesAction(): Promise<{
 }> {
     try {
         const { supabase } = await import('@/lib/supabase');
+        
+        // Get property metadata with all necessary fields
         const { data: properties, error } = await supabase
             .from('property_metadata')
-            .select('cod_ofer, ref, tipo, precio, descripciones:descriptions->>description_es, main_photo, poblacion, nodisponible')
+            .select(`
+                cod_ofer, 
+                ref, 
+                tipo, 
+                precio,
+                poblacion,
+                nodisponible,
+                main_photo,
+                full_data
+            `)
             .eq('nodisponible', false)
             .order('cod_ofer', { ascending: false });
 
         if (error) throw error;
 
-        // Cast to PropertyListEntry (Supabase returns the structure we need)
-        const formatted = (properties || []) as PropertyListEntry[];
+        // Map database records to PropertyListEntry format
+        const formatted: PropertyListEntry[] = (properties || []).map((row: any) => {
+            const fullData = row.full_data || {};
+            
+            return {
+                cod_ofer: row.cod_ofer,
+                ref: row.ref,
+                tipo: row.tipo,
+                precio: row.precio,
+                poblacion: row.poblacion,
+                nodisponible: row.nodisponible,
+                mainImage: row.main_photo,
+                // Extract from full_data if available
+                keyacci: fullData.keyacci,
+                precioinmo: fullData.precioinmo,
+                precioalq: fullData.precioalq,
+                habitaciones: fullData.habitaciones,
+                banyos: fullData.banyos,
+                m_cons: fullData.m_cons,
+                descripciones: fullData.descripciones,
+                tipo_nombre: fullData.tipo_nombre,
+                numagencia: fullData.numagencia,
+                fotoletra: fullData.fotoletra,
+                numfotos: fullData.numfotos
+            };
+        });
+        
         const populations = [...new Set(formatted.map(p => p.poblacion).filter(Boolean))].sort() as string[];
 
         return { success: true, data: formatted, isConfigured: true, meta: { populations } };
@@ -82,7 +118,7 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
             ref: meta.ref,
             descripciones: localizedDesc,
             all_descriptions: descriptions,
-            fotos: meta.photos || [],
+            fotos_lista: meta.photos || [],
             main_photo: meta.main_photo
         };
 
@@ -253,14 +289,20 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
 
                 if (!details) continue;
 
-                // Extract photos - handle both array and Record formats
-                let photos: any[] = [];
-                if (Array.isArray(details.fotos)) {
-                    photos = details.fotos;
-                } else if (details.fotos && typeof details.fotos === 'object') {
-                    // Convert Record to array
-                    photos = Object.values(details.fotos).map((f: any) => f?.url || f);
+                // Build photo URLs using numfotos, numagencia, and fotoletra
+                // These fields are returned by Inmovilla API but fotos field is just a status string
+                let photos: string[] = [];
+                const numFotos = (details as any).numfotos ? parseInt((details as any).numfotos as string) : 0;
+                const numAgencia = (details as any).numagencia || baseProp.numagencia || '';
+                const fotoLetra = (details as any).fotoletra || baseProp.fotoletra || '';
+                
+                // Generate URLs for all available photos
+                if (numFotos > 0 && numAgencia && fotoLetra) {
+                    for (let i = 1; i <= numFotos; i++) {
+                        photos.push(`https://fotos15.inmovilla.com/${numAgencia}/${baseProp.cod_ofer}/${fotoLetra}-${i}.jpg`);
+                    }
                 }
+                
                 const mainPhoto = photos[0] || null;
 
                 // Prepare data for Supabase
@@ -276,7 +318,7 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                     },
                     // Store full property data for reference
                     full_data: details,
-                    // Store photos separately for easy display
+                    // Store photos - constructed URLs array
                     photos: photos,
                     main_photo: mainPhoto,
                     nodisponible: false,
@@ -412,12 +454,19 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                 const details = await api.getPropertyDetails(prop.cod_ofer);
                 if (!details) continue;
 
-                let photos: any[] = [];
-                if (Array.isArray(details.fotos)) {
-                    photos = details.fotos;
-                } else if (details.fotos && typeof details.fotos === 'object') {
-                    photos = Object.values(details.fotos).map((f: any) => f?.url || f);
+                // Build photo URLs using numfotos, numagencia, and fotoletra
+                let photos: string[] = [];
+                const numFotos = (details as any).numfotos ? parseInt((details as any).numfotos as string) : 0;
+                const numAgencia = (details as any).numagencia || prop.numagencia || '';
+                const fotoLetra = (details as any).fotoletra || prop.fotoletra || '';
+                
+                // Generate URLs for all available photos
+                if (numFotos > 0 && numAgencia && fotoLetra) {
+                    for (let i = 1; i <= numFotos; i++) {
+                        photos.push(`https://fotos15.inmovilla.com/${numAgencia}/${prop.cod_ofer}/${fotoLetra}-${i}.jpg`);
+                    }
                 }
+                
                 const mainPhoto = photos[0] || null;
 
                 const upsertData = {
