@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PropertyDetails } from '@/types/inmovilla';
 import { PropertyFeatures } from '@/lib/api/property-features';
 import { PropertyGallery } from '@/components/PropertyGallery';
@@ -25,6 +25,7 @@ import { cleanDescription } from '@/lib/utils/text-cleaner';
 import { useTranslations, useLocale } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
+import { getPropertyDetailAction } from '@/app/actions/inmovilla';
 
 
 interface PropertyDetailClientProps {
@@ -32,11 +33,26 @@ interface PropertyDetailClientProps {
     features?: PropertyFeatures | null;
 }
 
-export function PropertyDetailClient({ property, features }: PropertyDetailClientProps) {
+export function PropertyDetailClient({ property: initialProperty, features }: PropertyDetailClientProps) {
     const router = useRouter();
     const t = useTranslations('Property');
     const locale = useLocale();
     const { trackPropertyView } = useAnalytics();
+    
+    // State to hold property data that updates with locale
+    const [property, setProperty] = useState<PropertyDetails>(initialProperty);
+
+    // Refetch property data when locale changes
+    useEffect(() => {
+        async function fetchPropertyWithLocale() {
+            const result = await getPropertyDetailAction(initialProperty.cod_ofer, locale);
+            if (result.success && result.data) {
+                setProperty(result.data);
+            }
+        }
+        
+        fetchPropertyWithLocale();
+    }, [locale, initialProperty.cod_ofer]);
 
     // Track property view on component mount
     useEffect(() => {
