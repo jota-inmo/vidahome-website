@@ -104,25 +104,50 @@ export async function translatePropertiesAction(
     }
 
     // Build translation prompt
-    const prompt = `You are a professional real estate translator specializing in luxury properties in Spain.
+    const prompt = `You are a world-class real estate marketing expert with 15+ years of international luxury property experience across Spain, the UK, France, Germany, Italy, and Eastern Europe.
 
-Translate the following Spanish property descriptions to English, French, German, Italian, and Polish.
+Your task is to translate luxury property descriptions from Spanish to multiple languages. Your translations must be:
 
-Return ONLY a valid JSON object with this structure (no markdown, no code blocks):
+## TRANSLATION PRINCIPLES (NOT LITERAL):
+1. **Professional Tone**: Market the property to international luxury buyers. Adapt language to appeal to each cultural market
+2. **Cultural Adaptation**: 
+   - English (UK/US): Sophisticated, concise, emphasizes location prestige and investment value
+   - French: Elegant, poetic, emphasizes lifestyle and French refinement standards
+   - German: Precise, detailed, emphasizes technical features and construction quality
+   - Italian: Warm, evocative, emphasizes aesthetics and Mediterranean lifestyle
+   - Polish: Direct, practical, emphasizes functional features and investment potential
+
+3. **Vocabulary Preservation**: Maintain real estate terminology accurately in each language
+4. **Local Market Knowledge**: Understand the Valencian/Spanish geography references and adapt them naturally
+5. **Emotional Appeal**: Preserve the property's unique selling points while making them resonate in each language
+
+## TECHNICAL GUIDELINES:
+- Keep similar length to original (±15%)
+- Preserve numbers, measurements, and amenities exactly as stated
+- Adapt adjectives and descriptions to market norms (e.g., "vistas" → "panoramic views" or "scenic vistas" depending on context)
+- Never use generic/robotic translations
+- Maintain luxury brand positioning
+
+## YOUR EXPERTISE:
+- You understand the Valencian market (Costa Blanca, beachfront, inland properties)
+- You know what international buyers seek in each market segment
+- You've successfully marketed properties to: UK investment funds, French wealthy individuals, German retirees, Italian lifestyle seekers, Polish entrepreneurs
+
+Return ONLY a valid JSON object with this structure (no markdown, no code blocks, no explanation):
 {
   "translations": [
     {
       "cod_ofer": 12345,
-      "en": "English translation",
-      "fr": "French translation",
-      "de": "German translation",
-      "it": "Italian translation",
-      "pl": "Polish translation"
+      "en": "Professional English translation for international buyer",
+      "fr": "Traduction élégante en français pour acheteur haut de gamme",
+      "de": "Präzise Deutsche Übersetzung für qualitätsbewusste Käufer",
+      "it": "Traduzione calda e avvolgente per l'acquirente italiano",
+      "pl": "Praktyczne i bezpośrednie tłumaczenie dla inwestora polskiego"
     }
   ]
 }
 
-Spanish texts to translate:
+Spanish luxury property descriptions to translate (these are real estate listings in Spain):
 ${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}`).join("\n---\n")}`;
 
     // Call Perplexity API
@@ -138,14 +163,14 @@ ${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}
           {
             role: "system",
             content:
-              "You are a professional translator expert in luxury real estate in Spain. You provide high-quality translations only in JSON format.",
+              "You are an elite international real estate marketing expert with 15+ years translating luxury property listings across European markets (Spain, UK, France, Germany, Italy, Poland). Your translations are never literal—they are professionally adapted to appeal to each market's cultural preferences and buyer expectations. You understand that effective real estate translation requires more than language conversion; it requires market-specific positioning and emotional resonance. Your goal is to make Spanish properties equally compelling to international luxury buyers across all five languages.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        temperature: 0.2,
+        temperature: 0.4,
       }),
     });
 
