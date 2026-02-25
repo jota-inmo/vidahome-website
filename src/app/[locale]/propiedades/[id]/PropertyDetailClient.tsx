@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { PropertyDetails } from '@/types/inmovilla';
+import { PropertyFeatures } from '@/lib/api/property-features';
 import { PropertyGallery } from '@/components/PropertyGallery';
 import { ContactForm } from '@/components/ContactForm';
 import { Logo } from '@/components/Logo';
@@ -28,9 +29,10 @@ import { useAnalytics } from '@/lib/hooks/useAnalytics';
 
 interface PropertyDetailClientProps {
     property: PropertyDetails;
+    features?: PropertyFeatures | null;
 }
 
-export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
+export function PropertyDetailClient({ property, features }: PropertyDetailClientProps) {
     const router = useRouter();
     const t = useTranslations('Property');
     const locale = useLocale();
@@ -65,9 +67,31 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
         }
     };
 
-    const features = [
+    // Format bedroom value - shows distinction if available
+    const formatBedrooms = () => {
+        if (features && (features.habitaciones_simples || features.habitaciones_dobles)) {
+            const parts = [];
+            if (features.habitaciones_simples > 0) {
+                parts.push(`${features.habitaciones_simples}s`);
+            }
+            if (features.habitaciones_dobles > 0) {
+                parts.push(`${features.habitaciones_dobles}d`);
+            }
+            return parts.length > 0 ? parts.join(' + ') : (property.habitaciones || '1+');
+        }
+        return property.habitaciones || '1+';
+    };
+
+    const features_data = [
         { icon: <Square size={20} />, label: t('surface'), value: `${property.m_cons} m²` },
-        { icon: <BedDouble size={20} />, label: t('bedrooms'), value: property.habitaciones || '1+' },
+        { 
+            icon: <BedDouble size={20} />, 
+            label: t('bedrooms'), 
+            value: formatBedrooms(),
+            subtitle: features && (features.habitaciones_simples || features.habitaciones_dobles) 
+                ? `(${features.habitaciones || 0} total)` 
+                : undefined
+        },
         { icon: <Bath size={20} />, label: t('bathrooms'), value: property.banyos },
         { icon: <Calendar size={20} />, label: t('construction'), value: property.fecha ? new Date(property.fecha).getFullYear() : 'N/A' },
     ];
@@ -103,13 +127,16 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                                 <span className="text-slate-400 font-light">{t('in')} {property.poblacion || 'La Safor'}</span>
                             </h1>
                             <div className="flex flex-wrap gap-8 md:gap-12 text-slate-900 dark:text-white">
-                                {features.map((f, i) => (
+                                {features_data.map((f, i) => (
                                     <div key={i} className="flex flex-col gap-2">
                                         <span className="text-[10px] tracking-widest uppercase text-slate-400 font-medium">{f.label}</span>
                                         <span className="text-xl md:text-2xl font-serif flex items-center gap-3">
                                             <span className="text-slate-300">{f.icon}</span>
                                             {f.value}
                                         </span>
+                                        {f.subtitle && (
+                                            <span className="text-xs text-slate-400 font-light">{f.subtitle}</span>
+                                        )}
                                     </div>
                                 ))}
                             </div>

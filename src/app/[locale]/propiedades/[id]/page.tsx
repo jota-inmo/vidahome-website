@@ -1,6 +1,7 @@
 import React from 'react';
 import { Metadata, ResolvingMetadata } from 'next';
 import { getPropertyDetailAction } from '@/app/actions';
+import { getPropertyFeatures } from '@/lib/api/property-features';
 import { PropertyDetailClient } from './PropertyDetailClient';
 import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
@@ -57,6 +58,7 @@ export async function generateMetadata(
 export default async function PropertyDetailPage({ params }: Props) {
     const { id, locale } = await params;
     const result = await getPropertyDetailAction(parseInt(id), locale);
+    const properties_features = await getPropertyFeatures(parseInt(id));
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
     const tIndex = await getTranslations({ locale: locale as string, namespace: 'Index' });
 
@@ -99,7 +101,7 @@ export default async function PropertyDetailPage({ params }: Props) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <PropertyDetailClient property={result.data} />
+            <PropertyDetailClient property={result.data} features={properties_features} />
         </>
     );
 }
