@@ -8,6 +8,7 @@ import {
     getPropertiesSummaryAction,
     updatePropertyDescriptionsAction,
     updatePropertyFeaturesAction,
+    updatePropertyPrecioAction,
     type PropertySummaryRow,
 } from '@/app/actions/properties-admin';
 import {
@@ -29,6 +30,7 @@ import {
     BedDouble,
     Bath,
     Maximize2,
+    Euro,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -53,6 +55,8 @@ export default function PropertiesAdminPage() {
     const [editFeatures, setEditFeatures] = useState({ superficie: 0, habitaciones: 0, habitaciones_simples: 0, habitaciones_dobles: 0, banos: 0 });
     const [savingDesc, setSavingDesc] = useState(false);
     const [savingFeat, setSavingFeat] = useState(false);
+    const [editPrecio, setEditPrecio] = useState(0);
+    const [savingPrecio, setSavingPrecio] = useState(false);
     const [activeLang, setActiveLang] = useState<LangKey>('description_es');
 
     // Discrepancies state
@@ -145,6 +149,7 @@ export default function PropertiesAdminPage() {
             habitaciones_dobles: p.habitaciones_dobles ?? 0,
             banos: p.banos ?? 0,
         });
+        setEditPrecio(p.precio ?? 0);
         setActiveLang('description_es');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -176,6 +181,20 @@ export default function PropertiesAdminPage() {
             toast.error('Error: ' + res.error);
         }
         setSavingFeat(false);
+    }
+
+    async function handleSavePrecio() {
+        if (!selected) return;
+        setSavingPrecio(true);
+        const res = await updatePropertyPrecioAction(selected.cod_ofer, editPrecio);
+        if (res.success) {
+            toast.success('Precio guardado (persiste sobre sincronización)');
+            setProperties(prev => prev.map(p => p.cod_ofer === selected.cod_ofer ? { ...p, precio: editPrecio } : p));
+            setSelected(prev => prev ? { ...prev, precio: editPrecio } : prev);
+        } else {
+            toast.error('Error: ' + res.error);
+        }
+        setSavingPrecio(false);
     }
 
     function descCoverage(p: PropertySummaryRow) {
@@ -227,6 +246,35 @@ export default function PropertiesAdminPage() {
                             <button onClick={() => setSelected(null)} className="text-white/40 hover:text-white transition-colors">
                                 <X size={20} />
                             </button>
+                        </div>
+
+                        {/* Precio */}
+                        <div className="mb-8">
+                            <h3 className="text-[10px] uppercase tracking-widest text-white/40 mb-4 flex items-center gap-2">
+                                <Euro size={12} /> Precio
+                            </h3>
+                            <div className="flex items-end gap-4">
+                                <label className="block flex-1 max-w-xs">
+                                    <span className="text-[10px] uppercase tracking-widest text-white/40 flex items-center gap-1 mb-1"><Euro size={14} /> Precio (€)</span>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step={100}
+                                        value={editPrecio}
+                                        onChange={e => setEditPrecio(Number(e.target.value))}
+                                        className="w-full bg-white/10 border border-white/10 text-white px-3 py-2 text-sm rounded-sm focus:outline-none focus:border-teal-400 tabular-nums"
+                                    />
+                                </label>
+                                <button
+                                    onClick={handleSavePrecio}
+                                    disabled={savingPrecio}
+                                    className="inline-flex items-center gap-2 bg-teal-600/20 hover:bg-teal-600/40 border border-teal-500/30 text-teal-300 px-4 py-2 text-xs uppercase tracking-widest transition-colors disabled:opacity-50"
+                                >
+                                    {savingPrecio ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                    Guardar precio
+                                </button>
+                            </div>
+                            <p className="text-white/30 text-[10px] mt-2">Este precio persiste sobre la sincronización automática de Inmovilla.</p>
                         </div>
 
                         {/* Features */}

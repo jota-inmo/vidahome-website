@@ -2,6 +2,20 @@
 
 import { createInmovillaApi } from '@/lib/api/properties';
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
+import tiposMap from '@/lib/api/tipos_map.json';
+import localidadesMap from '@/lib/api/localidades_map.json';
+
+/** Resolve tipo name from key_tipo using the master map */
+function resolveTipo(details: any): string {
+    const keyTipo = String(details.key_tipo || '');
+    return (tiposMap as Record<string,string>)[keyTipo] || details.tipo_nombre || 'Property';
+}
+
+/** Resolve poblacion from key_loca using the master map */
+function resolvePoblacion(details: any): string {
+    const keyLoca = String(details.key_loca || '');
+    return (localidadesMap as Record<string,string>)[keyLoca] || details.poblacion || '';
+}
 
 /**
  * Helper to map next-intl locale to description key
@@ -345,10 +359,16 @@ async function smartUpdateProperty(
     existingData: any
 ) {
     try {
+        // Check for admin overrides (manual edits that persist over sync)
+        const adminOverrides = existingData.admin_overrides || {};
+
         // Preserve existing critical data
         const updateData: any = {
             cod_ofer: cod_ofer,
-            precio: newData.precio, // ALWAYS update price
+            // Respect admin price override if set
+            precio: adminOverrides.precio ?? newData.precio,
+            tipo: newData.tipo_nombre, // Resolved from tiposMap
+            poblacion: newData.poblacion, // Resolved from localidadesMap
             updated_at: new Date().toISOString(),
         };
 
@@ -461,7 +481,7 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
         // Get all existing properties ONCE for comparison
         const { data: existingProps } = await supabaseAdmin
             .from('property_metadata')
-            .select('cod_ofer, precio, descriptions, full_data, photos, main_photo');
+            .select('cod_ofer, precio, descriptions, full_data, photos, main_photo, admin_overrides');
 
         const existingMap = new Map(
             (existingProps || []).map(p => [p.cod_ofer, p])
@@ -489,7 +509,8 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                 }
                 
                 const mainPhoto = photos[0] || null;
-                const newPrice = details.precio || 0;
+                // Use precioinmo (real price) instead of precio (commission-deducted)
+                const newPrice = details.precioinmo || details.precio || 0;
 
                 // Check if property exists
                 const existing = existingMap.get(baseProp.cod_ofer);
@@ -506,9 +527,9 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
 
                     // Prepare update data (preserves translations & descriptions)
                     const newData = {
-                        tipo_nombre: details.tipo_nombre || baseProp.tipo_nombre || 'Property',
+                        tipo_nombre: resolveTipo(details),
                         precio: newPrice,
-                        poblacion: details.poblacion || baseProp.poblacion,
+                        poblacion: resolvePoblacion(details) || baseProp.poblacion,
                         descripciones: details.descripciones || baseProp.descripciones || '',
                         numagencia: (details as any).numagencia || baseProp.numagencia,
                         fotoletra: (details as any).fotoletra || baseProp.fotoletra,
@@ -538,9 +559,9 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                     const insertData = {
                         cod_ofer: baseProp.cod_ofer,
                         ref: baseProp.ref,
-                        tipo: details.tipo_nombre || baseProp.tipo_nombre || 'Property',
+                        tipo: resolveTipo(details),
                         precio: newPrice,
-                        poblacion: details.poblacion || baseProp.poblacion,
+                        poblacion: resolvePoblacion(details) || baseProp.poblacion,
                         descriptions: {
                             description_es: details.descripciones || baseProp.descripciones || ''
                         },
@@ -706,9 +727,9 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                 const upsertData = {
                     cod_ofer: prop.cod_ofer,
                     ref: prop.ref,
-                    tipo: details.tipo_nombre || prop.tipo_nombre || 'Property',
-                    precio: details.precio || 0,
-                    poblacion: details.poblacion || prop.poblacion,
+                    tipo: resolveTipo(details),
+                    precio: details.precioinmo || details.precio || 0,
+                    poblacion: resolvePoblacion(details) || prop.poblacion,
                     descriptions: {
                         description_es: details.descripciones || prop.descripciones || ''
                     },
@@ -732,7 +753,7 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
 
                     const featureData = {
                         cod_ofer: prop.cod_ofer,
-                        precio: details.precio || 0,
+                        precio: details.precioinmo || details.precio || 0,
                         habitaciones: totalHabitaciones,
                         habitaciones_simples: habitacionesSimples,
                         habitaciones_dobles: habitacionesDobles,

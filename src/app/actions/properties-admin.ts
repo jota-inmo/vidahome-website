@@ -157,3 +157,46 @@ export async function updatePropertyFeaturesAction(
     return { success: false, error: e.message };
   }
 }
+
+/**
+ * Update property price from admin panel.
+ * Writes to both property_metadata.precio AND admin_overrides.precio
+ * so it persists over Inmovilla sync.
+ */
+export async function updatePropertyPrecioAction(
+  cod_ofer: number,
+  precio: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Get existing overrides
+    const { data: existing } = await supabaseAdmin
+      .from("property_metadata")
+      .select("admin_overrides")
+      .eq("cod_ofer", cod_ofer)
+      .single();
+
+    const overrides = { ...(existing?.admin_overrides || {}), precio };
+
+    // Update both precio and admin_overrides
+    const { error } = await supabaseAdmin
+      .from("property_metadata")
+      .update({
+        precio,
+        admin_overrides: overrides,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("cod_ofer", cod_ofer);
+
+    if (error) throw new Error(error.message);
+
+    // Also update features table precio
+    await supabaseAdmin
+      .from("property_features")
+      .update({ precio, updated_at: new Date().toISOString() })
+      .eq("cod_ofer", cod_ofer);
+
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
