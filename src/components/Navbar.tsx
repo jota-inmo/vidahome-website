@@ -13,12 +13,12 @@ export const Navbar = () => {
     const pathname = usePathname();
 
     const availableLocales = [
-        { id: 'es', label: 'ES', flag: '🇪🇸' },
-        { id: 'en', label: 'EN', flag: '🇬🇧' },
-        { id: 'fr', label: 'FR', flag: '🇫🇷' },
-        { id: 'de', label: 'DE', flag: '🇩🇪' },
-        { id: 'it', label: 'IT', flag: '🇮🇹' },
-        { id: 'pl', label: 'PL', flag: '🇵🇱' }
+        { id: 'es', label: 'ES', flag: '/flags/es.svg' },
+        { id: 'en', label: 'EN', flag: '/flags/en.svg' },
+        { id: 'fr', label: 'FR', flag: '/flags/fr.svg' },
+        { id: 'de', label: 'DE', flag: '/flags/de.svg' },
+        { id: 'it', label: 'IT', flag: '/flags/it.svg' },
+        { id: 'pl', label: 'PL', flag: '/flags/pl.svg' }
     ];
 
     return (
@@ -44,12 +44,16 @@ export const Navbar = () => {
                     {/* Language Switcher Dropdown */}
                     <div className="relative group border-l border-slate-200 dark:border-slate-800 pl-6 ml-2">
                         <button className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">
-                            <span className="text-sm">{availableLocales.find(l => l.id === locale)?.flag}</span>
+                            <img 
+                                src={availableLocales.find(l => l.id === locale)?.flag} 
+                                alt={locale}
+                                className="w-5 h-4 rounded-sm object-cover"
+                            />
                             <span className="text-[10px] tracking-widest font-bold">{locale.toUpperCase()}</span>
                         </button>
                         
                         {/* Dropdown Menu */}
-                        <div className="absolute right-0 mt-3 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-1">
+                        <div className="absolute right-0 mt-3 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-1">
                             {availableLocales.map((loc) => (
                                 <Link
                                     key={loc.id}
@@ -61,7 +65,11 @@ export const Navbar = () => {
                                             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                                 >
-                                    <span className="text-base">{loc.flag}</span>
+                                    <img 
+                                        src={loc.flag} 
+                                        alt={loc.label}
+                                        className="w-5 h-4 rounded-sm object-cover"
+                                    />
                                     <span className="tracking-widest">{loc.label}</span>
                                 </Link>
                             ))}
@@ -109,17 +117,21 @@ export const Navbar = () => {
                                     href={pathname}
                                     locale={loc.id}
                                     onClick={() => setIsOpen(false)}
-                                    className={`flex items-center justify-center gap-1.5 text-[12px] tracking-widest font-bold px-3 py-2 rounded-sm transition-all ${
+                                    className={`flex items-center justify-center gap-1.5 text-[12px] tracking-widest font-bold px-2 py-2 rounded-sm transition-all ${
                                         locale === loc.id
                                             ? 'bg-lime-400 text-slate-900'
                                             : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-800'
                                     }`}
                                 >
-                                    <span className="text-base">{loc.flag}</span>
-                                    <span>{loc.label}</span>
+                                    <img 
+                                        src={loc.flag} 
+                                        alt={loc.label}
+                                        className="w-6 h-4 rounded-sm object-cover"
+                                    />
+                                    <span className="text-[10px]">{loc.label}</span>
                                 </Link>
                             ))}
-                        </div>
+                        </div>                        </div>
                     </div>
 
                     <Link
