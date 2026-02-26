@@ -80,6 +80,21 @@ async function translateOneLanguage(
     cleaned = cleaned.replace(/^```\w*\n?/, "").replace(/\n?```$/, "").trim();
   }
 
+  // Detect refusal/conversational responses — the AI should return a translation, not ask questions
+  const refusalPatterns = [
+    'mi scuso', 'i apologize', 'je m\'excuse', 'es tut mir leid', 'przepraszam',
+    'non hai fornito', 'you have not provided', 'tu n\'as pas fourni',
+    'avrei bisogno di', 'i would need', 'j\'aurais besoin',
+    'impossibile fornire', 'impossible to provide', 'impossible de fournir',
+    'testo completo', 'complete text', 'texte complet',
+    'incongruenza', 'inconsistency', 'incohérence',
+  ];
+  const lower = cleaned.toLowerCase();
+  if (refusalPatterns.some(p => lower.includes(p))) {
+    console.warn(`[translate] AI returned refusal for lang=${lang}, ignoring response`);
+    return { text: null, tokens };
+  }
+
   return { text: cleaned, tokens };
 }
 

@@ -48,7 +48,7 @@ const PROMPTS: Record<string, LanguagePromptConfig> = {
     code: "en",
     nativeName: "English",
     portal: "Rightmove / Zoopla",
-    systemPrompt: `You are an expert UK/international property copywriter specialised in Rightmove and Zoopla listings for the Spanish Costa Blanca and inland Valencia markets. You write polished, persuasive descriptions that appeal to British and international buyers looking for holiday homes, retirement properties, or investment opportunities in Spain.`,
+    systemPrompt: `You are an expert UK/international property copywriter specialised in Rightmove and Zoopla listings for the Spanish Costa Blanca and inland Valencia markets. You write polished, persuasive descriptions that appeal to British and international buyers looking for holiday homes, retirement properties, or investment opportunities in Spain. CRITICAL: You MUST always produce the translation. Never refuse, never ask questions, never say the text is incomplete. If the source text seems cut off, translate what is provided and end naturally.`,
     userPrompt: `Translate the following Spanish property listing into professional British English, following best practices from Rightmove and Zoopla:
 
 1. **Opening hook** (1-2 sentences): Highlight the headline feature — sea views, walking distance to beach, renovated villa, etc.
@@ -86,7 +86,7 @@ Spanish original:
     code: "fr",
     nativeName: "Français",
     portal: "SeLoger / Green-Acres",
-    systemPrompt: `Tu es un rédacteur immobilier français expert, spécialisé dans les annonces SeLoger et Green-Acres pour les biens de prestige sur la côte méditerranéenne espagnole. Tu rédiges des descriptions élégantes qui séduisent les acheteurs français à la recherche d'une résidence secondaire, d'un investissement ou d'une retraite au soleil en Espagne.`,
+    systemPrompt: `Tu es un rédacteur immobilier français expert, spécialisé dans les annonces SeLoger et Green-Acres pour les biens de prestige sur la côte méditerranéenne espagnole. Tu rédiges des descriptions élégantes qui séduisent les acheteurs français à la recherche d'une résidence secondaire, d'un investissement ou d'une retraite au soleil en Espagne. CRITIQUE : Tu dois TOUJOURS produire la traduction. Ne refuse jamais, ne pose jamais de questions sur le texte. S'il semble incomplet, traduis ce qui est là et termine naturellement.`,
     userPrompt: `Traduis cette annonce immobilière espagnole en français professionnel, dans le style des meilleures annonces SeLoger / Green-Acres :
 
 1. **Accroche** (1-2 phrases) : Le point fort principal — vue mer, villa rénovée, proximité plage, etc.
@@ -123,7 +123,7 @@ Annonce originale en espagnol :
     code: "de",
     nativeName: "Deutsch",
     portal: "ImmoScout24 / Immowelt",
-    systemPrompt: `Du bist ein erfahrener deutscher Immobilientexter, spezialisiert auf ImmoScout24- und Immowelt-Anzeigen für hochwertige Immobilien an der spanischen Mittelmeerküste. Du schreibst präzise, informative Beschreibungen, die deutsche Käufer ansprechen — ob als Feriendomizil, Altersruhesitz oder Kapitalanlage.`,
+    systemPrompt: `Du bist ein erfahrener deutscher Immobilientexter, spezialisiert auf ImmoScout24- und Immowelt-Anzeigen für hochwertige Immobilien an der spanischen Mittelmeerküste. Du schreibst präzise, informative Beschreibungen, die deutsche Käufer ansprechen — ob als Feriendomizil, Altersruhesitz oder Kapitalanlage. WICHTIG: Du musst IMMER die Übersetzung liefern. Lehne niemals ab und stelle keine Rückfragen. Wenn der Quelltext unvollständig erscheint, übersetze das Vorhandene und beende den Text natürlich.`,
     userPrompt: `Übersetze diese spanische Immobilienanzeige ins professionelle Deutsch im Stil von ImmoScout24 / Immowelt:
 
 1. **Einleitung** (1-2 Sätze): Hauptvorteil hervorheben — Meerblick, renovierte Villa, Strandnähe usw.
@@ -160,7 +160,7 @@ Spanisches Original:
     code: "it",
     nativeName: "Italiano",
     portal: "Immobiliare.it / Casa.it",
-    systemPrompt: `Sei un copywriter immobiliare italiano esperto, specializzato in annunci Immobiliare.it e Casa.it per immobili di pregio sulla costa mediterranea spagnola. Scrivi descrizioni calde e coinvolgenti che attraggono acquirenti italiani interessati a una casa vacanza, un investimento o un trasferimento sulla Costa Blanca.`,
+    systemPrompt: `Sei un copywriter immobiliare italiano esperto, specializzato in annunci Immobiliare.it e Casa.it per immobili di pregio sulla costa mediterranea spagnola. Scrivi descrizioni calde e coinvolgenti che attraggono acquirenti italiani interessati a una casa vacanza, un investimento o un trasferimento sulla Costa Blanca. FONDAMENTALE: Devi SEMPRE produrre la traduzione. Non rifiutare mai, non fare domande sul testo. Se il testo sorgente sembra incompleto, traduci ciò che c'è e concludi in modo naturale.`,
     userPrompt: `Traduci questo annuncio immobiliare spagnolo in italiano professionale, nello stile dei migliori annunci di Immobiliare.it:
 
 1. **Apertura** (1-2 frasi): Il punto di forza principale — vista mare, villa ristrutturata, vicinanza alla spiaggia, ecc.
@@ -197,7 +197,7 @@ Annuncio originale in spagnolo:
     code: "pl",
     nativeName: "Polski",
     portal: "Otodom.pl",
-    systemPrompt: `Jesteś ekspertem w redagowaniu ogłoszeń nieruchomości w Polsce, specjalizującym się w serwisie Otodom.pl. Tłumaczysz ogłoszenia domów z hiszpańskiego na polski, zachowując profesjonalny, uporządkowany i przekonujący styl typowy dla Otodom.`,
+    systemPrompt: `Jesteś ekspertem w redagowaniu ogłoszeń nieruchomości w Polsce, specjalizującym się w serwisie Otodom.pl. Tłumaczysz ogłoszenia domów z hiszpańskiego na polski, zachowując profesjonalny, uporządkowany i przekonujący styl typowy dla Otodom. WAŻNE: ZAWSZE musisz dostarczyć tłumaczenie. Nigdy nie odmawiaj, nigdy nie zadawaj pytań o tekst. Jeśli tekst źródłowy wydaje się niekompletny, przetłumacz to co jest i zakończ naturalnie.`,
     userPrompt: `Eres un experto redactor inmobiliario polaco especializado en Otodom.pl. Traduce este anuncio de casa desde español a polaco manteniendo un estilo profesional, estructurado y persuasivo típico de Otodom:
 
 1. **Título corto y atractivo** (máx. 50 caracteres): Resalta metraje, habitaciones, ubicación clave (ej: "3-pokojowy dom 120m² na Mokotowie").

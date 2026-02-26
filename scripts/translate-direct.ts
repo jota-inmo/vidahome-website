@@ -37,7 +37,7 @@ const LANG_CONFIGS: Record<string, LangConfig> = {
   en: {
     code: "en",
     portal: "Rightmove",
-    systemPrompt: "You are an expert UK/international property copywriter specialised in Rightmove and Zoopla listings for the Spanish Costa Blanca and inland Valencia markets. You write polished, persuasive descriptions that appeal to British and international buyers.",
+    systemPrompt: "You are an expert UK/international property copywriter specialised in Rightmove and Zoopla listings for the Spanish Costa Blanca and inland Valencia markets. You write polished, persuasive descriptions that appeal to British and international buyers. CRITICAL: You MUST always produce the translation. Never refuse, never ask questions, never say the text is incomplete. If the text seems cut off, translate what is there and end naturally.",
     userPromptTemplate: `Translate the following Spanish property listing into professional British English, following Rightmove best practices:
 
 - Opening hook highlighting the headline feature
@@ -60,7 +60,7 @@ Spanish original:
   fr: {
     code: "fr",
     portal: "SeLoger",
-    systemPrompt: "Tu es un rédacteur immobilier français expert, spécialisé dans les annonces SeLoger et Green-Acres pour les biens de prestige sur la côte méditerranéenne espagnole.",
+    systemPrompt: "Tu es un rédacteur immobilier français expert, spécialisé dans les annonces SeLoger et Green-Acres pour les biens de prestige sur la côte méditerranéenne espagnole. CRITIQUE : Tu dois TOUJOURS produire la traduction. Ne refuse jamais, ne pose jamais de questions sur le texte. S'il semble incomplet, traduis ce qui est là et termine naturellement.",
     userPromptTemplate: `Traduis cette annonce immobilière espagnole en français professionnel, style SeLoger / Green-Acres :
 
 - Accroche avec le point fort principal
@@ -83,7 +83,7 @@ Annonce originale :
   de: {
     code: "de",
     portal: "ImmoScout24",
-    systemPrompt: "Du bist ein erfahrener deutscher Immobilientexter, spezialisiert auf ImmoScout24- und Immowelt-Anzeigen für hochwertige Immobilien an der spanischen Mittelmeerküste.",
+    systemPrompt: "Du bist ein erfahrener deutscher Immobilientexter, spezialisiert auf ImmoScout24- und Immowelt-Anzeigen für hochwertige Immobilien an der spanischen Mittelmeerküste. WICHTIG: Du musst IMMER die Übersetzung liefern. Lehne niemals ab und stelle keine Rückfragen. Wenn der Text unvollständig erscheint, übersetze das Vorhandene und beende den Text natürlich.",
     userPromptTemplate: `Übersetze diese spanische Immobilienanzeige ins professionelle Deutsch (ImmoScout24-Stil):
 
 - Einleitung mit Hauptvorteil
@@ -106,7 +106,7 @@ Spanisches Original:
   it: {
     code: "it",
     portal: "Immobiliare.it",
-    systemPrompt: "Sei un copywriter immobiliare italiano esperto, specializzato in annunci Immobiliare.it per immobili di pregio sulla costa mediterranea spagnola.",
+    systemPrompt: "Sei un copywriter immobiliare italiano esperto, specializzato in annunci Immobiliare.it per immobili di pregio sulla costa mediterranea spagnola. FONDAMENTALE: Devi SEMPRE produrre la traduzione. Non rifiutare mai, non fare mai domande sul testo. Se il testo sembra incompleto, traduci ciò che c'è e concludi in modo naturale.",
     userPromptTemplate: `Traduci questo annuncio immobiliare spagnolo in italiano professionale (stile Immobiliare.it):
 
 - Apertura con il punto di forza principale
@@ -129,7 +129,7 @@ Annuncio originale:
   pl: {
     code: "pl",
     portal: "Otodom.pl",
-    systemPrompt: "Jesteś ekspertem w redagowaniu ogłoszeń nieruchomości w Polsce, specjalizującym się w serwisie Otodom.pl. Tłumaczysz ogłoszenia domów z hiszpańskiego na polski, zachowując profesjonalny, uporządkowany i przekonujący styl typowy dla Otodom.",
+    systemPrompt: "Jesteś ekspertem w redagowaniu ogłoszeń nieruchomości w Polsce, specjalizującym się w serwisie Otodom.pl. Tłumaczysz ogłoszenia domów z hiszpańskiego na polski, zachowując profesjonalny, uporządkowany i przekonujący styl typowy dla Otodom. WAŻNE: ZAWSZE musisz dostarczyć tłumaczenie. Nigdy nie odmawiaj, nigdy nie zadawaj pytań o tekst. Jeśli tekst wydaje się niekompletny, przetłumacz to co jest i zakończ naturalnie.",
     userPromptTemplate: `Eres un experto redactor inmobiliario polaco especializado en Otodom.pl. Traduce este anuncio de casa desde español a polaco manteniendo un estilo profesional, estructurado y persuasivo típico de Otodom:
 
 1. Título corto y atractivo (máx. 50 caracteres)
@@ -197,6 +197,21 @@ async function translateOneLang(
   // Strip markdown wrappers
   if (content.startsWith("```")) {
     content = content.replace(/^```\w*\n?/, "").replace(/\n?```$/, "").trim();
+  }
+
+  // Detect refusal/conversational responses — the AI should return a translation, not ask questions
+  const refusalPatterns = [
+    'mi scuso', 'i apologize', 'je m\'excuse', 'es tut mir leid', 'przepraszam',
+    'non hai fornito', 'you have not provided', 'tu n\'as pas fourni',
+    'avrei bisogno di', 'i would need', 'j\'aurais besoin',
+    'impossibile fornire', 'impossible to provide', 'impossible de fournir',
+    'testo completo', 'complete text', 'texte complet',
+    'incongruenza', 'inconsistency', 'incohérence',
+  ];
+  const lower = content.toLowerCase();
+  if (refusalPatterns.some(p => lower.includes(p))) {
+    console.warn(`    ⚠️ AI returned a refusal instead of translation — retrying is needed`);
+    return { text: null, tokens };
   }
 
   return { text: content || null, tokens: usage.prompt_tokens + usage.completion_tokens };
@@ -270,7 +285,7 @@ async function translateProperties() {
 
     for (const prop of batch) {
       const desc = prop.descriptions || {};
-      const spanish = (desc.description_es || desc.descripciones || "").substring(0, 600);
+      const spanish = (desc.description_es || desc.descripciones || "");
       if (!spanish) { failed++; continue; }
 
       const feat = featMap[prop.cod_ofer] || {};
