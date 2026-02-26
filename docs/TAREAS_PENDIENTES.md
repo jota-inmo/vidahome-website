@@ -1,73 +1,27 @@
 # Vidahome Website — Tareas Pendientes
 
-> Última actualización: 26/02/2026 — Commit actual: `e017afe`
+> Última actualización: 26/02/2026 — Commit actual: `7e90fe9`
 
 ---
 
-## 🔴 URGENTE — SQL pendiente en Supabase Dashboard
+## ✅ SQL ejecutado en Supabase Dashboard
 
-Estas dos migraciones SQL son necesarias para que funcionen features ya desplegadas en producción. Ejecutar en **Supabase Dashboard → SQL Editor** → Run:
+~~Estas dos migraciones SQL son necesarias para que funcionen features ya desplegadas en producción.~~ **Ejecutadas el 26/02/2026.**
 
-### 1. Tabla `discrepancias_dismissed` (necesaria para botón "Descartar" en discrepancias)
-
-```sql
-CREATE TABLE IF NOT EXISTS discrepancias_dismissed (
-  id SERIAL PRIMARY KEY,
-  ref TEXT NOT NULL,
-  campo TEXT NOT NULL,
-  valor_encargo TEXT NOT NULL,
-  valor_web TEXT NOT NULL,
-  dismissed_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(ref, campo, valor_encargo, valor_web)
-);
-CREATE INDEX IF NOT EXISTS idx_discrepancias_dismissed_ref ON discrepancias_dismissed(ref);
-
-GRANT ALL ON discrepancias_dismissed TO authenticated;
-GRANT ALL ON discrepancias_dismissed TO service_role;
-
-NOTIFY pgrst, 'reload schema';
-```
-
-### 2. Columna `admin_overrides` en `property_metadata` (necesaria para editor de precios admin)
-
-```sql
-ALTER TABLE property_metadata 
-ADD COLUMN IF NOT EXISTS admin_overrides JSONB DEFAULT '{}'::jsonb;
-
-GRANT ALL ON property_metadata TO authenticated;
-GRANT ALL ON property_metadata TO service_role;
-
-NOTIFY pgrst, 'reload schema';
-```
-
-> **Nota**: Se pueden ejecutar ambos bloques juntos en una sola ejecución.
+### 1. Tabla `discrepancias_dismissed` ✅
+### 2. Columna `admin_overrides` en `property_metadata` ✅
 
 ---
 
-## 🟡 SEGURIDAD — Issues de prioridad media/baja (pendientes)
+## 🟡 SEGURIDAD — Issues restantes (prioridad baja)
 
-Los 3 fallos **CRÍTICOS** ya están resueltos (commit `e017afe`). Quedan:
-
-### HIGH (prioridad alta)
-
-| # | Issue | Archivo | Descripción |
-|---|-------|---------|-------------|
-| H3 | XSS en emails | `src/app/api/leads/valuation/route.ts` | Los datos del usuario se insertan en HTML sin sanitizar. Un atacante podría inyectar `<script>` en los campos del formulario de tasación. **Fix**: Escapar HTML con una función `escapeHtml()` antes de interpolar en el template. |
-| H4 | Sin validación de input | Varios POST endpoints | No hay schema validation (Zod/Yup) en los bodies de los POST. **Fix**: Añadir validación Zod en los endpoints que aceptan datos. |
-| H6 | Body size limit 50MB | `next.config.ts` | `serverActions.bodySizeLimit: '50mb'` es excesivo para una web inmobiliaria. **Fix**: Reducir a `4mb` o `10mb` según necesidad real. |
-
-### MEDIUM (prioridad media)
-
-| # | Issue | Archivo | Descripción |
-|---|-------|---------|-------------|
-| M1 | Sin rate limit en Catastro | `src/app/api/catastro/*` | Los endpoints de Catastro no tienen rate limiting. Podrían ser abusados. **Fix**: Añadir rate limiter como en otros endpoints. |
-| M3 | CSP débil | `next.config.ts` | Content Security Policy usa `unsafe-inline` y `unsafe-eval`. **Fix**: Migrar a nonces o hashes. |
-| M6 | Debug endpoint expuesto | `src/app/api/debug/ip/route.ts` | Endpoint `/api/debug/ip` accesible públicamente. **Fix**: Eliminar o proteger con auth. |
+Los fallos **CRÍTICOS** (`e017afe`), **HIGH** y **MEDIUM** (`7e90fe9`) están resueltos. Quedan:
 
 ### LOW (prioridad baja)
 
 | # | Issue | Descripción |
 |---|-------|-------------|
+| M3 | CSP débil | Content Security Policy usa `unsafe-inline` y `unsafe-eval`. Migrar a nonces o hashes. |
 | L1 | CSRF parcial | Server actions tienen protección CSRF nativa de Next.js, pero API routes no. Riesgo bajo si admin migra a otro proyecto. |
 | L2 | Email hardcodeado | `info@vidahome.es` está hardcodeado en varios archivos. Mejor moverlo a variable de entorno. |
 | L3 | Logs verbosos en sync | Sync incremental loguea datos completos de propiedades. En producción debería ser más discreto. |
@@ -110,6 +64,12 @@ Los 3 fallos **CRÍTICOS** ya están resueltos (commit `e017afe`). Quedan:
 
 | Fecha | Commit | Descripción |
 |-------|--------|-------------|
+| 26/02 | `7e90fe9` | **Seguridad HIGH+MEDIUM**: XSS fix (escapeHtml), Zod validation en todos los POST, rate limit en Catastro (30/min), body limit 50MB→4MB. |
+| 26/02 | `3f990cd` | Fix: "Property" en inglés en todas las locales, tipos IT/PL, fallback `poblacion` |
+| 26/02 | `9b8c356` | Fix: Traducciones — eliminar truncación 600 chars + anti-refusal guards |
+| 26/02 | `00bf814` | Feature: Locale italiano (IT) con bandera, mensajes completos |
+| 26/02 | `52bd2e9` | Fix: No mencionar precio en traducciones |
+| 26/02 | `9110188` | Feature: Prompts per-language (Rightmove, SeLoger, ImmoScout24, Immobiliare.it, Otodom.pl) |
 | 26/02 | `e017afe` | **Seguridad crítica**: Auth `requireAdmin()` en todas las rutas admin y server actions. Eliminado cron endpoint. Rate limiter falla cerrado. Sin stack traces en respuestas. |
 | 26/02 | `e5ec0a9` | Fix: Dénia (key_loca 37699) añadida a localidades_map |
 | 26/02 | `f18b237` | Fix: Sync usa `precioinmo`, `tiposMap`, `localidadesMap` + editor de precios admin con override |
