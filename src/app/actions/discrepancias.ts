@@ -119,7 +119,7 @@ export async function getDiscrepanciasAction(): Promise<{
 
       // Tipo
       const encTipo = normaliseTipo(enc.tipo_vivienda);
-      const webTipo = (web.tipo || "").trim().toLowerCase();
+      const webTipo = normaliseTipo(web.tipo);
       if (encTipo && webTipo && encTipo !== webTipo) {
         const key = `${normRef}|tipo|${enc.tipo_vivienda || ""}|${web.tipo || ""}`;
         if (!dismissedSet.has(key)) {
