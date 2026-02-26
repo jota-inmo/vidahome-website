@@ -40,6 +40,9 @@ export const Navbar = () => {
                     <Link href="/nosotros" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
                         {t('about')}
                     </Link>
+                    <Link href="/blog" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
+                        Blog
+                    </Link>
 
                     {/* Language Switcher Dropdown */}
                     <div className="relative group border-l border-slate-200 dark:border-slate-800 pl-6 ml-2">
@@ -105,6 +108,9 @@ export const Navbar = () => {
                     </Link>
                     <Link href="/nosotros" onClick={() => setIsOpen(false)} className="text-[12px] uppercase tracking-[0.2em] font-medium text-slate-500 border-b border-slate-50 dark:border-slate-900 pb-4">
                         {t('about')}
+                    </Link>
+                    <Link href="/blog" onClick={() => setIsOpen(false)} className="text-[12px] uppercase tracking-[0.2em] font-medium text-slate-500 border-b border-slate-50 dark:border-slate-900 pb-4">
+                        Blog
                     </Link>
 
                     {/* Language Switcher Mobile */}
