@@ -100,7 +100,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 ref: row.ref,
                 tipo: row.tipo,
                 precio: row.precio || fullData.precioinmo || 0,
-                poblacion: row.poblacion,
+                poblacion: row.poblacion || fullData.poblacion || '',
                 nodisponible: row.nodisponible,
                 mainImage: row.main_photo,
                 // Use accurate data from property_features or full_data fallback
@@ -111,7 +111,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 banyos: banyos,
                 m_cons: m_cons,
                 descripciones: localizedDesc,
-                tipo_nombre: fullData.tipo_nombre,
+                tipo_nombre: fullData.tipo_nombre || row.tipo || '',
                 numagencia: fullData.numagencia,
                 fotoletra: fullData.fotoletra,
                 numfotos: fullData.numfotos
