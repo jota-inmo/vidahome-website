@@ -35,6 +35,7 @@ async function fixHabitaciones() {
 
     const updateData: Record<string, any> = {
       cod_ofer: p.cod_ofer,
+      habitaciones: hab_simples + hab_dobles,
       habitaciones_simples: hab_simples,
       habitaciones_dobles: hab_dobles,
       banos: banos,

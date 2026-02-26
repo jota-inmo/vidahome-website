@@ -71,8 +71,9 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
             const descriptions = (row.descriptions as Record<string, string>) || {};
             
             // Use feature data if available, otherwise fall back to full_data
-            // Try property_features first, then habdobles (most reliable), then habitaciones
-            const habitaciones = feat?.habitaciones || fullData.habdobles || fullData.habitaciones || 0;
+            // Total habitaciones = simples + dobles
+            const habitaciones = feat?.habitaciones
+                ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
             const banyos = feat?.banos || fullData.banyos || 0;
             const m_cons = feat?.superficie || fullData.m_cons || 0;
 
@@ -146,8 +147,9 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
         const descriptions = (meta.descriptions as Record<string, string>) || {};
         const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
 
-        // Use same logic as fetchPropertiesAction for consistent data
-        const habitaciones = feat?.habitaciones || fullData.habdobles || fullData.habitaciones || 0;
+        // Total habitaciones = simples + dobles
+        const habitaciones = feat?.habitaciones
+            ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
         const banyos = feat?.banos || fullData.banyos || 0;
         const m_cons = feat?.superficie || fullData.m_cons || 0;
 
@@ -244,8 +246,9 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                 // Get features for this property
                 const feat = featuresMap.get(meta.cod_ofer);
                 
-                // Use same logic as fetchPropertiesAction for consistent data
-                const habitaciones = feat?.habitaciones || fullData.habdobles || fullData.habitaciones || 0;
+                // Total habitaciones = simples + dobles
+                const habitaciones = feat?.habitaciones
+                    ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
                 const banyos = feat?.banos || fullData.banyos || 0;
                 const m_cons = feat?.superficie || fullData.m_cons || 0;
 
