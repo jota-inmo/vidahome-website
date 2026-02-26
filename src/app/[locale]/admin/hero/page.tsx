@@ -186,9 +186,23 @@ export default function HeroAdmin() {
                                         {slide.active ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                                     </button>
                                 </div>
-                                {slide.titles?.en && (
-                                    <p className="text-[11px] text-slate-400 italic mb-2">EN: {slide.titles.en}</p>
-                                )}
+                                <div className="flex flex-wrap gap-4 mb-2">
+                                    {slide.titles?.en && (
+                                        <p className="text-[11px] text-slate-400 italic">EN: {slide.titles.en}</p>
+                                    )}
+                                    {slide.titles?.fr && (
+                                        <p className="text-[11px] text-slate-400 italic">FR: {slide.titles.fr}</p>
+                                    )}
+                                    {slide.titles?.de && (
+                                        <p className="text-[11px] text-slate-400 italic">DE: {slide.titles.de}</p>
+                                    )}
+                                    {slide.titles?.it && (
+                                        <p className="text-[11px] text-slate-400 italic">IT: {slide.titles.it}</p>
+                                    )}
+                                    {slide.titles?.pl && (
+                                        <p className="text-[11px] text-slate-400 italic">PL: {slide.titles.pl}</p>
+                                    )}
+                                </div>
 
                                 {slide.link_url && (
                                     <div className="flex items-center gap-2 text-[10px] text-teal-400 font-mono mb-4 bg-teal-400/5 px-2 py-1 rounded-xs inline-block">
@@ -261,6 +275,66 @@ export default function HeroAdmin() {
                                                 }))}
                                                 className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-blue-400 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
                                                 placeholder="Ej: Exceptional homes, unrivalled experience"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 mb-3">
+                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-amber-400 font-mono">FR</span>
+                                                Título en Francés
+                                            </label>
+                                            <input
+                                                value={editingSlide.titles?.fr || ''}
+                                                onChange={e => setEditingSlide(prev => ({
+                                                    ...prev,
+                                                    titles: { ...(prev?.titles || {}), fr: e.target.value }
+                                                }))}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-amber-400 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
+                                                placeholder="Ej: Maisons exceptionnelles, expérience inégalée"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 mb-3">
+                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-red-400 font-mono">DE</span>
+                                                Título en Alemán
+                                            </label>
+                                            <input
+                                                value={editingSlide.titles?.de || ''}
+                                                onChange={e => setEditingSlide(prev => ({
+                                                    ...prev,
+                                                    titles: { ...(prev?.titles || {}), de: e.target.value }
+                                                }))}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-red-400 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
+                                                placeholder="Ej: Außergewöhnliche Häuser, unvergleichliches Erlebnis"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 mb-3">
+                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-green-400 font-mono">IT</span>
+                                                Título en Italiano
+                                            </label>
+                                            <input
+                                                value={editingSlide.titles?.it || ''}
+                                                onChange={e => setEditingSlide(prev => ({
+                                                    ...prev,
+                                                    titles: { ...(prev?.titles || {}), it: e.target.value }
+                                                }))}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-green-400 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
+                                                placeholder="Ej: Case eccezionali, esperienza senza pari"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center gap-2 mb-3">
+                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-purple-400 font-mono">PL</span>
+                                                Título en Polaco
+                                            </label>
+                                            <input
+                                                value={editingSlide.titles?.pl || ''}
+                                                onChange={e => setEditingSlide(prev => ({
+                                                    ...prev,
+                                                    titles: { ...(prev?.titles || {}), pl: e.target.value }
+                                                }))}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-5 py-4 text-sm focus:ring-2 focus:ring-purple-400 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
+                                                placeholder="Ej: Wyjątkowe domy, niezrównane doświadczenie"
                                             />
                                         </div>
                                     </div>
