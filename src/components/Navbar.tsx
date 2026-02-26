@@ -43,27 +43,26 @@ export const Navbar = () => {
 
                     {/* Language Switcher Dropdown */}
                     <div className="relative group border-l border-slate-200 dark:border-slate-800 pl-6 ml-2">
-                        <button className="flex items-center gap-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">
-                            <Globe size={16} strokeWidth={1.5} />
-                            <span className="text-lg">{availableLocales.find(l => l.id === locale)?.flag}</span>
-                            <span className="text-[10px] tracking-widest font-bold uppercase">{locale.toUpperCase()}</span>
+                        <button className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">
+                            <span className="text-sm">{availableLocales.find(l => l.id === locale)?.flag}</span>
+                            <span className="text-[10px] tracking-widest font-bold">{locale.toUpperCase()}</span>
                         </button>
                         
                         {/* Dropdown Menu */}
-                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-lg z-50">
+                        <div className="absolute right-0 mt-3 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-1">
                             {availableLocales.map((loc) => (
                                 <Link
                                     key={loc.id}
                                     href={pathname}
                                     locale={loc.id}
-                                    className={`flex items-center gap-3 px-4 py-3 text-[11px] uppercase tracking-widest font-semibold transition-colors ${
+                                    className={`flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold transition-all ${
                                         locale === loc.id 
                                             ? 'bg-lime-400 text-slate-900'
-                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                                 >
-                                    <span className="text-lg">{loc.flag}</span>
-                                    <span>{loc.label}</span>
+                                    <span className="text-base">{loc.flag}</span>
+                                    <span className="tracking-widest">{loc.label}</span>
                                 </Link>
                             ))}
                         </div>
