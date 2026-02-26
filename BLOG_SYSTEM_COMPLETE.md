@@ -75,10 +75,12 @@ Esto crea:
 
 ### URL:
 ```
-https://vidahome.es/es/admin/blog/    (Español)
-https://vidahome.es/en/admin/blog/    (Inglés)
+https://vidahome-website.vercel.app/es/admin/blog/    (Español)
+https://vidahome-website.vercel.app/en/admin/blog/    (Inglés)
 etc.
 ```
+
+⚠️ **Nota**: URL temporal en Vercel. Cuando migración a vidahome.es esté completa, cambiar dominio.
 
 ### Funcionalidades:
 
@@ -263,17 +265,19 @@ completed_at            TIMESTAMP
 
 ### Listado de Artículos
 ```
-https://vidahome.es/es/blog/
-https://vidahome.es/en/blog/
-https://vidahome.es/fr/blog/
+https://vidahome-website.vercel.app/es/blog/
+https://vidahome-website.vercel.app/en/blog/
+https://vidahome-website.vercel.app/fr/blog/
 etc.
 ```
 
 ### Artículo Individual
 ```
-https://vidahome.es/es/blog/5-errores-web-inmobiliaria/
-https://vidahome.es/en/blog/5-common-web-mistakes/
+https://vidahome-website.vercel.app/es/blog/5-errores-web-inmobiliaria/
+https://vidahome-website.vercel.app/en/blog/5-common-web-mistakes/
 ```
+
+⚠️ **URLs temporales en Vercel** - Cambiarán a vidahome.es después de migración
 
 ---
 
@@ -417,8 +421,9 @@ EXISTENTES (no tocados):
 
 ## 📞 Quick Reference
 
-**URL Admin**: `/es/admin/blog/` (cada idioma)  
-**URL Pública**: `/es/blog/` (listado) + `/es/blog/slug/` (artículo)  
+**URL Admin**: `https://vidahome-website.vercel.app/es/admin/blog/` (cada idioma)  
+**URL Pública**: `https://vidahome-website.vercel.app/es/blog/` (listado) + `https://vidahome-website.vercel.app/es/blog/slug/` (artículo)  
+**Dominio**: Vercel por ahora → vidahome.es cuando migración esté completa  
 **Default Draft**: is_published = false (siempre guarda como draft)  
 **Auto-translate**: Click "Traducir Automático" en panel  
 **Images**: Sube en Storage "blog-images" (max 10MB)  
