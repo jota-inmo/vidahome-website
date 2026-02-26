@@ -7,12 +7,13 @@ export interface BlogPost {
     locale: string;
     author?: string;
     featured_image_url?: string;
+    featured_image_alt?: string;
     meta_description: string;
     meta_keywords: string;
     is_published: boolean;
     created_at: string;
     updated_at: string;
-    published_at: string;
+    published_at: string | null;
     category_id?: string;
     category?: BlogCategory;
     tags?: BlogTag[];

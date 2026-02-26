@@ -56,14 +56,16 @@ export default async function BlogPage({ params }: { params: { locale: string } 
                                 {/* Content */}
                                 <div className="p-6">
                                     <div className="text-xs text-slate-400 mb-2">
-                                        {new Date(post.published_at).toLocaleDateString(
-                                            params.locale === 'es' ? 'es-ES' : 'en-US',
-                                            {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                            }
-                                        )}
+                                        {post.published_at
+                                            ? new Date(post.published_at).toLocaleDateString(
+                                                  params.locale === 'es' ? 'es-ES' : 'en-US',
+                                                  {
+                                                      year: 'numeric',
+                                                      month: 'long',
+                                                      day: 'numeric',
+                                                  }
+                                              )
+                                            : 'Not published'}
                                     </div>
 
                                     <h3 className="text-lg font-serif mb-3 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">

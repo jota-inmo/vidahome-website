@@ -82,16 +82,18 @@ export default async function BlogPostPage({
                     </h1>
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
-                        <time dateTime={post.published_at}>
-                            {new Date(post.published_at).toLocaleDateString(
-                                params.locale === 'es' ? 'es-ES' : 'en-US',
-                                {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                }
-                            )}
-                        </time>
+                        {post.published_at && (
+                            <time dateTime={post.published_at}>
+                                {new Date(post.published_at).toLocaleDateString(
+                                    params.locale === 'es' ? 'es-ES' : 'en-US',
+                                    {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                    }
+                                )}
+                            </time>
+                        )}
 
                         {post.author && (
                             <>
