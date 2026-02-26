@@ -131,7 +131,7 @@ export const Navbar = () => {
                                     <span className="text-[10px]">{loc.label}</span>
                                 </Link>
                             ))}
-                        </div>                        </div>
+                        </div>
                     </div>
 
                     <Link
