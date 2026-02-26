@@ -17,6 +17,7 @@ export const Navbar = () => {
         { id: 'en', label: 'EN', flag: '🇬🇧' },
         { id: 'fr', label: 'FR', flag: '🇫🇷' },
         { id: 'de', label: 'DE', flag: '🇩🇪' },
+        { id: 'it', label: 'IT', flag: '🇮🇹' },
         { id: 'pl', label: 'PL', flag: '🇵🇱' }
     ];
 

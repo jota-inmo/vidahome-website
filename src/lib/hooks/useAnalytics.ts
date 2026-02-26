@@ -64,7 +64,7 @@ export function useAnalytics() {
     // Extract locale from pathname
     useEffect(() => {
         const pathParts = pathname.split('/');
-        if (pathParts[1] && ['es', 'en', 'fr', 'de', 'pl'].includes(pathParts[1])) {
+        if (pathParts[1] && ['es', 'en', 'fr', 'de', 'it', 'pl'].includes(pathParts[1])) {
             setLocale(pathParts[1]);
         }
     }, [pathname]);
