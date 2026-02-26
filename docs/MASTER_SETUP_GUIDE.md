@@ -252,6 +252,57 @@ Para consultar los datos en bruto puedes usar la VIEW de Supabase definida en `s
 SELECT * FROM property_summary;
 ```
 
+### `/admin/properties` — Sistema de Discrepancias con Encargos
+La tabla `encargos` (gestionada desde la webapp interna de la agencia) almacena datos contractuales. El panel compara automáticamente estos datos contra lo publicado en la web.
+
+- **Señal visual**: Triángulo ⚠️ ámbar en cada fila con discrepancias
+- **Badge global**: Contador en el header ("X propiedades con discrepancias vs encargos")
+- **Popup de detalle**: Click en ⚠️ → modal con cada diferencia:
+  - Campos comparados: precio, tipo, habitaciones, baños
+  - Valores lado a lado: Encargo vs Web
+- **Descartar**: Botón para ignorar una discrepancia (no vuelve a aparecer salvo que los valores cambien)
+- **Persistencia**: Tabla `discrepancias_dismissed` con UNIQUE(ref, campo, valor_encargo, valor_web)
+
+**Server Actions** (`src/app/actions/discrepancias.ts`):
+- `getDiscrepanciasAction()` — cruza encargos vs web, excluye descartadas
+- `dismissDiscrepanciaAction()` — guarda dismiss en Supabase
+
+**Script CLI** (`scripts/compare-encargos-web.ts`):
+```bash
+npx tsx scripts/compare-encargos-web.ts          # solo activas
+npx tsx scripts/compare-encargos-web.ts --all     # incluir retiradas
+npx tsx scripts/compare-encargos-web.ts --ref 2922 # una sola referencia
+```
+
+### Tablas de Soporte
+
+```sql
+-- Discrepancias descartadas (ya creada)
+CREATE TABLE discrepancias_dismissed (
+  id SERIAL PRIMARY KEY,
+  ref TEXT NOT NULL,
+  campo TEXT NOT NULL,
+  valor_encargo TEXT NOT NULL,
+  valor_web TEXT NOT NULL,
+  dismissed_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(ref, campo, valor_encargo, valor_web)
+);
+```
+
 ---
 
-*Documento actualizado el 25/02/2026 por Antigravity AI.*
+## 10. Scripts de Mantenimiento y Auditoría
+
+| Script | Función |
+| :--- | :--- |
+| `scripts/audit-vs-inmovilla.ts` | Auditoría: DB columns vs full_data (Modo A) o vs API live (Modo B) |
+| `scripts/compare-encargos-web.ts` | Comparación encargos vs datos publicados en web |
+| `scripts/fix-habitaciones.ts` | Corrige hab. simples/dobles y total en property_features |
+| `scripts/build-localidades-map.ts` | Genera `localidades_map.json` desde CPs y actualiza poblaciones |
+| `scripts/inspect-full-data.ts` | Inspecciona estructura de full_data en property_metadata |
+| `scripts/inspect-encargos.ts` | Inspecciona estructura de tabla encargos |
+| `scripts/translate-direct.ts` | Traducciones con Perplexity AI |
+
+---
+
+*Documento actualizado el 26/02/2026 por Antigravity AI.*

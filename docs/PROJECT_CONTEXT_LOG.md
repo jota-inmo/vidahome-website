@@ -168,18 +168,7 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
   - ✅ Mantiene terminología inmobiliaria precisa en cada idioma
   - ✅ Totalmente desplegado y funcional
 
-## ✅ Completado
-
-- ✅ Sistema de traducción con Perplexity AI (Propiedades, Banners, Blog)
-- ✅ Translation Hub centralizado con interfaz tabbed
-- ✅ Admin panel funcional con edición manual y auto-traducción
-- ✅ Build pipeline limpio sin errores TypeScript
-- ✅ Arquitectura segura (Server Actions sin JWT)
-- ✅ Logging de auditoría completo en `translation_log`
-- ✅ Consolidación de datos: todas las fuentes se consultan desde `property_metadata`
-- ✅ Sistema de sincronización incremental de Inmovilla (GitHub Actions + Supabase)
-- ✅ Optimización de rate limit: 9 llamadas cada 2 minutos (4.5/min promedio)
-- ✅ 18/77 propiedades sincronizadas (en progreso)
+## ✅ Completado (legacy — ver sección 16 abajo para lista actualizada)
 
 ## 🎯 Próximas Mejoras (Opcionales)
 
@@ -266,4 +255,96 @@ Este documento es una bitácora para mantener el contexto de desarrollo entre se
 
 ---
 
-*Última actualización: 25/02/2026 (18:45) - Sync: 50/77 propiedades ✅ | Multilingual footer (49 updated) ✅ | Property features table ✅ | PENDING: Table structure optimization post-sync*
+## 14. Corrección de Datos de Propiedades (26/02/2026)
+
+### Auditoría de Datos vs Inmovilla
+- **Script de auditoría**: `scripts/audit-vs-inmovilla.ts` — Modo A (local full_data vs columnas) / Modo B (--live API)
+- **Resultado**: 75/78 propiedades tenían datos desactualizados
+  - Precios al ~96% del real (comisión restada vs `precioinmo`)
+  - `tipo` y `poblacion` completamente vacíos en columnas
+- **Corrección de precio**: SQL `sync-columns-from-full-data.sql` — actualizado `precioinmo` para las 78 propiedades
+- **Corrección de tipo**: Mapeado `key_tipo` → `tipos_map.json` (117 tipos) para las 78 propiedades
+- **Corrección de poblacion**: Creado `localidades_map.json` (21 municipios) desde códigos postales, script `scripts/build-localidades-map.ts`
+- **Corrección de habitaciones**: `full_data.habitaciones` = simples, `full_data.habdobles` = dobles. Script `scripts/fix-habitaciones.ts` corrigió `property_features`
+- **Bug en suma de habitaciones**: El código mostraba solo simples o solo dobles (fallback `||`), no la suma. Corregido a `simples + dobles` en las 3 funciones de `inmovilla.ts`
+
+### Commits
+- `eed4977` — audit script + SQL fix
+- `baae7c7` — fill tipo + poblacion (78/78)
+- `62aa645` — fix habitaciones_simples/dobles
+- `91dc06b` — habitaciones = simples + dobles
+
+---
+
+## 15. Panel Admin: Propiedades con Logo y Build Fixes (26/02/2026)
+
+### Logo doble de alto
+- `h-10` → `h-20` en `src/components/Logo.tsx`, proporciones mantenidas con `w-auto`
+- Commit `b20c1ef`
+
+### Fix build Vercel
+- Turbopack no permite mezclar `??` con `||` sin paréntesis explícitos
+- Corregido en `properties-admin.ts` línea 77
+- Commit `b9757f2`
+
+### Fix GitHub Actions auto-sync
+- Variables de entorno actualizadas a nombres correctos (`INMOVILLA_TOKEN`, `INMOVILLA_AUTH_TYPE`, etc.)
+- Commit `b9757f2`
+
+---
+
+## 16. Sistema de Discrepancias Encargos vs Web (26/02/2026)
+
+### Problema
+La tabla `encargos` (gestionada desde una webapp interna) almacena los datos contractuales de cada propiedad (precio del contrato, tipo, habitaciones, baños). Estos datos pueden divergir de lo publicado en la web (Inmovilla → Supabase).
+
+### Solución
+- **Script de comparación**: `scripts/compare-encargos-web.ts`
+  - Cruza `encargos` vs `property_metadata` + `property_features` por referencia
+  - Compara: precio, tipo, habitaciones, baños
+  - Opciones: `--all` (incluir retiradas), `--ref 2888` (una sola)
+  - Resultado: 42 matches, 40 diferencias (17 precio, 15 tipo, 6 baños, 2 habitaciones)
+
+- **Señal visual en admin**: Triángulo ⚠️ ámbar en `/admin/properties`
+  - Aparece en cada fila con discrepancias entre encargos y web
+  - Badge en header: "X propiedades con discrepancias vs encargos"
+  - Click → popup modal con detalle de cada diferencia (Encargo vs Web)
+  - Botón "Descartar" → guarda en `discrepancias_dismissed` y no vuelve a notificar
+
+- **Tabla `discrepancias_dismissed`**:
+  - Columnas: `ref`, `campo`, `valor_encargo`, `valor_web`, `dismissed_at`
+  - UNIQUE constraint: misma combinación ref+campo+valores no se duplica
+  - Si los valores cambian (ej. nuevo precio), la discrepancia reaparece
+
+- **Server actions**: `src/app/actions/discrepancias.ts`
+  - `getDiscrepanciasAction()` — compara encargos vs web, excluye descartadas
+  - `dismissDiscrepanciaAction()` — marca como descartada
+
+### Archivos
+- `scripts/compare-encargos-web.ts` — script CLI de comparación
+- `scripts/inspect-encargos.ts` — inspector de estructura de tabla
+- `sql/discrepancias-dismissed.sql` — schema SQL
+- `src/app/actions/discrepancias.ts` — server actions
+- Commit `1a9c055`
+
+---
+
+## ✅ Completado
+
+- ✅ Sistema de traducción con Perplexity AI (Propiedades, Banners, Blog)
+- ✅ Translation Hub centralizado con interfaz tabbed
+- ✅ Admin panel funcional con edición manual y auto-traducción
+- ✅ Build pipeline limpio sin errores TypeScript
+- ✅ Arquitectura segura (Server Actions sin JWT)
+- ✅ Logging de auditoría completo en `translation_log`
+- ✅ Consolidación de datos: todas las fuentes se consultan desde `property_metadata`
+- ✅ Sistema de sincronización incremental de Inmovilla (GitHub Actions + Supabase)
+- ✅ Optimización de rate limit: 9 llamadas cada 2 minutos (4.5/min promedio)
+- ✅ 79/79 propiedades sincronizadas
+- ✅ Auditoría y corrección de datos (precio, tipo, poblacion, habitaciones)
+- ✅ Habitaciones = simples + dobles (bug corregido)
+- ✅ Sistema de discrepancias encargos vs web con dismiss persistente
+
+---
+
+*Última actualización: 26/02/2026 — Sync: 79/79 propiedades ✅ | Datos corregidos (precio, tipo, poblacion, hab) ✅ | Discrepancias encargos vs web ✅ | Property features table ✅*
