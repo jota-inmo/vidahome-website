@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 if (!supabaseUrl || !supabaseServiceRole) {
@@ -28,7 +27,7 @@ async function populateHeroTranslations() {
         // Get existing hero slides
         const { data: slides, error: fetchError } = await supabase
             .from('hero_slides')
-            .select('id, titles, title')
+            .select('*')
             .order('order', { ascending: true });
 
         if (fetchError) throw fetchError;
@@ -59,28 +58,26 @@ async function populateHeroTranslations() {
 
         // Update existing slides with translations
         for (const slide of slides) {
-            const updatedTitles = {
-                ...slide.titles,
-                ...HERO_TITLES
-            };
+            console.log(`📝 Processing slide: ${slide.id}`);
+            
+            const updatedTitles = HERO_TITLES;
 
-            const { error: updateError } = await supabase
+            const { data: updated, error: updateError } = await supabase
                 .from('hero_slides')
                 .update({
                     titles: updatedTitles,
                     title: HERO_TITLES.es // Keep sync with Spanish title
                 })
-                .eq('id', slide.id);
+                .eq('id', slide.id)
+                .select();
 
             if (updateError) throw updateError;
 
-            console.log(`✅ Updated slide ${slide.id}`);
-            console.log(`   ES: ${updatedTitles.es}`);
-            console.log(`   EN: ${updatedTitles.en}`);
-            console.log(`   FR: ${updatedTitles.fr}`);
-            console.log(`   DE: ${updatedTitles.de}`);
-            console.log(`   IT: ${updatedTitles.it}`);
-            console.log(`   PL: ${updatedTitles.pl}\n`);
+            if (updated && updated.length > 0) {
+                const updatedSlide = updated[0];
+                console.log(`✅ Updated slide ${slide.id}`);
+                console.log(`   Stored titles: ${JSON.stringify(updatedSlide.titles)}\n`);
+            }
         }
 
         console.log('🎉 All hero slides updated successfully!');
