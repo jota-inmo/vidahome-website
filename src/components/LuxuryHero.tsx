@@ -100,7 +100,7 @@ export const LuxuryHero = () => {
                                         playsInline
                                         poster={slide.poster ? getRealUrl(slide.poster) : undefined}
                                         src={getRealUrl(slide.video_path)}
-                                        className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[10000ms] ease-linear"
+                                        className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[6000ms] ease-linear"
                                     />
                                 ) : (
                                     <Image
@@ -109,7 +109,7 @@ export const LuxuryHero = () => {
                                         fill
                                         priority={index === 0}
                                         sizes="100vw"
-                                        className="object-cover scale-100 group-hover:scale-105 transition-transform duration-[10000ms] ease-linear"
+                                        className="object-cover scale-100 group-hover:scale-105 transition-transform duration-[6000ms] ease-linear"
                                     />
                                 )}
                             </div>
