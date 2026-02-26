@@ -150,7 +150,14 @@ export default function VenderPage() {
         {step === 2 && <PropertyTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
         {step === 3 && <AddressSearchStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} onPropertyFound={handlePropertyFound} loading={loading} />}
         {step === 4 && isPisoOrApartamento && <PropertyDetailsStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
-        {step === (isPisoOrApartamento ? 5 : 4) && formState.propertyFromCatastro && <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
+        {step === (isPisoOrApartamento ? 5 : 4) && (
+          formState.propertyFromCatastro
+            ? <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />
+            : <div className="max-w-2xl mx-auto text-center py-16 px-8">
+                <p className="text-slate-500 mb-6">No se encontró ninguna propiedad. Por favor, vuelve a buscar la dirección.</p>
+                <button onClick={handleBackStep} className="px-6 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">← Volver a búsqueda</button>
+              </div>
+        )}
         {step === totalSteps && <ContactFormStep formState={formState} setFormState={setFormState} onSubmit={handleSubmitContact} onBack={handleBackStep} loading={loading} />}
       </div>
 

@@ -9,14 +9,9 @@ interface StepsIndicatorProps {
 }
 
 export function StepsIndicator({ currentStep, totalSteps = 6 }: StepsIndicatorProps) {
-    const stepLabels = [
-        'Operación',
-        'Tipo de propiedad',
-        'Ubicación',
-        'Detalles',
-        'Revisión',
-        'Contacto'
-    ];
+    const stepLabels = totalSteps === 6
+        ? ['Operación', 'Tipo de propiedad', 'Ubicación', 'Detalles', 'Revisión', 'Contacto']
+        : ['Operación', 'Tipo de propiedad', 'Ubicación', 'Revisión', 'Contacto'];
     
     const steps = Array.from({ length: totalSteps }, (_, i) => ({
         id: i + 1,
