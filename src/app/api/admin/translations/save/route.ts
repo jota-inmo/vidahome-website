@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from '@/lib/auth';
+import { translationsSaveSchema } from '@/lib/validations';
 
 export async function POST(req: Request) {
   try {
     if (!(await requireAdmin())) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    const body = await req.json();
-    const propertyId = Number(body.propertyId);
-    const translations = body.translations || {};
-
-    if (!propertyId) return NextResponse.json({ success: false, error: 'Invalid propertyId' }, { status: 400 });
+    const rawBody = await req.json();
+    const parsed = translationsSaveSchema.safeParse(rawBody);
+    if (!parsed.success) return NextResponse.json({ success: false, error: 'Datos inválidos', details: parsed.error.flatten() }, { status: 400 });
+    const { propertyId, translations } = parsed.data;
 
     // Fetch existing descriptions
     const { data: existing, error: fetchError } = await supabaseAdmin

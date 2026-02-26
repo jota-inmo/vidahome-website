@@ -1,14 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCatastroClient } from '@/lib/api/catastro';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { catastroSearchSchema } from '@/lib/validations';
 
 /**
  * API Route para buscar propiedades por dirección en el Catastro
  * POST /api/catastro/search
  */
 export async function POST(request: NextRequest) {
+    const rate = await checkRateLimit({ key: 'catastro_search', limit: 30, windowMs: 60000 });
+    if (!rate.success) {
+        return NextResponse.json({ error: 'Demasiadas consultas. Espera un momento.' }, { status: 429 });
+    }
+
     try {
-        const body = await request.json();
-        const { provincia, municipio, via, numero, tipoVia, rc } = body;
+        const rawBody = await request.json();
+        const parsed = catastroSearchSchema.safeParse(rawBody);
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const { provincia, municipio, via, numero, tipoVia, rc } = parsed.data;
 
         const client = createCatastroClient();
 
@@ -39,7 +50,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Error en API de búsqueda Catastro:', error);
         return NextResponse.json(
-            { error: 'Error al consultar el Catastro', details: error instanceof Error ? error.message : 'Unknown error' },
+            { error: 'Error al consultar el Catastro' },
             { status: 500 }
         );
     }

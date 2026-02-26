@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCatastroClient } from '@/lib/api/catastro';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 /**
  * API Route para obtener detalles de una propiedad por referencia catastral
  * GET /api/catastro/details?ref=XXXXXXXXXXXXX
  */
 export async function GET(request: NextRequest) {
+    const rate = await checkRateLimit({ key: 'catastro_details', limit: 20, windowMs: 60000 });
+    if (!rate.success) {
+        return NextResponse.json({ error: 'Demasiadas consultas. Espera un momento.' }, { status: 429 });
+    }
+
     try {
         const searchParams = request.nextUrl.searchParams;
         const referenciaCatastral = searchParams.get('ref');
@@ -76,8 +82,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(
             {
                 error: 'Error del servidor',
-                message: 'Ocurrió un error al consultar el Catastro. Por favor, inténtalo de nuevo.',
-                details: error instanceof Error ? error.message : 'Unknown error'
+                message: 'Ocurrió un error al consultar el Catastro. Por favor, inténtalo de nuevo.'
             },
             { status: 500 }
         );
