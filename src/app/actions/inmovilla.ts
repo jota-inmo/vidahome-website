@@ -4,6 +4,7 @@ import { createInmovillaApi } from '@/lib/api/properties';
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
 import tiposMap from '@/lib/api/tipos_map.json';
 import localidadesMap from '@/lib/api/localidades_map.json';
+import { requireAdmin } from '@/lib/auth';
 
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
@@ -292,6 +293,7 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
  */
 export async function updateFeaturedPropertiesAction(ids: number[]) {
     try {
+        if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
 
         // Delete all existing featured properties (featured_properties has cod_ofer as PRIMARY KEY, not 'id')
@@ -443,6 +445,8 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
     const addnumagencia = process.env.INMOVILLA_ADDNUMAGENCIA || '';
     const password = process.env.INMOVILLA_PASSWORD;
     const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
+
+    if (!(await requireAdmin())) return { success: false, synced: 0, error: 'No autorizado' };
 
     if (!numagencia || !password) {
         return { success: false, synced: 0, error: 'Inmovilla credentials not configured' };
@@ -621,6 +625,7 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
     isComplete: boolean;
     error?: string;
 }> {
+    if (!(await requireAdmin())) return { success: false, synced: 0, total: 0, isComplete: false, error: 'No autorizado' };
     console.log('[Sync Inc] Starting incremental sync with batchSize:', batchSize);
     
     const token = process.env.INMOVILLA_TOKEN;

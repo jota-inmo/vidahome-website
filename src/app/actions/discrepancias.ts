@@ -1,6 +1,7 @@
 "use server";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireAdmin } from '@/lib/auth';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -165,6 +166,7 @@ export async function dismissDiscrepanciaAction(d: Discrepancia): Promise<{
   error?: string;
 }> {
   try {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     const { error } = await supabaseAdmin
       .from("discrepancias_dismissed")
       .upsert(

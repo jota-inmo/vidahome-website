@@ -1,5 +1,7 @@
 'use server';
 
+import { requireAdmin } from '@/lib/auth';
+
 // ─── Configuración de seguridad para subida de archivos ──────────────────────
 const ALLOWED_MIME_TYPES = [
     'video/mp4',
@@ -16,6 +18,7 @@ const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30 MB
 
 export async function uploadMediaAction(formData: FormData) {
     try {
+        if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
         const file = formData.get('file') as File;
         if (!file) throw new Error('No se ha proporcionado ningún archivo');

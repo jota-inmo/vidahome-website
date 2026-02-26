@@ -1,6 +1,7 @@
 "use server";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireAdmin } from '@/lib/auth';
 
 export interface PropertySummaryRow {
   cod_ofer: number;
@@ -108,6 +109,7 @@ export async function updatePropertyDescriptionsAction(
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     const { data: existing } = await supabaseAdmin
       .from("property_metadata")
       .select("descriptions")
@@ -146,6 +148,7 @@ export async function updatePropertyFeaturesAction(
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     const { error } = await supabaseAdmin
       .from("property_features")
       .update({ ...features, updated_at: new Date().toISOString() })
@@ -168,6 +171,7 @@ export async function updatePropertyPrecioAction(
   precio: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     // Get existing overrides
     const { data: existing } = await supabaseAdmin
       .from("property_metadata")

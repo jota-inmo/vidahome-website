@@ -2,6 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidateTag } from 'next/cache';
+import { requireAdmin } from '@/lib/auth';
 
 export async function getPropertiesForTranslationAction() {
     try {
@@ -69,6 +70,7 @@ export async function getPropertiesForTranslationAction() {
 
 export async function savePropertyTranslationAction(property_id: number, descriptions: Record<string, string>) {
     try {
+        if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
         // Build descriptions JSON object
         const descriptionUpdates: Record<string, string> = {};
         if (descriptions.es) descriptionUpdates.description_es = descriptions.es;
@@ -122,6 +124,7 @@ export async function savePropertyTranslationAction(property_id: number, descrip
  */
 export async function runAutoTranslationAction(propertyIds?: number[]) {
     try {
+        if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
         // Import the server action
         const { translatePropertiesAction } = await import('@/app/actions/translate-perplexity');
         

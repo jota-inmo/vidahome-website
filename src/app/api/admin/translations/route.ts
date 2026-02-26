@@ -1,15 +1,10 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { NextResponse } from "next/server";
+import { requireAdmin } from '@/lib/auth';
 
-/**
- * GET /api/admin/translations
- * Returns all properties with their translations
- * Same data source as the catalog (via fetchPropertiesAction)
- * Requires admin authentication
- */
 export async function GET(request: Request) {
   try {
-    // TODO: Add authentication check here
+    if (!(await requireAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Step 1: Reuse the same fetcher as the catalog
     const { fetchPropertiesAction } = await import('@/app/actions/inmovilla');

@@ -1,12 +1,10 @@
 import { syncSinglePropertyAction, syncAllPropertiesAction } from '@/app/actions/sync-properties';
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth';
 
-/**
- * POST /api/admin/sync/single?property_id=12345
- * Sync a single property from Inmovilla to property_metadata
- */
 export async function POST(request: NextRequest) {
   try {
+    if (!(await requireAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { searchParams } = new URL(request.url);
     const propertyId = searchParams.get('property_id');
 
@@ -41,6 +39,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    if (!(await requireAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const result = await syncAllPropertiesAction();
     
     if (!result.success) {

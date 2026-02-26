@@ -38,7 +38,7 @@ export async function checkRateLimit(config: RateLimitConfig): Promise<{ success
 
         if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
             console.warn('[RateLimit] Error checking rate limit:', error);
-            return { success: true, remaining: config.limit }; // Fail open if table missing
+            return { success: false, remaining: 0 }; // Fail CLOSED — deny on error
         }
 
         if (!data) {
@@ -87,6 +87,6 @@ export async function checkRateLimit(config: RateLimitConfig): Promise<{ success
 
     } catch (e) {
         console.error('[RateLimit] Critical failure:', e);
-        return { success: true, remaining: 1 }; // Fail open
+        return { success: false, remaining: 0 }; // Fail CLOSED — deny on error
     }
 }

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/auth';
 
 export interface HeroSlide {
     id: string;
@@ -38,6 +39,7 @@ export async function getHeroSlidesAction(onlyActive = false): Promise<HeroSlide
 
 export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
     try {
+        if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
 
         // Limpiar ID si es una cadena vacía para evitar errores de UUID en Postgres
@@ -62,6 +64,7 @@ export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
 
 export async function deleteHeroSlideAction(id: string) {
     try {
+        if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
         const { error } = await supabaseAdmin
             .from('hero_slides')

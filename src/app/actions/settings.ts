@@ -2,6 +2,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/auth';
 
 export interface CompanySettings {
     phone: string;
@@ -47,6 +48,7 @@ export async function getCompanySettingsAction(): Promise<CompanySettings> {
 
 export async function updateCompanySettingsAction(settings: Partial<CompanySettings>) {
     try {
+        if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
         const entries = Object.entries(settings).map(([key, value]) => ({
             key,
             value: String(value),

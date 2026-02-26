@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { translatePropertiesAction } from "@/app/actions/translate-perplexity";
+import { requireAdmin } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    if (!(await requireAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await req.json().catch(() => ({}));
     const property_ids = body.property_ids as string[] | undefined;
     const batch_size = body.batch_size as number | undefined;

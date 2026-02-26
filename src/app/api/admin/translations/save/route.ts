@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireAdmin } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    if (!(await requireAdmin())) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     const body = await req.json();
     const propertyId = Number(body.propertyId);
     const translations = body.translations || {};

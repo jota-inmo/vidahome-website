@@ -1,23 +1,14 @@
 import { syncPropertiesIncrementalAction } from '@/app/actions/inmovilla';
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth';
 
 /**
  * API endpoint for incremental property syncing
- * 
- * Call this from a cron job every 30 seconds to sync properties in batches
- * 
- * Usage:
- * - GET /api/admin/sync-incremental
- * - GET /api/admin/sync-incremental?batchSize=20
- * 
- * Security: Requires SYNC_SECRET in Authorization header
- * Example: curl -H "Authorization: Bearer YOUR_SYNC_SECRET" https://vidahome-website.vercel.app/api/admin/sync-incremental
+ * Requires admin session cookie.
  */
 export async function GET(request: NextRequest) {
     try {
-        // Debug: Log request for troubleshooting
-        console.log('[API] GET /api/admin/sync-incremental called');
-        console.log('[API] Auth header:', request.headers.get('authorization'));
+        if (!(await requireAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Get batch size from query params (default 8 for 2-minute interval)
         const url = new URL(request.url);
@@ -44,7 +35,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error('[API] Sync incremental error:', error);
         return NextResponse.json(
-            { error: error.message, stack: error.stack },
+            { error: error.message },
             { status: 500 }
         );
     }
@@ -55,20 +46,15 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
-        console.log('[API] POST /api/admin/sync-incremental called');
-        
+        if (!(await requireAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const body = await request.json().catch(() => ({}));
         const batchSize = Math.min(body.batchSize || 8, 30);
 
-        console.log('[API] Requesting sync with batchSize:', batchSize);
-
         const result = await syncPropertiesIncrementalAction(batchSize);
-
-        console.log('[API] Sync result:', result);
 
         return NextResponse.json(result);
     } catch (error: any) {
         console.error('[API] POST error:', error);
-        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
