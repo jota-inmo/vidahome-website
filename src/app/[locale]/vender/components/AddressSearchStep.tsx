@@ -1,10 +1,12 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { SellFormState } from '@/types/sell-form';
 import { getCatastroProvinciasAction, getCatastroMunicipiosAction } from '@/app/actions';
 import { toast } from 'sonner';
-import { ChevronDown, AlertCircle } from 'lucide-react';
+import { MapPin, Hash, Search, Home, Ruler, CheckCircle } from 'lucide-react';
+
+type SearchMode = 'direccion' | 'refcatastral';
 
 interface AddressSearchStepProps {
   formState: SellFormState;
@@ -23,6 +25,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
   onPropertyFound,
   loading = false
 }) => {
+  const [searchMode, setSearchMode] = useState<SearchMode>('direccion');
   const [provincias, setProvincias] = useState<string[]>([]);
   const [municipios, setMunicipios] = useState<string[]>([]);
   const [viaSuggestions, setViaSuggestions] = useState<any[]>([]);
@@ -30,153 +33,104 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
   const [numeroSuggestions, setNumeroSuggestions] = useState<any[]>([]);
   const [showNumeroSuggestions, setShowNumeroSuggestions] = useState(false);
   const [selectedVia, setSelectedVia] = useState<{ tipo: string; nombre: string } | null>(null);
-  const [showRefCatastralInput, setShowRefCatastralInput] = useState(false);
   const [refCatastralInput, setRefCatastralInput] = useState('');
   const [searching, setSearching] = useState(false);
+  const [multipleResults, setMultipleResults] = useState<any[]>([]);
 
   const viaRef = useRef<HTMLDivElement>(null);
   const numRef = useRef<HTMLDivElement>(null);
 
-  // Cargar provincias al montar
   useEffect(() => {
-    const loadProvincias = async () => {
-      try {
-        const data = await getCatastroProvinciasAction();
-        setProvincias(data);
-      } catch (error) {
-        toast.error('Error al cargar provincias');
-      }
-    };
-    loadProvincias();
+    getCatastroProvinciasAction().then(setProvincias).catch(() => toast.error('Error al cargar provincias'));
   }, []);
 
-  // Cargar municipios cuando cambia provincia
   useEffect(() => {
-    const loadMunicipios = async () => {
-      if (!formState.provincia) return;
-      try {
-        const data = await getCatastroMunicipiosAction(formState.provincia);
-        setMunicipios(data);
-      } catch (error) {
-        toast.error('Error al cargar municipios');
-      }
-    };
-    loadMunicipios();
+    if (!formState.provincia) return;
+    getCatastroMunicipiosAction(formState.provincia).then(setMunicipios).catch(() => toast.error('Error al cargar municipios'));
   }, [formState.provincia]);
 
-  // Autocompletado de vías
   useEffect(() => {
-    const fetchVias = async () => {
-      if (formState.via.length < 3) {
-        setViaSuggestions([]);
-        return;
-      }
+    if (formState.via.length < 3) { setViaSuggestions([]); return; }
+    const timer = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/catastro/vias?provincia=${formState.provincia}&municipio=${formState.municipio}&query=${formState.via}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setViaSuggestions(data);
-        }
-      } catch (e) {
-        console.error('Error fetching vias:', e);
-      }
-    };
-
-    const timer = setTimeout(fetchVias, 300);
+        const res = await fetch(`/api/catastro/vias?provincia=${formState.provincia}&municipio=${formState.municipio}&query=${formState.via}`);
+        if (res.ok) setViaSuggestions(await res.json());
+      } catch {}
+    }, 300);
     return () => clearTimeout(timer);
   }, [formState.via, formState.municipio, formState.provincia]);
 
-  // Autocompletado de números
   useEffect(() => {
-    const fetchNumeros = async () => {
-      if (!selectedVia) return;
+    if (!selectedVia) return;
+    const timer = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/catastro/numeros?provincia=${formState.provincia}&municipio=${formState.municipio}&tipoVia=${selectedVia.tipo}&nomVia=${selectedVia.nombre}&numero=${formState.numero}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setNumeroSuggestions(data);
-        }
-      } catch (e) {
-        console.error('Error fetching numeros:', e);
-      }
-    };
-
-    const timer = setTimeout(fetchNumeros, 300);
+        const res = await fetch(`/api/catastro/numeros?provincia=${formState.provincia}&municipio=${formState.municipio}&tipoVia=${selectedVia.tipo}&nomVia=${selectedVia.nombre}&numero=${formState.numero}`);
+        if (res.ok) setNumeroSuggestions(await res.json());
+      } catch {}
+    }, 300);
     return () => clearTimeout(timer);
   }, [formState.numero, selectedVia, formState.municipio, formState.provincia]);
 
-  // Cerrar sugerencias al hacer clic fuera
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (viaRef.current && !viaRef.current.contains(event.target as Node)) {
-        setShowViaSuggestions(false);
-      }
-      if (numRef.current && !numRef.current.contains(event.target as Node)) {
-        setShowNumeroSuggestions(false);
-      }
+      if (viaRef.current && !viaRef.current.contains(event.target as Node)) setShowViaSuggestions(false);
+      if (numRef.current && !numRef.current.contains(event.target as Node)) setShowNumeroSuggestions(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelectVia = (via: any) => {
-    setFormState(prev => ({ ...prev, via: via.nombre }));
-    setSelectedVia({ tipo: via.tipo, nombre: via.nombre });
-    setShowViaSuggestions(false);
+  const fetchDetails = async (rc: string) => {
+    const detailsRes = await fetch(`/api/catastro/details?ref=${encodeURIComponent(rc)}`);
+    if (!detailsRes.ok) throw new Error('Error al obtener detalles');
+    return await detailsRes.json();
   };
 
-  const handleSelectNumero = (num: any) => {
-    setFormState(prev => ({ ...prev, numero: num.numero, refCatastralManual: num.rc }));
-    setShowNumeroSuggestions(false);
-  };
-
-  const handleSearchCatastro = async () => {
-    if (!formState.provincia || !formState.municipio) {
-      toast.error('Selecciona provincia y municipio');
+  const handleSearch = async () => {
+    if (searchMode === 'direccion' && (!formState.provincia || !formState.municipio || !formState.via || !formState.numero)) {
+      toast.error('Completa provincia, municipio, calle y nÃºmero');
+      return;
+    }
+    if (searchMode === 'refcatastral' && refCatastralInput.replace(/\s/g, '').length < 14) {
+      toast.error('Introduce una referencia catastral vÃ¡lida');
       return;
     }
 
     setSearching(true);
+    setMultipleResults([]);
     try {
-      // Buscar por dirección o referencia catastral
-      const body = refCatastralInput
+      const body = searchMode === 'refcatastral'
         ? { rc: refCatastralInput.replace(/\s/g, '').toUpperCase() }
-        : { ...formState, tipoVia: selectedVia?.tipo };
+        : { provincia: formState.provincia, municipio: formState.municipio, via: formState.via, numero: formState.numero, tipoVia: selectedVia?.tipo || formState.tipoVia };
 
-      const response = await fetch('/api/catastro/search', {
+      const res = await fetch('/api/catastro/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
 
-      if (!response.ok) {
-        const err = await response.json();
-        toast.error(err.message || 'Error al buscar en el Catastro');
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.error || 'Error al buscar en el Catastro');
         return;
       }
 
-      const result = await response.json();
-      if (result.found && result.properties?.length > 0) {
-        if (result.properties.length === 1) {
-          // Obtener detalles completos
-          const detailsRes = await fetch(
-            `/api/catastro/details?ref=${encodeURIComponent(result.properties[0].referenciaCatastral)}`
-          );
-          if (detailsRes.ok) {
-            const details = await detailsRes.json();
-            onPropertyFound(details);
-            toast.success('¡Propiedad encontrada!');
-          }
-        } else {
-          // Múltiples resultados - mostrar lista (implementar después)
-          toast.info(`Se encontraron ${result.properties.length} propiedades`);
-        }
+      const result = await res.json();
+
+      if (!result.found || !result.properties?.length) {
+        toast.error('No se encontrÃ³ ninguna propiedad con esos datos');
+        return;
+      }
+
+      if (result.properties.length === 1) {
+        // Ãšnico resultado: obtener detalles y continuar
+        const details = await fetchDetails(result.properties[0].referenciaCatastral);
+        onPropertyFound(details);
+        toast.success('Â¡Propiedad encontrada!');
       } else {
-        toast.error('No se encontró la propiedad');
+        // MÃºltiples: mostrar lista de selecciÃ³n
+        setMultipleResults(result.properties);
+        toast.info(`Se encontraron ${result.properties.length} inmuebles. Selecciona el tuyo.`);
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -186,205 +140,292 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
     }
   };
 
+  const handleSelectProperty = async (property: any) => {
+    setSearching(true);
+    try {
+      const details = await fetchDetails(property.referenciaCatastral);
+      onPropertyFound(details);
+      toast.success('Â¡Propiedad seleccionada!');
+    } catch {
+      toast.error('Error al obtener los detalles del inmueble');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // Si hay mÃºltiples resultados, mostrar panel de selecciÃ³n
+  if (multipleResults.length > 0) {
+    return (
+      <section className="max-w-2xl mx-auto px-8 py-16">
+        <div className="mb-8">
+          <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-3">
+            Selecciona tu inmueble
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400">
+            Se encontraron <strong>{multipleResults.length} inmuebles</strong> en esa direcciÃ³n. Â¿CuÃ¡l es el tuyo?
+          </p>
+        </div>
+
+        <div className="space-y-3 mb-8">
+          {multipleResults.map((prop, idx) => (
+            <button
+              key={prop.referenciaCatastral || idx}
+              onClick={() => handleSelectProperty(prop)}
+              disabled={searching}
+              className="w-full text-left p-5 border border-slate-200 dark:border-slate-700 rounded-xl
+                hover:border-lime-400 hover:bg-lime-50/50 dark:hover:border-lime-500 dark:hover:bg-lime-950/10
+                transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Home size={16} className="text-lime-500 flex-shrink-0" />
+                    <span className="font-medium text-slate-900 dark:text-white text-sm leading-tight">
+                      {prop.direccion}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    {prop.superficie > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Ruler size={12} />
+                        {prop.superficie} mÂ²
+                      </span>
+                    )}
+                    {prop.uso && <span>{prop.uso}</span>}
+                    <span className="font-mono opacity-60">{prop.referenciaCatastral}</span>
+                  </div>
+                </div>
+                <CheckCircle size={20} className="text-slate-200 dark:text-slate-700 group-hover:text-lime-400 transition-colors flex-shrink-0 mt-0.5" />
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setMultipleResults([])}
+          className="w-full py-3 text-center text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+        >
+          â† Volver a buscar
+        </button>
+      </section>
+    );
+  }
+
   return (
     <section className="max-w-2xl mx-auto px-8 py-16">
-      <div className="mb-12">
-        <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-4">
-          ¿Dónde está tu propiedad?
+      <div className="mb-10">
+        <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-3">
+          Â¿DÃ³nde estÃ¡ tu propiedad?
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-lg">
-          Detallamos la información igual que en el Catastro para encontrarla correctamente
+          Buscamos en el Catastro oficial para obtener los datos reales del inmueble
         </p>
       </div>
 
-      <div className="space-y-6 mb-8">
-        {/* Provincia */}
-        <div>
-          <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Provincia <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={formState.provincia}
-            onChange={e => setFormState(prev => ({ ...prev, provincia: e.target.value, municipio: '' }))}
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
-              bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
-          >
-            <option value="">Selecciona provincia...</option>
-            {provincias.map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Municipio */}
-        <div>
-          <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Municipio <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={formState.municipio}
-            onChange={e => setFormState(prev => ({ ...prev, municipio: e.target.value }))}
-            disabled={!formState.provincia}
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
-              bg-white dark:bg-slate-900 text-slate-900 dark:text-white disabled:bg-slate-100 dark:disabled:bg-slate-800
-              focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
-          >
-            <option value="">Selecciona municipio...</option>
-            {municipios.map(m => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Tipo de vía */}
-        <div>
-          <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Tipo de vía
-          </label>
-          <select
-            value={formState.tipoVia}
-            onChange={e => setFormState(prev => ({ ...prev, tipoVia: e.target.value }))}
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
-              bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
-          >
-            <option value="">Selecciona tipo...</option>
-            <option value="CL">Calle</option>
-            <option value="AV">Avenida</option>
-            <option value="PZ">Plaza</option>
-            <option value="CA">Camino</option>
-            <option value="CR">Carrera</option>
-            <option value="CT">Carretera</option>
-          </select>
-        </div>
-
-        {/* Vía (calle) */}
-        <div ref={viaRef} className="relative">
-          <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Vía/Calle <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formState.via}
-            onChange={e => {
-              setFormState(prev => ({ ...prev, via: e.target.value }));
-              setShowViaSuggestions(true);
-            }}
-            onFocus={() => setShowViaSuggestions(true)}
-            placeholder="Ej. San Francisco de Borja"
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
-              bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none"
-          />
-          {showViaSuggestions && viaSuggestions.length > 0 && (
-            <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-              {viaSuggestions.map((via, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectVia(via)}
-                  className="w-full text-left px-4 py-2 hover:bg-lime-50 dark:hover:bg-lime-950/20 text-slate-900 dark:text-white text-sm border-b border-slate-100 dark:border-slate-800 last:border-b-0"
-                >
-                  {via.tipo} {via.nombre}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Número */}
-        <div ref={numRef} className="relative">
-          <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Número <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formState.numero}
-            onChange={e => {
-              setFormState(prev => ({ ...prev, numero: e.target.value }));
-              setShowNumeroSuggestions(true);
-            }}
-            onFocus={() => setShowNumeroSuggestions(true)}
-            placeholder="Ej. 1, 45A"
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
-              bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none"
-          />
-          {showNumeroSuggestions && numeroSuggestions.length > 0 && (
-            <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-              {numeroSuggestions.map((num, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectNumero(num)}
-                  className="w-full text-left px-4 py-2 hover:bg-lime-50 dark:hover:bg-lime-950/20 text-slate-900 dark:text-white text-sm border-b border-slate-100 dark:border-slate-800 last:border-b-0"
-                >
-                  Número {num.numero}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* Toggle de modo */}
+      <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-8">
+        <button
+          onClick={() => setSearchMode('direccion')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+            searchMode === 'direccion'
+              ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+          }`}
+        >
+          <MapPin size={16} />
+          Por direcciÃ³n
+        </button>
+        <button
+          onClick={() => setSearchMode('refcatastral')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+            searchMode === 'refcatastral'
+              ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+          }`}
+        >
+          <Hash size={16} />
+          Por ref. catastral
+        </button>
       </div>
 
-      {/* Botón de búsqueda */}
-      <button
-        onClick={handleSearchCatastro}
-        disabled={!formState.provincia || !formState.municipio || searching || loading}
-        className={`
-          w-full py-3 rounded-lg font-medium uppercase tracking-[0.1em] transition-all mb-8
-          ${!formState.provincia || !formState.municipio || searching || loading
-            ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-            : 'bg-lime-400 text-slate-900 hover:bg-lime-500 shadow-lg'
-          }
-        `}
-      >
-        {searching || loading ? 'Buscando...' : 'Buscar en el Catastro'}
-      </button>
-
-      {/* Fallback: Referencia catastral */}
-      {!showRefCatastralInput && (
-        <button
-          onClick={() => setShowRefCatastralInput(true)}
-          className="w-full py-3 text-center text-lime-600 dark:text-lime-400 hover:text-lime-700 dark:hover:text-lime-300
-            text-sm font-medium transition-colors border-b border-lime-300 dark:border-lime-700"
-        >
-          No encuentro mi propiedad
-        </button>
-      )}
-
-      {showRefCatastralInput && (
-        <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg mb-8">
-          <div className="flex gap-2 mb-3">
-            <AlertCircle size={16} className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-blue-700 dark:text-blue-300">
-              Si tienes tu referencia catastral (22 dígitos), puedes usarla para una búsqueda precisa
-            </p>
+      {searchMode === 'refcatastral' ? (
+        /* â”€â”€ Modo REF CATASTRAL â”€â”€ */
+        <div className="space-y-4 mb-8">
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-sm text-blue-700 dark:text-blue-300">
+            La referencia catastral tiene 20 caracteres y la encontrarÃ¡s en el recibo del IBI o en la escritura de la propiedad.
           </div>
-          <input
-            type="text"
-            value={refCatastralInput}
-            onChange={e => setRefCatastralInput(e.target.value.toUpperCase())}
-            placeholder="Ej. 7198701YJ4179N0001XF"
-            className="w-full px-4 py-2 border border-blue-300 dark:border-blue-700 rounded-lg
-              bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm
-              focus:ring-2 focus:ring-blue-400 outline-none"
-          />
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-            No la tienes? No importa, la búsqueda por dirección también funciona bien.
-          </p>
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              Referencia catastral <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={refCatastralInput}
+              onChange={e => setRefCatastralInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+              placeholder="Ej. 7198701YJ4179N0001XF"
+              maxLength={22}
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono tracking-widest
+                focus:ring-2 focus:ring-lime-400 outline-none"
+            />
+            <p className="text-xs text-slate-400 mt-1">{refCatastralInput.length}/20 caracteres</p>
+          </div>
+        </div>
+      ) : (
+        /* â”€â”€ Modo DIRECCIÃ“N â”€â”€ */
+        <div className="space-y-5 mb-8">
+          {/* Provincia */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              Provincia <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formState.provincia}
+              onChange={e => setFormState(prev => ({ ...prev, provincia: e.target.value, municipio: '' }))}
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+            >
+              <option value="">Selecciona provincia...</option>
+              {provincias.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+
+          {/* Municipio */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              Municipio <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formState.municipio}
+              onChange={e => setFormState(prev => ({ ...prev, municipio: e.target.value }))}
+              disabled={!formState.provincia}
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed
+                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+            >
+              <option value="">Selecciona municipio...</option>
+              {municipios.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+
+          {/* Tipo de vÃ­a */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              Tipo de vÃ­a
+            </label>
+            <select
+              value={formState.tipoVia}
+              onChange={e => setFormState(prev => ({ ...prev, tipoVia: e.target.value }))}
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+            >
+              <option value="">Selecciona tipo...</option>
+              <option value="CL">Calle</option>
+              <option value="AV">Avenida</option>
+              <option value="PZ">Plaza</option>
+              <option value="CA">Camino</option>
+              <option value="CR">Carrera</option>
+              <option value="CT">Carretera</option>
+            </select>
+          </div>
+
+          {/* VÃ­a */}
+          <div ref={viaRef} className="relative">
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              Calle / VÃ­a <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formState.via}
+              onChange={e => { setFormState(prev => ({ ...prev, via: e.target.value })); setShowViaSuggestions(true); }}
+              onFocus={() => setShowViaSuggestions(true)}
+              placeholder="Ej. San Francisco de Borja"
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                focus:ring-2 focus:ring-lime-400 outline-none"
+            />
+            {showViaSuggestions && viaSuggestions.length > 0 && (
+              <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                {viaSuggestions.map((via, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { setFormState(prev => ({ ...prev, via: via.nombre })); setSelectedVia({ tipo: via.tipo, nombre: via.nombre }); setShowViaSuggestions(false); }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-lime-50 dark:hover:bg-lime-950/20 text-slate-900 dark:text-white text-sm border-b border-slate-100 dark:border-slate-800 last:border-b-0"
+                  >
+                    <span className="text-slate-400 text-xs mr-1">{via.tipo}</span> {via.nombre}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* NÃºmero */}
+          <div ref={numRef} className="relative">
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              NÃºmero <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formState.numero}
+              onChange={e => { setFormState(prev => ({ ...prev, numero: e.target.value })); setShowNumeroSuggestions(true); }}
+              onFocus={() => setShowNumeroSuggestions(true)}
+              placeholder="Ej. 14"
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                focus:ring-2 focus:ring-lime-400 outline-none"
+            />
+            {showNumeroSuggestions && numeroSuggestions.length > 0 && (
+              <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                {numeroSuggestions.map((num, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { setFormState(prev => ({ ...prev, numero: num.numero, refCatastralManual: num.rc })); setShowNumeroSuggestions(false); }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-lime-50 dark:hover:bg-lime-950/20 text-slate-900 dark:text-white text-sm border-b border-slate-100 dark:border-slate-800 last:border-b-0"
+                  >
+                    NÃºmero {num.numero}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Botones de acción */}
-      <div className="flex gap-4 justify-center">
+      {/* BotÃ³n buscar */}
+      <button
+        onClick={handleSearch}
+        disabled={searching || loading}
+        className={`w-full py-4 rounded-lg font-bold uppercase tracking-[0.1em] text-sm transition-all mb-6 flex items-center justify-center gap-2 ${
+          searching || loading
+            ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+            : 'bg-lime-400 text-slate-900 hover:bg-lime-500 shadow-lg hover:shadow-lime-200/50 dark:hover:shadow-lime-900/50'
+        }`}
+      >
+        {searching || loading ? (
+          <>
+            <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+            Buscando en el Catastro...
+          </>
+        ) : (
+          <>
+            <Search size={16} />
+            Buscar propiedad
+          </>
+        )}
+      </button>
+
+      <div className="flex justify-center">
         <button
           onClick={onBack}
-          className="px-6 py-3 border border-slate-300 dark:border-slate-700 rounded-sm
+          className="px-6 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
             font-medium uppercase tracking-[0.1em] text-sm
             text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-900
             transition-colors"
         >
-          Atrás
+          AtrÃ¡s
         </button>
       </div>
     </section>
