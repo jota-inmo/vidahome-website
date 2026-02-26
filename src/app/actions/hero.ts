@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { unstable_noStore as noStore } from 'next/cache';
 import { requireAdmin } from '@/lib/auth';
 
 export interface HeroSlide {
@@ -17,6 +18,7 @@ export interface HeroSlide {
 
 export async function getHeroSlidesAction(onlyActive = false): Promise<HeroSlide[]> {
     try {
+        noStore(); // Disable caching for real-time updates
         const { supabase } = await import('@/lib/supabase');
         let query = supabase
             .from('hero_slides')
@@ -54,7 +56,15 @@ export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
 
         if (error) throw error;
 
+        // Revalidate all locales for home page
         revalidatePath('/');
+        revalidatePath('/es');
+        revalidatePath('/en');
+        revalidatePath('/fr');
+        revalidatePath('/de');
+        revalidatePath('/it');
+        revalidatePath('/pl');
+        
         return { success: true };
     } catch (e: any) {
         console.error('Error saving hero slide:', e);
@@ -73,7 +83,15 @@ export async function deleteHeroSlideAction(id: string) {
 
         if (error) throw error;
 
+        // Revalidate all locales for home page
         revalidatePath('/');
+        revalidatePath('/es');
+        revalidatePath('/en');
+        revalidatePath('/fr');
+        revalidatePath('/de');
+        revalidatePath('/it');
+        revalidatePath('/pl');
+        
         return { success: true };
     } catch (e: any) {
         console.error('Error deleting hero slide:', e);
