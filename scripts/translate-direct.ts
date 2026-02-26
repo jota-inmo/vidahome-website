@@ -203,7 +203,17 @@ async function translateOneLang(
 }
 
 async function translateProperties() {
-  console.log("🚀 Starting Per-Language Translation with Perplexity...\n");
+  // Parse CLI flags
+  const args = process.argv.slice(2);
+  const force = args.includes("--force");
+  const onlyLangs = args.find(a => a.startsWith("--langs="))?.split("=")[1]?.split(",");
+  const limitArg = args.find(a => a.startsWith("--limit="));
+  const limit = limitArg ? parseInt(limitArg.split("=")[1], 10) : 200;
+
+  console.log("🚀 Starting Per-Language Translation with Perplexity...");
+  if (force) console.log("⚡ FORCE mode: re-translating ALL properties (overwriting existing)");
+  if (onlyLangs) console.log(`🌐 Languages: ${onlyLangs.join(", ")}`);
+  console.log(`📊 Limit: ${limit} properties\n`);
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
     auth: { persistSession: false },
@@ -214,22 +224,27 @@ async function translateProperties() {
     .from("property_metadata")
     .select("cod_ofer, ref, tipo, precio, poblacion, descriptions")
     .not("descriptions", "is", null)
-    .limit(100);
+    .limit(limit);
 
   if (!allProps) {
     console.log("No properties found");
     return;
   }
 
-  // Filter those needing translation
-  const needsTranslation = allProps.filter((p: any) => {
-    const desc = p.descriptions || {};
-    const hasEs = desc.description_es || desc.descripciones;
-    const needsLang = !desc.description_en || !desc.description_fr || !desc.description_de;
-    return hasEs && needsLang;
-  });
+  // Filter: in force mode translate all, otherwise only those missing translations
+  const needsTranslation = force
+    ? allProps.filter((p: any) => {
+        const desc = p.descriptions || {};
+        return desc.description_es || desc.descripciones;
+      })
+    : allProps.filter((p: any) => {
+        const desc = p.descriptions || {};
+        const hasEs = desc.description_es || desc.descripciones;
+        const needsLang = !desc.description_en || !desc.description_fr || !desc.description_de;
+        return hasEs && needsLang;
+      });
 
-  console.log(`📊 Found ${needsTranslation.length} properties needing translation\n`);
+  console.log(`📊 Found ${needsTranslation.length} properties to translate\n`);
 
   // Fetch features for context
   const codOfers = needsTranslation.map((p: any) => p.cod_ofer);
@@ -244,7 +259,7 @@ async function translateProperties() {
   // Process in batches
   let translated = 0;
   let failed = 0;
-  const langs = Object.keys(LANG_CONFIGS);
+  const langs = onlyLangs ?? Object.keys(LANG_CONFIGS);
 
   for (let i = 0; i < needsTranslation.length; i += BATCH_SIZE) {
     const batch = needsTranslation.slice(i, i + BATCH_SIZE);
