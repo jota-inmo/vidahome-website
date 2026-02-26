@@ -125,6 +125,7 @@ export default function VenderPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
+      {/* Hero Section */}
       <section className="relative py-32 px-8 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-lime-50 to-teal-50 dark:from-lime-950/20 dark:to-teal-950/20 opacity-50" />
         <div className="relative max-w-4xl mx-auto text-center">
@@ -143,17 +144,75 @@ export default function VenderPage() {
         </div>
       </section>
 
+      {/* Steps Indicator */}
       <StepsIndicator currentStep={step} totalSteps={totalSteps} />
 
+      {/* Content */}
       <div className="py-12">
-        {step === 1 && <OperationTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} />}
-        {step === 2 && <PropertyTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
-        {step === 3 && <AddressSearchStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} onPropertyFound={handlePropertyFound} loading={loading} />}
-        {step === 4 && isPisoOrApartamento && <PropertyDetailsStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
-        {step === (isPisoOrApartamento ? 5 : 4) && formState.propertyFromCatastro && <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
-        {step === totalSteps && <ContactFormStep formState={formState} setFormState={setFormState} onSubmit={handleSubmitContact} onBack={handleBackStep} loading={loading} />}
+        {/* STEP 1: Tipo de operación */}
+        {step === 1 && (
+          <OperationTypeStep
+            formState={formState}
+            setFormState={setFormState}
+            onNext={handleNextStep}
+          />
+        )}
+
+        {/* STEP 2: Tipo de bien */}
+        {step === 2 && (
+          <PropertyTypeStep
+            formState={formState}
+            setFormState={setFormState}
+            onNext={handleNextStep}
+            onBack={handleBackStep}
+          />
+        )}
+
+        {/* STEP 3: Dirección */}
+        {step === 3 && (
+          <AddressSearchStep
+            formState={formState}
+            setFormState={setFormState}
+            onNext={handleNextStep}
+            onBack={handleBackStep}
+            onPropertyFound={handlePropertyFound}
+            loading={loading}
+          />
+        )}
+
+        {/* STEP 4: Detalles de piso (condicional) */}
+        {step === 4 && isPisoOrApartamento && (
+          <PropertyDetailsStep
+            formState={formState}
+            setFormState={setFormState}
+            onNext={handleNextStep}
+            onBack={handleBackStep}
+          />
+        )}
+
+        {/* STEP 5: Revisión */}
+        {step === (isPisoOrApartamento ? 5 : 4) && formState.propertyFromCatastro && (
+          <PropertyReviewStep
+            formState={formState}
+            setFormState={setFormState}
+            onNext={handleNextStep}
+            onBack={handleBackStep}
+          />
+        )}
+
+        {/* STEP 6: Contacto */}
+        {step === totalSteps && (
+          <ContactFormStep
+            formState={formState}
+            setFormState={setFormState}
+            onSubmit={handleSubmitContact}
+            onBack={handleBackStep}
+            loading={loading}
+          />
+        )}
       </div>
 
+      {/* Footer */}
       <section className="py-20 px-8 bg-slate-900 dark:bg-slate-950 text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-serif mb-6">¿Preguntas?</h2>
@@ -161,10 +220,16 @@ export default function VenderPage() {
             Nuestro equipo está disponible para ayudarte en el proceso de valoración
           </p>
           <div className="flex flex-col md:flex-row gap-6 justify-center">
-            <a href="tel:+34961234567" className="px-8 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">
+            <a
+              href="tel:+34961234567"
+              className="px-8 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors"
+            >
               Llamar ahora
             </a>
-            <a href="mailto:info@vidahome.es" className="px-8 py-3 border border-white rounded-lg font-medium hover:bg-white hover:text-slate-900 transition-colors">
+            <a
+              href="mailto:info@vidahome.es"
+              className="px-8 py-3 border border-white rounded-lg font-medium hover:bg-white hover:text-slate-900 transition-colors"
+            >
               Enviar email
             </a>
           </div>
@@ -173,5 +238,3 @@ export default function VenderPage() {
     </div>
   );
 }
-
-
