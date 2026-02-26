@@ -19,9 +19,9 @@ export const Logo = ({ className = '', variant = 'full', showSlogan = true, plai
             <Image
                 src="/MARCA OK.png"
                 alt="Vidahome Logo"
-                width={160}
-                height={48}
-                className="h-10 w-auto object-contain"
+                width={320}
+                height={96}
+                className="h-20 w-auto object-contain"
                 priority
             />
         </div>
