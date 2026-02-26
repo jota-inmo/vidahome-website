@@ -28,6 +28,9 @@
 # debug
 npm-debug.log*
 yarn-debug.log*
+
+# Deprecated/obsolete files
+**/page_new.tsx
 yarn-error.log*
 .pnpm-debug.log*
 
