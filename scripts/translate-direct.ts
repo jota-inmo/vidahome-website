@@ -47,7 +47,7 @@ const LANG_CONFIGS: Record<string, LangConfig> = {
 - Location selling points (beaches, golf, airport, lifestyle)
 - Closing call to action mentioning Vidahome
 
-RULES: Flowing prose, NOT bullet points. Keep similar length (±20%). British spelling. Preserve all facts exactly. Sound like an experienced estate agent.
+RULES: Flowing prose, NOT bullet points. Keep similar length (±20%). British spelling. Preserve all facts exactly. NEVER mention the price in the text — it is shown separately and may change. Sound like an experienced estate agent.
 Return ONLY the translated text — no JSON, no markdown, no preamble.
 
 {{PROPERTY_DATA}}
@@ -70,7 +70,7 @@ Spanish original:
 - Atouts de la localisation (plages, golf, aéroport)
 - Appel à l'action mentionnant Vidahome
 
-RÈGLES : Texte fluide et élégant, PAS de listes. Longueur similaire (±20%). Préserver tous les faits. Ton raffiné.
+RÈGLES : Texte fluide et élégant, PAS de listes. Longueur similaire (±20%). Préserver tous les faits. NE mentionne JAMAIS le prix dans le texte. Ton raffiné.
 Retourne UNIQUEMENT le texte traduit — pas de JSON, pas de markdown.
 
 {{PROPERTY_DATA}}
@@ -93,7 +93,7 @@ Annonce originale :
 - Lage & Infrastruktur
 - Einladung zur Besichtigung, Vidahome erwähnen
 
-REGELN: Fließtext, KEINE Aufzählungen. Ähnliche Länge (±20%). Alle Fakten exakt. Sachlicher, seriöser Ton.
+REGELN: Fließtext, KEINE Aufzählungen. Ähnliche Länge (±20%). Alle Fakten exakt. Den Preis NIEMALS im Text erwähnen. Sachlicher, seriöser Ton.
 Gib NUR den übersetzten Text zurück — kein JSON, kein Markdown.
 
 {{PROPERTY_DATA}}
@@ -116,7 +116,7 @@ Spanisches Original:
 - Posizione e lifestyle mediterraneo
 - Invito alla visita, menzionare Vidahome
 
-REGOLE: Testo scorrevole, NON elenchi. Lunghezza simile (±20%). Dati esatti. Tono professionale e coinvolgente.
+REGOLE: Testo scorrevole, NON elenchi. Lunghezza simile (±20%). Dati esatti. NON menzionare MAI il prezzo nel testo. Tono professionale e coinvolgente.
 Restituisci SOLO il testo tradotto — niente JSON, niente markdown.
 
 {{PROPERTY_DATA}}
@@ -140,7 +140,7 @@ Annuncio originale:
 6. Información práctica
 7. Llamada a acción mencionando Vidahome
 
-REGLAS: Texto fluido y persuasivo, NO como lista con headers visibles. Longitud similar (±20%). Lenguaje positivo, concreto. Datos exactos.
+REGLAS: Texto fluido y persuasivo, NO como lista con headers visibles. Longitud similar (±20%). Lenguaje positivo, concreto. Datos exactos. NUNCA menciones el precio en el texto — se muestra aparte.
 Devuelve SOLO el texto traducido — sin JSON, sin markdown.
 
 {{PROPERTY_DATA}}
@@ -262,7 +262,7 @@ async function translateProperties() {
       const dataParts: string[] = [];
       if (prop.ref) dataParts.push(`Ref: ${prop.ref}`);
       if (prop.tipo) dataParts.push(`Tipo: ${prop.tipo}`);
-      if (prop.precio) dataParts.push(`Precio: ${Number(prop.precio).toLocaleString("es-ES")}€`);
+      // Price intentionally excluded — displayed separately on the listing page
       if (feat.superficie) dataParts.push(`Superficie: ${feat.superficie}m²`);
       if (feat.habitaciones) dataParts.push(`Hab: ${feat.habitaciones}`);
       if (feat.banos) dataParts.push(`Baños: ${feat.banos}`);

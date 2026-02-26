@@ -67,7 +67,8 @@ RULES:
 - Write as flowing prose, NOT bullet points or numbered sections.
 - Keep a similar length to the original (±20%).
 - Use British English spelling (organisation, colour, centre).
-- Preserve all factual data exactly (prices, measurements, room counts).
+- Preserve all factual data exactly (measurements, room counts).
+- NEVER mention the price or asking price in the text — the price is displayed separately on the listing page and may change independently.
 - Sound like an experienced estate agent, not a robot.
 - Do NOT include any JSON, markdown formatting, or preamble — return ONLY the translated description text.
 
@@ -103,7 +104,8 @@ Spanish original:
 RÈGLES :
 - Rédige un texte fluide et élégant, PAS de listes à puces ni de sections numérotées.
 - Conserve une longueur similaire à l'original (±20 %).
-- Préserve exactement toutes les données factuelles (prix, surfaces, nombre de pièces).
+- Préserve exactement toutes les données factuelles (surfaces, nombre de pièces).
+- NE mentionne JAMAIS le prix dans le texte — le prix est affiché séparément sur la fiche et peut évoluer.
 - Ton raffiné mais accessible, comme un agent immobilier haut de gamme.
 - NE retourne que le texte traduit — pas de JSON, pas de markdown, pas de préambule.
 
@@ -139,7 +141,8 @@ Annonce originale en espagnol :
 REGELN:
 - Fließtext schreiben, KEINE Aufzählungen oder nummerierten Abschnitte.
 - Ähnliche Länge wie das Original (±20 %).
-- Alle Fakten exakt beibehalten (Preise, Flächen, Zimmerzahl).
+- Alle Fakten exakt beibehalten (Flächen, Zimmerzahl).
+- Den Preis NIEMALS im Text erwähnen — der Preis wird separat auf der Anzeigenseite angezeigt und kann sich ändern.
 - Sachlicher, seriöser Ton — wie ein erfahrener Makler, nicht werblich übertrieben.
 - Gib NUR den übersetzten Text zurück — kein JSON, kein Markdown, kein Vorwort.
 
@@ -175,7 +178,8 @@ Spanisches Original:
 REGOLE:
 - Scrivi un testo scorrevole ed evocativo, NON elenchi puntati o sezioni numerate.
 - Mantieni una lunghezza simile all'originale (±20%).
-- Preserva esattamente tutti i dati concreti (prezzi, superfici, numero stanze).
+- Preserva esattamente tutti i dati concreti (superfici, numero stanze).
+- NON menzionare MAI il prezzo nel testo — il prezzo è visualizzato separatamente nella scheda e può variare.
 - Tono professionale ma coinvolgente, come un agente immobiliare di esperienza.
 - Restituisci SOLO il testo tradotto — niente JSON, niente markdown, niente preambolo.
 
@@ -206,7 +210,7 @@ Annuncio originale in spagnolo:
 
 5. **Extras y servicios**: Garaje, jardín, calefacción, eficiencia energética, propiedad legal (pełna własność).
 
-6. **Información práctica**: Precio, gastos mensuales, disponibilidad.
+6. **Información práctica**: Gastos mensuales, disponibilidad.
 
 7. **Llamada a acción**: "Skontaktuj się, aby umówić wizytę!" y mención de Vidahome.
 
@@ -214,7 +218,8 @@ REGLAS:
 - Redacta como texto fluido y persuasivo, NO como lista numerada ni con headers visibles.
 - Mantén longitud similar al original (±20%).
 - Usa lenguaje positivo, concreto, sin generalidades. Sé transparente, enfócate en beneficios.
-- Preserva todos los datos exactos (precios, medidas, habitaciones).
+- Preserva todos los datos exactos (medidas, habitaciones).
+- NUNCA menciones el precio en el texto — el precio se muestra por separado en la ficha y puede cambiar.
 - Devuelve SOLO el texto traducido — sin JSON, sin markdown, sin preámbulo.
 
 {{PROPERTY_DATA}}
@@ -269,7 +274,7 @@ export function buildUserMessage(
     const parts: string[] = [];
     if (propertyData.ref) parts.push(`Ref: ${propertyData.ref}`);
     if (propertyData.tipo) parts.push(`Tipo: ${propertyData.tipo}`);
-    if (propertyData.precio) parts.push(`Precio: ${propertyData.precio.toLocaleString("es-ES")}€`);
+    // Price intentionally excluded — displayed separately on the listing page
     if (propertyData.superficie) parts.push(`Superficie: ${propertyData.superficie}m²`);
     if (propertyData.habitaciones) parts.push(`Habitaciones: ${propertyData.habitaciones}`);
     if (propertyData.banos) parts.push(`Baños: ${propertyData.banos}`);
