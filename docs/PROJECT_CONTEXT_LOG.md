@@ -329,13 +329,59 @@ La tabla `encargos` (gestionada desde una webapp interna) almacena los datos con
 
 ---
 
+---
+
+## 17. Auditoría y Corrección de Seguridad (26/02/2026)
+
+### Vulnerabilidades Críticas Resueltas (Commit `e017afe`)
+
+| Código | Severidad | Issue | Solución |
+|--------|-----------|-------|----------|
+| C1 | CRÍTICO | Service role key expuesta via `NEXT_PUBLIC_` fallback | Eliminado fallback en `supabase-admin.ts` |
+| C2 | CRÍTICO | Rutas admin sin autenticación (7 API routes) | `requireAdmin()` en todas las rutas admin |
+| C3 | CRÍTICO | Server actions de escritura sin auth (13 actions) | `requireAdmin()` en todos los write actions |
+| H1 | HIGH | Stack traces en respuestas de error | Eliminado `error.stack` de sync-incremental |
+| H5 | HIGH | Rate limiter fallaba abierto en error DB | Ahora falla cerrado (`{success: false}`) |
+| CRON | N/A | Endpoint cron público sin auth | Eliminado `src/app/api/sync/cron/route.ts` |
+
+### Arquitectura de Auth
+- **Módulo compartido**: `src/lib/auth.ts` → `requireAdmin()`
+- **Mecanismo**: Cookie `admin_session` con firma HMAC-SHA256, verificada con `crypto.timingSafeEqual`
+- **Secret**: Variable de entorno `ADMIN_PASSWORD`
+- **Cobertura**: 7 API routes + 13 server actions protegidos
+
+### Pendiente de seguridad
+- Ver `docs/TAREAS_PENDIENTES.md` para issues HIGH/MEDIUM/LOW restantes
+- Plan futuro: migrar admin a proyecto con Google Auth para eliminar auth por cookies
+
+---
+
+## 18. Admin Precio Editor + Override de Sync (26/02/2026)
+
+### Problema
+El sync automático de Inmovilla sobrescribía precios editados manualmente por el admin.
+
+### Solución
+- **Columna `admin_overrides`** (JSONB) en `property_metadata` — almacena ediciones manuales
+- **Respeto en sync**: `smartUpdateProperty()` verifica `admin_overrides.precio` antes de sobrescribir
+- **UI**: Editor de precio en `/admin/properties` con input numérico y nota "persiste sobre sync"
+- **SQL pendiente**: `sql/admin-overrides.sql` (ver TAREAS_PENDIENTES.md)
+
+### Fix de mapeos en sync
+- `resolveTipo(details)` → resuelve tipo real desde `tipos_map.json` (117 tipos)
+- `resolvePoblacion(details)` → resuelve municipio desde `localidades_map.json` (24 entradas)
+- `smartUpdateProperty` ahora actualiza también `tipo` y `poblacion`
+- Fix de Dénia: `key_loca=37699` añadido a `localidades_map.json`
+
+---
+
 ## ✅ Completado
 
 - ✅ Sistema de traducción con Perplexity AI (Propiedades, Banners, Blog)
 - ✅ Translation Hub centralizado con interfaz tabbed
 - ✅ Admin panel funcional con edición manual y auto-traducción
 - ✅ Build pipeline limpio sin errores TypeScript
-- ✅ Arquitectura segura (Server Actions sin JWT)
+- ✅ Arquitectura auth: `requireAdmin()` en todas las rutas y actions
 - ✅ Logging de auditoría completo en `translation_log`
 - ✅ Consolidación de datos: todas las fuentes se consultan desde `property_metadata`
 - ✅ Sistema de sincronización incremental de Inmovilla (GitHub Actions + Supabase)
@@ -344,7 +390,10 @@ La tabla `encargos` (gestionada desde una webapp interna) almacena los datos con
 - ✅ Auditoría y corrección de datos (precio, tipo, poblacion, habitaciones)
 - ✅ Habitaciones = simples + dobles (bug corregido)
 - ✅ Sistema de discrepancias encargos vs web con dismiss persistente
+- ✅ Seguridad: 3 vulnerabilidades críticas corregidas, cron eliminado
+- ✅ Rate limiter falla cerrado en errores
+- ✅ Admin precio editor con override persistente sobre sync
 
 ---
 
-*Última actualización: 26/02/2026 — Sync: 79/79 propiedades ✅ | Datos corregidos (precio, tipo, poblacion, hab) ✅ | Discrepancias encargos vs web ✅ | Property features table ✅*
+*Última actualización: 26/02/2026 — Seguridad: criticals ✅ | Auth: requireAdmin() en 20 endpoints ✅ | Sync: 79/79 ✅ | Datos corregidos ✅ | Discrepancias ✅ | Tareas pendientes: docs/TAREAS_PENDIENTES.md*
