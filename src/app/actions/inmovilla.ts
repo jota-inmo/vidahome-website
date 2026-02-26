@@ -9,7 +9,7 @@ import { requireAdmin } from '@/lib/auth';
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
     const keyTipo = String(details.key_tipo || '');
-    return (tiposMap as Record<string,string>)[keyTipo] || details.tipo_nombre || 'Property';
+    return (tiposMap as Record<string,string>)[keyTipo] || details.tipo_nombre || '';
 }
 
 /** Resolve poblacion from key_loca using the master map */

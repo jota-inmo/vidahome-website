@@ -27,13 +27,14 @@ export async function generateMetadata(
 
     const prop = result.data;
     const typeLabel = translatePropertyType(prop.tipo_nombre, locale) || t('defaultType');
-    const title = `${typeLabel} ${t('in')} ${prop.poblacion} - Ref: ${prop.ref} | Vidahome`;
+    const location = prop.poblacion || 'La Safor';
+    const title = `${typeLabel} ${t('in')} ${location} - Ref: ${prop.ref} | Vidahome`;
 
     const { cleanDescription } = require('@/lib/utils/text-cleaner');
     const cleanedDesc = cleanDescription(prop.descripciones);
     const description = cleanedDesc
         ? cleanedDesc.substring(0, 160) + '...'
-        : `${typeLabel} ${t('in')} ${prop.poblacion}. Especialistas en la zona de La Safor.`;
+        : `${typeLabel} ${t('in')} ${location}. Especialistas en la zona de La Safor.`;
 
     const images = prop.fotos_lista?.slice(0, 1) || [];
 
