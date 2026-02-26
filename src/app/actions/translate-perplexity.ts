@@ -2,17 +2,14 @@
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getPerplexityModel, PERPLEXITY_CONFIG } from "@/config/perplexity";
+import {
+  getPromptForLanguage,
+  getTranslationLanguages,
+  buildUserMessage,
+  MULTILINGUAL_FOOTER,
+} from "@/config/translation-prompts";
 
 const PERPLEXITY_API_URL = PERPLEXITY_CONFIG.apiUrl;
-
-interface TranslationResult {
-  cod_ofer: number;
-  en: string;
-  fr: string;
-  de: string;
-  it: string;
-  pl: string;
-}
 
 interface TranslationResponse {
   translated: number;
@@ -23,35 +20,100 @@ interface TranslationResponse {
   }>;
   cost_estimate: string;
   duration_ms?: number;
+  languages_processed?: string[];
 }
 
 /**
- * Server action to translate property descriptions using Perplexity AI
- * Called from Next.js server, not from browser
- * No JWT issues - uses server-side API key
- * Uses centralized model configuration from src/config/perplexity.ts
- * Model format: provider/model (e.g., perplexity/llama-3.1-sonar-small-128k-online)
+ * Translate a single description into one language using per-language expert prompts.
+ * Returns the translated text or null on failure.
+ */
+async function translateOneLanguage(
+  perplexityKey: string,
+  lang: string,
+  spanishText: string,
+  propertyData?: {
+    ref?: string | number;
+    tipo?: string;
+    precio?: number;
+    superficie?: number;
+    habitaciones?: number;
+    banos?: number;
+    poblacion?: string;
+  }
+): Promise<{ text: string | null; tokens: number }> {
+  const promptConfig = getPromptForLanguage(lang);
+  if (!promptConfig) return { text: null, tokens: 0 };
+
+  const userMessage = buildUserMessage(lang, spanishText, propertyData);
+
+  const response = await fetch(PERPLEXITY_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${perplexityKey}`,
+    },
+    body: JSON.stringify({
+      model: getPerplexityModel(),
+      messages: [
+        { role: "system", content: promptConfig.systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+      temperature: promptConfig.temperature ?? 0.4,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Perplexity API error ${response.status}: ${errorText.substring(0, 200)}`);
+  }
+
+  const data = await response.json();
+  const usage = data.usage || { prompt_tokens: 0, completion_tokens: 0 };
+  const tokens = usage.prompt_tokens + usage.completion_tokens;
+  const content = (data.choices?.[0]?.message?.content || "").trim();
+
+  if (!content) return { text: null, tokens };
+
+  // Strip any accidental JSON/markdown wrapper the model may add
+  let cleaned = content;
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```\w*\n?/, "").replace(/\n?```$/, "").trim();
+  }
+
+  return { text: cleaned, tokens };
+}
+
+/**
+ * Server action to translate property descriptions using Perplexity AI.
+ * 
+ * NEW ARCHITECTURE (v2): One API call per language with specialised prompts
+ * tailored to each market's dominant portal (Rightmove, SeLoger, ImmoScout24,
+ * Immobiliare.it, Otodom.pl). Prompts are maintained in src/config/translation-prompts.ts.
+ * 
+ * @param propertyIds - Optional list of cod_ofer to translate. Omit to translate all pending.
+ * @param batchSize   - Max properties per run (default 10, max 50).
+ * @param languages   - Optional subset of languages to translate (default: all configured).
  */
 export async function translatePropertiesAction(
   propertyIds?: string[],
-  batchSize: number = 10
+  batchSize: number = 10,
+  languages?: string[]
 ): Promise<TranslationResponse> {
   const startTime = Date.now();
 
   try {
-    // Get Perplexity API key from environment
     const perplexityKey = process.env.PERPLEXITY_API_KEY;
     if (!perplexityKey) {
       throw new Error("PERPLEXITY_API_KEY not configured");
     }
 
-    // Initialize Supabase admin client
+    const targetLangs = languages ?? getTranslationLanguages(); // e.g. ['en','fr','de','it','pl']
     const supabase = supabaseAdmin;
 
-    // Fetch properties from property_metadata table
+    // --- Fetch properties ---------------------------------------------------
     let query = supabase
       .from("property_metadata")
-      .select("cod_ofer, descriptions");
+      .select("cod_ofer, ref, tipo, precio, poblacion, descriptions");
 
     if (propertyIds && propertyIds.length > 0) {
       query = query.in("cod_ofer", propertyIds.map(Number));
@@ -68,219 +130,121 @@ export async function translatePropertiesAction(
     }
 
     if (!properties || properties.length === 0) {
-      return {
-        translated: 0,
-        errors: 0,
-        error_details: [],
-        cost_estimate: "0€",
-        duration_ms: Date.now() - startTime,
-      };
+      return { translated: 0, errors: 0, cost_estimate: "0€", duration_ms: Date.now() - startTime };
     }
 
-    // Extract source texts from properties
-    const sourceTexts = properties
-      .map((prop: any) => {
-        const descriptions = prop.descriptions || {};
-        const sourceText =
-          descriptions.description_es || descriptions.descripciones || "";
-        return {
-          cod_ofer: prop.cod_ofer,
-          text: sourceText.substring(0, 500),
-        };
-      })
-      .filter((item: any) => item.text);
+    // --- Fetch features for property data context ---------------------------
+    const codOfers = properties.map((p: any) => p.cod_ofer);
+    const { data: features } = await supabase
+      .from("property_features")
+      .select("cod_ofer, superficie, habitaciones, banos")
+      .in("cod_ofer", codOfers);
 
-    if (sourceTexts.length === 0) {
-      return {
-        translated: 0,
-        errors: properties.length,
-        error_details: properties.map((p: any) => ({
-          property_id: String(p.cod_ofer),
-          error: "No Spanish description found",
-        })),
-        cost_estimate: "0€",
-        duration_ms: Date.now() - startTime,
-      };
+    const featuresMap: Record<number, any> = {};
+    for (const f of features || []) {
+      featuresMap[f.cod_ofer] = f;
     }
 
-    // Build translation prompt
-    const prompt = `You are a world-class real estate marketing expert with 15+ years of international luxury property experience across Spain, the UK, France, Germany, Italy, and Eastern Europe.
-
-Your task is to translate luxury property descriptions from Spanish to multiple languages. Your translations must be:
-
-## TRANSLATION PRINCIPLES (NOT LITERAL):
-1. **Professional Tone**: Market the property to international luxury buyers. Adapt language to appeal to each cultural market
-2. **Cultural Adaptation**: 
-   - English (UK/US): Sophisticated, concise, emphasizes location prestige and investment value
-   - French: Elegant, poetic, emphasizes lifestyle and French refinement standards
-   - German: Precise, detailed, emphasizes technical features and construction quality
-   - Italian: Warm, evocative, emphasizes aesthetics and Mediterranean lifestyle
-   - Polish: Direct, practical, emphasizes functional features and investment potential
-
-3. **Vocabulary Preservation**: Maintain real estate terminology accurately in each language
-4. **Local Market Knowledge**: Understand the Valencian/Spanish geography references and adapt them naturally
-5. **Emotional Appeal**: Preserve the property's unique selling points while making them resonate in each language
-
-## TECHNICAL GUIDELINES:
-- Keep similar length to original (±15%)
-- Preserve numbers, measurements, and amenities exactly as stated
-- Adapt adjectives and descriptions to market norms (e.g., "vistas" → "panoramic views" or "scenic vistas" depending on context)
-- Never use generic/robotic translations
-- Maintain luxury brand positioning
-
-## YOUR EXPERTISE:
-- You understand the Valencian market (Costa Blanca, beachfront, inland properties)
-- You know what international buyers seek in each market segment
-- You've successfully marketed properties to: UK investment funds, French wealthy individuals, German retirees, Italian lifestyle seekers, Polish entrepreneurs
-
-CRITICAL INSTRUCTION: Your entire response must be ONLY the JSON object below. Do NOT write any text before or after the JSON. Do NOT say "I appreciate", "Sure", "Here is" or anything else. Start your response with { and end with }.
-
-Return ONLY this JSON structure:
-{
-  "translations": [
-    {
-      "cod_ofer": 12345,
-      "en": "Professional English translation for international buyer",
-      "fr": "Traduction élégante en français pour acheteur haut de gamme",
-      "de": "Präzise Deutsche Übersetzung für qualitätsbewusste Käufer",
-      "it": "Traduzione calda e avvolgente per l'acquirente italiano",
-      "pl": "Praktyczne i bezpośrednie tłumaczenie dla inwestora polskiego"
-    }
-  ]
-}
-
-Do NOT include markdown, code blocks, explanations, or any text outside the JSON object.
-
-Spanish luxury property descriptions to translate (these are real estate listings in Spain):
-${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}`).join("\n---\n")}`;
-
-    // Call Perplexity API
-    const perplexityResponse = await fetch(PERPLEXITY_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${perplexityKey}`,
-      },
-      body: JSON.stringify({
-        model: getPerplexityModel(),
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a JSON-only translation API for real estate listings. You MUST respond with ONLY valid JSON—never any explanatory text, greetings, apologies, or markdown. Your response MUST start with { and end with }. You are an elite real estate marketing expert translating Spanish luxury property listings into English, French, German, Italian and Polish for international buyers. Adapt the tone culturally for each market while preserving all factual details.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.4,
-      }),
-    });
-
-    if (!perplexityResponse.ok) {
-      const errorText = await perplexityResponse.text();
-      throw new Error(
-        `Perplexity API error: ${perplexityResponse.status} - ${errorText}`
-      );
-    }
-
-    const perplexityData = await perplexityResponse.json();
-    const usage = perplexityData.usage || {
-      prompt_tokens: 0,
-      completion_tokens: 0,
-    };
-    const totalTokens = usage.prompt_tokens + usage.completion_tokens;
-    const costEstimate = (totalTokens / 1000) * 0.0002;
-
-    // Parse translations from response
-    let translations: TranslationResult[] = [];
-    try {
-      const content = perplexityData.choices[0]?.message?.content || "{}";
-
-      // Robust JSON extraction: find first { and last } to handle conversational preamble
-      const firstBrace = content.indexOf('{');
-      const lastBrace = content.lastIndexOf('}');
-      let jsonStr = content;
-      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        jsonStr = content.substring(firstBrace, lastBrace + 1);
-      } else {
-        // No JSON object found at all - log for debugging
-        console.error("No JSON found in Perplexity response. Content preview:", content.substring(0, 200));
-        throw new Error("Perplexity returned no JSON object in response");
-      }
-
-      const parsed = JSON.parse(jsonStr);
-      translations = parsed.translations || [];
-    } catch (parseError) {
-      console.error("Failed to parse Perplexity response:", parseError);
-      throw new Error("Invalid translation response format from Perplexity");
-    }
-
-    // Update properties in database
+    // --- Process each property ----------------------------------------------
     let successCount = 0;
     let errorCount = 0;
+    let totalTokens = 0;
     const errorDetails: Array<{ property_id: string; error: string }> = [];
 
-    for (const translation of translations) {
-      try {
-        const { cod_ofer, en, fr, de, it, pl } = translation;
+    for (const prop of properties) {
+      const descriptions = prop.descriptions || {};
+      const spanishText = descriptions.description_es || descriptions.descripciones || "";
+      if (!spanishText || spanishText.length < 10) {
+        errorDetails.push({ property_id: String(prop.cod_ofer), error: "No Spanish description" });
+        errorCount++;
+        continue;
+      }
 
-        // Get existing descriptions
+      const feat = featuresMap[prop.cod_ofer] || {};
+      const propertyData = {
+        ref: prop.ref,
+        tipo: prop.tipo,
+        precio: prop.precio,
+        superficie: feat.superficie,
+        habitaciones: feat.habitaciones,
+        banos: feat.banos,
+        poblacion: prop.poblacion,
+      };
+
+      // Translate into each language sequentially (to respect rate limits)
+      const newTranslations: Record<string, string> = {};
+      let propTokens = 0;
+
+      for (const lang of targetLangs) {
+        try {
+          const { text, tokens } = await translateOneLanguage(
+            perplexityKey, lang, spanishText, propertyData
+          );
+          propTokens += tokens;
+
+          if (text) {
+            newTranslations[`description_${lang}`] = text + MULTILINGUAL_FOOTER;
+          }
+        } catch (langError) {
+          const msg = langError instanceof Error ? langError.message : String(langError);
+          console.warn(`[Translate] ${prop.cod_ofer} → ${lang} failed: ${msg}`);
+          // Continue with other languages — don't fail the whole property
+        }
+      }
+
+      totalTokens += propTokens;
+
+      if (Object.keys(newTranslations).length === 0) {
+        errorDetails.push({ property_id: String(prop.cod_ofer), error: "All languages failed" });
+        errorCount++;
+        continue;
+      }
+
+      // --- Save to DB -------------------------------------------------------
+      try {
         const { data: existing } = await supabase
           .from("property_metadata")
           .select("descriptions")
-          .eq("cod_ofer", cod_ofer)
+          .eq("cod_ofer", prop.cod_ofer)
           .single();
 
-        // Update descriptions JSON
         const updatedDescriptions = {
           ...(existing?.descriptions || {}),
-          description_en: en,
-          description_fr: fr,
-          description_de: de,
-          description_it: it,
-          description_pl: pl,
+          ...newTranslations,
         };
 
         const { error: updateError } = await supabase
           .from("property_metadata")
           .update({ descriptions: updatedDescriptions })
-          .eq("cod_ofer", cod_ofer);
+          .eq("cod_ofer", prop.cod_ofer);
 
-        if (updateError) {
-          throw updateError;
-        }
+        if (updateError) throw updateError;
 
-        // Log successful translation
+        // Log
         await supabase.from("translation_log").insert({
-          property_id: String(cod_ofer),
+          property_id: String(prop.cod_ofer),
           status: "success",
           source_language: "es",
-          target_languages: ["en", "fr", "de", "it", "pl"],
-          tokens_used: Math.ceil(totalTokens / translations.length),
-          cost_estimate: costEstimate / translations.length,
+          target_languages: Object.keys(newTranslations).map(k => k.replace("description_", "")),
+          tokens_used: propTokens,
+          cost_estimate: (propTokens / 1000) * 0.0002,
           created_at: new Date().toISOString(),
         });
 
         successCount++;
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        errorDetails.push({
-          property_id: String(translation.cod_ofer || "unknown"),
-          error: message,
-        });
+      } catch (dbError) {
+        const msg = dbError instanceof Error ? dbError.message : String(dbError);
+        errorDetails.push({ property_id: String(prop.cod_ofer), error: msg });
         errorCount++;
+      }
 
-        // Log error
-        await supabase.from("translation_log").insert({
-          property_id: String(translation.cod_ofer || "unknown"),
-          status: "error",
-          error_message: message,
-          created_at: new Date().toISOString(),
-        });
+      // Small delay between properties to avoid rate limits
+      if (properties.indexOf(prop) < properties.length - 1) {
+        await new Promise(r => setTimeout(r, 500));
       }
     }
+
+    const costEstimate = (totalTokens / 1000) * 0.0002;
 
     return {
       translated: successCount,
@@ -288,20 +252,15 @@ ${sourceTexts.map((item: any) => `COD_OFER: ${item.cod_ofer}\nTEXT: ${item.text}
       error_details: errorDetails.length > 0 ? errorDetails : undefined,
       cost_estimate: `${costEstimate.toFixed(4)}€`,
       duration_ms: Date.now() - startTime,
+      languages_processed: targetLangs,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("Translation error:", message);
-
     return {
       translated: 0,
       errors: 1,
-      error_details: [
-        {
-          property_id: "error",
-          error: message,
-        },
-      ],
+      error_details: [{ property_id: "error", error: message }],
       cost_estimate: "0€",
       duration_ms: Date.now() - startTime,
     };
