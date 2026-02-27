@@ -62,8 +62,12 @@ export function SyncPropertiesClient() {
     try {
       while (true) {
         batch++;
-        setBackfillProgress(prev => [...prev, `Lote ${batch}: sincronizando...`]);
-        const res = await fetch('/api/admin/sync-incremental?batchSize=10');
+        setBackfillProgress(prev => [...prev, `Lote ${batch}: obteniendo descripciones...`]);
+        const res = await fetch('/api/admin/backfill-descriptions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ batchSize: 10 }),
+        });
         const data = await res.json();
         if (data.error) {
           setBackfillProgress(prev => [...prev, `❌ Error: ${data.error}`]);
@@ -71,13 +75,13 @@ export function SyncPropertiesClient() {
         }
         setBackfillProgress(prev => [
           ...prev.slice(0, -1),
-          `Lote ${batch}: ${data.synced ?? 0} propiedades sincronizadas (${data.message ?? ''})`
+          `Lote ${batch}: ✓ ${data.ok ?? 0} ok, ${data.failed ?? 0} fallidos — quedan ${data.remaining ?? '?'}`
         ]);
-        if (data.isComplete || !data.total || data.synced === 0) {
+        if (!data.remaining || data.remaining === 0 || data.processed === 0) {
           setBackfillProgress(prev => [...prev, '✅ Todas las propiedades tienen descripción']);
           break;
         }
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 800));
       }
     } catch (e: any) {
       setBackfillProgress(prev => [...prev, `❌ ${e.message}`]);

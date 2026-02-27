@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
     try {
+        if (!(await requireAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
         const { InmovillaWebApiService } = await import('@/lib/api/web-service');
 
