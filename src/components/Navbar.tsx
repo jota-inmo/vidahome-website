@@ -26,7 +26,7 @@ export const Navbar = () => {
             <div className="max-w-[1600px] mx-auto px-6 h-24 md:h-28 flex items-center justify-between">
                 {/* Logo Vidahome */}
                 <Link href="/" className="group" onClick={() => setIsOpen(false)}>
-                    <Logo />
+                    <Logo plain />
                 </Link>
 
                 {/* Desktop Navigation */}
