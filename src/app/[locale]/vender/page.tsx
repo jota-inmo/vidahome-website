@@ -119,7 +119,7 @@ export default function VenderPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-lime-50 to-teal-50 dark:from-lime-950/20 dark:to-teal-950/20 opacity-50" />
         <div className="relative max-w-4xl mx-auto text-center">
           <span className="text-[10px] tracking-[0.5em] uppercase text-slate-400 mb-6 block">
-            Tasación Instantánea
+            Solicita tu Valoración
           </span>
           <h1 className="text-5xl md:text-7xl font-serif mb-8 text-[#0a192f] dark:text-white leading-tight">
             ¿Cuánto vale tu <br />
@@ -128,7 +128,7 @@ export default function VenderPage() {
             </span>?
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 font-light max-w-2xl mx-auto">
-            Descubre el valor de mercado de tu inmueble en segundos con datos oficiales del Catastro.
+            Descubre el valor de mercado de tu inmueble con datos oficiales del Catastro.
           </p>
         </div>
       </section>
