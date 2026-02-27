@@ -136,6 +136,14 @@ export async function syncAllPropertiesAction() {
             (existingDescs || []).map((r: any) => [r.cod_ofer, r.descriptions || {}])
         );
 
+        // Load descriptions from the `properties` backup table (source of truth for translations)
+        const { data: propBackup } = await supabaseAdmin
+            .from('properties')
+            .select('property_id, description_es, description_en, description_fr, description_de, description_it, description_pl');
+        const propBackupMap = new Map(
+            (propBackup || []).map((r: any) => [r.property_id, r])
+        );
+
         // Prepare batch upsert — preserve existing translations, only update description_es if non-empty
         // Load existing full_data so we don't overwrite rich ficha data with limited paginacion data
         const { data: existingFullData } = await supabaseAdmin
@@ -146,8 +154,18 @@ export async function syncAllPropertiesAction() {
         );
 
         const upsertBatch = allProperties.map((p: any) => {
-            const existing = existingDescMap.get(p.cod_ofer) || {};
+            const existingMeta = existingDescMap.get(p.cod_ofer) || {};
+            const backup = propBackupMap.get(p.cod_ofer) || {};
             const newEs = p.descripciones || '';
+            // Build descriptions: start from backup, overlay meta, set ES from API if non-empty
+            const descriptions = {
+                description_es: newEs || existingMeta.description_es || backup.description_es || '',
+                description_en: existingMeta.description_en || backup.description_en || '',
+                description_fr: existingMeta.description_fr || backup.description_fr || '',
+                description_de: existingMeta.description_de || backup.description_de || '',
+                description_it: existingMeta.description_it || backup.description_it || '',
+                description_pl: existingMeta.description_pl || backup.description_pl || '',
+            };
             // Prefer existing full_data (from ficha, has descriptions/coordinates)
             // only use paginacion data if no existing full_data
             const existingFd = existingFullDataMap.get(p.cod_ofer);
@@ -156,10 +174,7 @@ export async function syncAllPropertiesAction() {
             ref: p.ref,
             poblacion: p.poblacion || '',
             nodisponible: false,
-            descriptions: {
-                ...existing,
-                ...(newEs ? { description_es: newEs } : {}),
-            },
+            descriptions,
             full_data: existingFd || p,   // keep rich ficha data if available
             updated_at: new Date().toISOString()
             };
@@ -354,21 +369,29 @@ export async function syncDeltaAction(): Promise<{
                 }
             }
 
+            // Load descriptions from backup for any of the new IDs that previously existed
+            const { data: backupRows } = await supabaseAdmin
+                .from('properties')
+                .select('property_id, description_es, description_en, description_fr, description_de, description_it, description_pl')
+                .in('property_id', newIds);
+            const backupMap = new Map((backupRows || []).map((r: any) => [r.property_id, r]));
+
             const newUpserts = newIds.map(id => {
                 const p = inmovMap.get(id)!;
                 const descEs = fichaDescriptions.get(id) || '';
+                const backup = backupMap.get(id) || {} as any;
                 return {
                     cod_ofer: id,
                     ref: p.ref,
                     poblacion: p.poblacion || '',
                     nodisponible: false,
                     descriptions: {
-                        description_es: descEs,
-                        description_en: '',
-                        description_fr: '',
-                        description_de: '',
-                        description_it: '',
-                        description_pl: '',
+                        description_es: descEs || backup.description_es || '',
+                        description_en: backup.description_en || '',
+                        description_fr: backup.description_fr || '',
+                        description_de: backup.description_de || '',
+                        description_it: backup.description_it || '',
+                        description_pl: backup.description_pl || '',
                     },
                     full_data: p,
                     updated_at: now,

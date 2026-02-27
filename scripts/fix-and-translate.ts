@@ -186,7 +186,20 @@ async function main() {
         const merged = { ...desc, ...updates };
         const { error } = await sb.from("property_metadata").update({ descriptions: merged }).eq("cod_ofer", prop.cod_ofer);
         if (error) { console.log(`\n    ❌ DB error: ${error.message}`); failed++; }
-        else { translated++; }
+        else {
+          translated++;
+          // Also persist translations to the permanent backup table
+          await sb.from("properties").upsert({
+            property_id: prop.cod_ofer,
+            ref: prop.ref,
+            description_es: merged.description_es || null,
+            description_en: merged.description_en || null,
+            description_fr: merged.description_fr || null,
+            description_de: merged.description_de || null,
+            description_it: merged.description_it || null,
+            description_pl: merged.description_pl || null,
+          }, { onConflict: 'property_id' });
+        }
       }
       console.log();
     }
