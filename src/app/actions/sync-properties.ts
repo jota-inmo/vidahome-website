@@ -119,19 +119,23 @@ export async function syncAllPropertiesAction() {
             console.log(`[Sync] ⚠️  Marked ${toDeactivate.length} properties as nodisponible:`, toDeactivate);
         }
 
-        // Prepare batch upsert (active properties marked nodisponible = false)
+        // Load ALL existing descriptions so we don't overwrite translations
+        const { data: existingDescs } = await supabaseAdmin
+            .from('property_metadata')
+            .select('cod_ofer, descriptions');
+        const existingDescMap = new Map(
+            (existingDescs || []).map((r: any) => [r.cod_ofer, r.descriptions || {}])
+        );
+
+        // Prepare batch upsert — preserve existing translations, only update description_es
         const upsertBatch = allProperties.map((p: any) => ({
             cod_ofer: p.cod_ofer,
             ref: p.ref,
             poblacion: p.poblacion || '',
             nodisponible: false,
             descriptions: {
-                description_es: p.descripciones || '',
-                description_en: '',
-                description_fr: '',
-                description_de: '',
-                description_it: '',
-                description_pl: '',
+                ...(existingDescMap.get(p.cod_ofer) || {}), // preserve all existing translations
+                description_es: p.descripciones || '',       // only update Spanish from Inmovilla
             },
             full_data: p,
             updated_at: new Date().toISOString()

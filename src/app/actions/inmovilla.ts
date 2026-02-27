@@ -740,9 +740,6 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                     tipo: resolveTipo(details),
                     precio: details.precioinmo || details.precio || 0,
                     poblacion: resolvePoblacion(details) || prop.poblacion,
-                    descriptions: {
-                        description_es: details.descripciones || prop.descripciones || ''
-                    },
                     full_data: details,
                     photos: photos,
                     main_photo: mainPhoto,
@@ -756,6 +753,20 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                     .upsert(upsertData, { onConflict: 'cod_ofer' });
 
                 if (!error) {
+                    // Update only description_es, preserving existing translations
+                    const { data: existingMeta } = await supabaseAdmin
+                        .from('property_metadata')
+                        .select('descriptions')
+                        .eq('cod_ofer', prop.cod_ofer)
+                        .maybeSingle();
+                    const mergedDescs = {
+                        ...(existingMeta?.descriptions || {}),
+                        description_es: details.descripciones || prop.descripciones || ''
+                    };
+                    await supabaseAdmin
+                        .from('property_metadata')
+                        .update({ descriptions: mergedDescs })
+                        .eq('cod_ofer', prop.cod_ofer);
                     // Also upsert to property_features for fast querying
                     const habitacionesSimples = details.habitaciones || 0;
                     const habitacionesDobles = details.habdobles || 0;
