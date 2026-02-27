@@ -99,7 +99,10 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any, languageId
     }
 
     const keyLoca = webProp.key_loca || webProp.keyloca || webProp.key_localidad || '';
-    let poblacion = webProp.poblacion || webProp.poblacion_nombre || '';
+    // 'ciudad' is the specific locality (e.g. "La Font d'En Carros")
+    // 'poblacion' is the broader municipality (e.g. "Gandía")
+    // Prefer the more specific one
+    let poblacion = webProp.ciudad || webProp.poblacion || webProp.poblacion_nombre || '';
     if (!poblacion && keyLoca) {
         poblacion = (localidadesMap as any)[String(keyLoca)] || '';
     }
@@ -233,7 +236,10 @@ function convertToPropertyDetails(webProp: any, fullResponse?: any, languageId: 
     }
 
     const keyLoca = webProp.key_loca || webProp.keyloca || '';
-    let poblacion = webProp.poblacion || webProp.poblacion_nombre || '';
+    // 'ciudad' is the specific locality (e.g. "La Font d'En Carros")
+    // 'poblacion' is the broader municipality (e.g. "Gandía")
+    // Prefer the more specific one
+    let poblacion = webProp.ciudad || webProp.poblacion || webProp.poblacion_nombre || '';
     if (!poblacion && keyLoca) {
         poblacion = (localidadesMap as any)[String(keyLoca)] || '';
     }

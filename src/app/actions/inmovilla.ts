@@ -15,7 +15,13 @@ function resolveTipo(details: any): string {
 /** Resolve poblacion from key_loca using the master map */
 function resolvePoblacion(details: any): string {
     const keyLoca = String(details.key_loca || '');
-    return (localidadesMap as Record<string,string>)[keyLoca] || details.poblacion || '';
+    // 'ciudad' is the specific locality (e.g. "La Font d'En Carros")
+    // 'poblacion' is the broader municipality (e.g. "Gandía")
+    // Prefer the more specific one
+    return (localidadesMap as Record<string,string>)[keyLoca]
+        || details.ciudad
+        || details.poblacion
+        || '';
 }
 
 /**
