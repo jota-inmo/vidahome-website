@@ -37,13 +37,13 @@ export default function VenderPage() {
   const [formState, setFormState] = useState<SellFormState>(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
 
-  // Determinar si mostrar step 4 (detalles de piso)
+  // Step 4 siempre está activo para todos los tipos
+  // Para piso/apartamento muestra también planta/puerta
   const isPisoOrApartamento = useMemo(() => {
     return formState.propertyType === 'piso' || formState.propertyType === 'apartamento';
   }, [formState.propertyType]);
 
-  // Calcular número de steps
-  const totalSteps = isPisoOrApartamento ? 6 : 5;
+  const totalSteps = 6;
 
   const handleNextStep = () => {
     // Validaciones por step
@@ -60,22 +60,13 @@ export default function VenderPage() {
       return;
     }
 
-    if (isPisoOrApartamento && step === 4) {
-      // Detalles de piso - opcional
-      setStep(5);
-      return;
-    }
-
     if (step < totalSteps) {
       setStep(step + 1);
     }
   };
 
   const handleBackStep = () => {
-    // Si volvemos del step 5 y no hay piso, ir al step 3
-    if (step === 5 && !isPisoOrApartamento) {
-      setStep(3);
-    } else if (step > 1) {
+    if (step > 1) {
       setStep(step - 1);
     }
   };
@@ -87,9 +78,8 @@ export default function VenderPage() {
       estimation: details.estimation
     }));
 
-    // Ir al siguiente paso (revisión)
-    const nextStep = isPisoOrApartamento ? 5 : 4;
-    setStep(nextStep);
+    // Ir al paso de revisión (siempre step 5)
+    setStep(5);
   };
 
   const handleSubmitContact = async () => {
@@ -149,8 +139,8 @@ export default function VenderPage() {
         {step === 1 && <OperationTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} />}
         {step === 2 && <PropertyTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
         {step === 3 && <AddressSearchStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} onPropertyFound={handlePropertyFound} loading={loading} />}
-        {step === 4 && isPisoOrApartamento && <PropertyDetailsStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
-        {step === (isPisoOrApartamento ? 5 : 4) && (
+        {step === 4 && <PropertyDetailsStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} isPisoType={isPisoOrApartamento} />}
+        {step === 5 && (
           formState.propertyFromCatastro
             ? <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />
             : <div className="max-w-2xl mx-auto text-center py-16 px-8">
