@@ -473,11 +473,12 @@ export async function fetchFichaDescriptionsAction(refs: string[]): Promise<{
     fetched: number;
     missing: number;
     updated: string[];
+    updatedIds: number[];
     error?: string;
 }> {
     try {
         if (!INMOVILLA_NUMAGENCIA || !INMOVILLA_PASSWORD) {
-            return { success: false, fetched: 0, missing: 0, updated: [], error: 'Inmovilla credentials not configured' };
+            return { success: false, fetched: 0, missing: 0, updated: [], updatedIds: [], error: 'Inmovilla credentials not configured' };
         }
 
         const api = new InmovillaWebApiService(
@@ -496,10 +497,11 @@ export async function fetchFichaDescriptionsAction(refs: string[]): Promise<{
             .in('ref', refs);
 
         if (!rows?.length) {
-            return { success: false, fetched: 0, missing: refs.length, updated: [], error: 'No matching properties found' };
+            return { success: false, fetched: 0, missing: refs.length, updated: [], updatedIds: [], error: 'No matching properties found' };
         }
 
         const updated: string[] = [];
+        const updatedIds: number[] = [];
         const now = new Date().toISOString();
 
         for (const row of rows) {
@@ -529,6 +531,7 @@ export async function fetchFichaDescriptionsAction(refs: string[]): Promise<{
                 }, { onConflict: 'property_id' });
 
                 updated.push(row.ref);
+                updatedIds.push(row.cod_ofer);
             } catch (e: any) {
                 console.warn(`[FetchFicha] Failed for ref ${row.ref}:`, e.message);
             }
@@ -539,9 +542,10 @@ export async function fetchFichaDescriptionsAction(refs: string[]): Promise<{
             fetched: updated.length,
             missing: rows.length - updated.length,
             updated,
+            updatedIds,
         };
     } catch (error: any) {
         console.error('[FetchFicha] Error:', error);
-        return { success: false, fetched: 0, missing: 0, updated: [], error: error.message };
+        return { success: false, fetched: 0, missing: 0, updated: [], updatedIds: [], error: error.message };
     }
 }

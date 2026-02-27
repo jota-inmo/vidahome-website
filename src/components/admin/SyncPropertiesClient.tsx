@@ -196,7 +196,7 @@ export function SyncPropertiesClient() {
           <Search size={18} /> Obtener descripción por referencias
         </h3>
         <p className="text-sm text-slate-500 mb-3">
-          Llama a la ficha de Inmovilla para obtener <strong>description_es</strong> de referencias concretas. Pega las referencias separadas por coma, punto y coma o espacio.
+          Llama a la ficha de Inmovilla para obtener <strong>description_es</strong> y después traduce automáticamente a EN/FR/DE/IT/PL. Pega las referencias separadas por coma, punto y coma o espacio.
         </p>
         <textarea
           className="w-full h-20 px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded bg-white dark:bg-slate-950 dark:text-white font-mono resize-none mb-3"
@@ -210,7 +210,7 @@ export function SyncPropertiesClient() {
           className="px-6 py-2 bg-violet-600 text-white rounded font-semibold hover:bg-violet-700 disabled:opacity-50 flex items-center gap-2"
         >
           <Search size={18} className={fichaLoading ? 'animate-spin' : ''} />
-          {fichaLoading ? 'Consultando ficha...' : 'Obtener descripciones'}
+          {fichaLoading ? 'Obteniendo y traduciendo...' : 'Obtener y traducir'}
         </button>
         {fichaResult && (
           <div className={`mt-4 rounded p-4 text-sm ${
