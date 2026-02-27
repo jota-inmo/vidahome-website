@@ -1,12 +1,14 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { SellFormState } from '@/types/sell-form';
 import { getCatastroProvinciasAction, getCatastroMunicipiosAction } from '@/app/actions';
 import { toast } from 'sonner';
-import { MapPin, Hash, Search, Home, Ruler, CheckCircle } from 'lucide-react';
+import { MapPin, Hash, Search, Home, Ruler, CheckCircle, Building2 } from 'lucide-react';
 
 type SearchMode = 'direccion' | 'refcatastral';
+
+const PISO_TYPES = ['piso', 'apartamento', 'planta baja', 'atico', 'dúplex', 'estudio'];
 
 interface AddressSearchStepProps {
   formState: SellFormState;
@@ -39,6 +41,8 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
 
   const viaRef = useRef<HTMLDivElement>(null);
   const numRef = useRef<HTMLDivElement>(null);
+
+  const isPisoType = PISO_TYPES.includes((formState.propertyType || '').toLowerCase());
 
   useEffect(() => {
     getCatastroProvinciasAction().then(setProvincias).catch(() => toast.error('Error al cargar provincias'));
@@ -86,13 +90,17 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
     return await detailsRes.json();
   };
 
-  const handleSearch = async () => {
-    if (searchMode === 'direccion' && (!formState.provincia || !formState.municipio || !formState.via || !formState.numero)) {
-      toast.error('Completa provincia, municipio, calle y nÃºmero');
+  // Función principal de búsqueda, acepta parámetros opcionales para auto-trigger
+  const doSearch = async (overrideNumero?: string, overrideTipoVia?: string) => {
+    const numero = overrideNumero ?? formState.numero;
+    const tipoVia = overrideTipoVia ?? selectedVia?.tipo ?? formState.tipoVia;
+
+    if (searchMode === 'direccion' && (!formState.provincia || !formState.municipio || !formState.via || !numero)) {
+      toast.error('Completa provincia, municipio, calle y número');
       return;
     }
     if (searchMode === 'refcatastral' && refCatastralInput.replace(/\s/g, '').length < 14) {
-      toast.error('Introduce una referencia catastral vÃ¡lida');
+      toast.error('Introduce una referencia catastral válida');
       return;
     }
 
@@ -101,7 +109,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
     try {
       const body = searchMode === 'refcatastral'
         ? { rc: refCatastralInput.replace(/\s/g, '').toUpperCase() }
-        : { provincia: formState.provincia, municipio: formState.municipio, via: formState.via, numero: formState.numero, tipoVia: selectedVia?.tipo || formState.tipoVia };
+        : { provincia: formState.provincia, municipio: formState.municipio, via: formState.via, numero, tipoVia };
 
       const res = await fetch('/api/catastro/search', {
         method: 'POST',
@@ -118,19 +126,17 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
       const result = await res.json();
 
       if (!result.found || !result.properties?.length) {
-        toast.error('No se encontrÃ³ ninguna propiedad con esos datos');
+        toast.error('No se encontró ninguna propiedad con esos datos');
         return;
       }
 
       if (result.properties.length === 1) {
-        // Ãšnico resultado: obtener detalles y continuar
         const details = await fetchDetails(result.properties[0].referenciaCatastral);
         onPropertyFound(details);
-        toast.success('Â¡Propiedad encontrada!');
+        toast.success('¡Propiedad encontrada!');
       } else {
-        // MÃºltiples: mostrar lista de selecciÃ³n
+        // Múltiples unidades — mostrar selector
         setMultipleResults(result.properties);
-        toast.info(`Se encontraron ${result.properties.length} inmuebles. Selecciona el tuyo.`);
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -140,12 +146,20 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
     }
   };
 
+  // Cuando se selecciona un número del desplegable, auto-buscar para mostrar todas las unidades
+  const handleSelectNumero = (num: any) => {
+    setFormState(prev => ({ ...prev, numero: num.numero, refCatastralManual: num.rc }));
+    setShowNumeroSuggestions(false);
+    // Auto-búsqueda para mostrar todas las unidades en ese número
+    doSearch(num.numero);
+  };
+
   const handleSelectProperty = async (property: any) => {
     setSearching(true);
     try {
       const details = await fetchDetails(property.referenciaCatastral);
       onPropertyFound(details);
-      toast.success('Â¡Propiedad seleccionada!');
+      toast.success('¡Propiedad seleccionada!');
     } catch {
       toast.error('Error al obtener los detalles del inmueble');
     } finally {
@@ -153,16 +167,20 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
     }
   };
 
-  // Si hay mÃºltiples resultados, mostrar panel de selecciÃ³n
+  // ── PANEL DE SELECCIÓN MÚLTIPLE ──
   if (multipleResults.length > 0) {
     return (
       <section className="max-w-2xl mx-auto px-8 py-16">
         <div className="mb-8">
-          <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-3">
-            Selecciona tu inmueble
-          </h2>
+          <div className="flex items-center gap-3 mb-3">
+            <Building2 size={28} className="text-lime-500" />
+            <h2 className="text-4xl font-serif text-slate-900 dark:text-white">
+              Elige tu vivienda
+            </h2>
+          </div>
           <p className="text-slate-600 dark:text-slate-400">
-            Se encontraron <strong>{multipleResults.length} inmuebles</strong> en esa direcciÃ³n. Â¿CuÃ¡l es el tuyo?
+            Se encontraron <strong>{multipleResults.length} inmuebles</strong> en ese número.
+            Selecciona el que corresponde a tu propiedad.
           </p>
         </div>
 
@@ -188,14 +206,17 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                     {prop.superficie > 0 && (
                       <span className="flex items-center gap-1">
                         <Ruler size={12} />
-                        {prop.superficie} mÂ²
+                        {prop.superficie} m²
                       </span>
                     )}
-                    {prop.uso && <span>{prop.uso}</span>}
-                    <span className="font-mono opacity-60">{prop.referenciaCatastral}</span>
+                    {prop.uso && <span className="capitalize">{prop.uso}</span>}
+                    <span className="font-mono opacity-60 text-[10px]">{prop.referenciaCatastral}</span>
                   </div>
                 </div>
-                <CheckCircle size={20} className="text-slate-200 dark:text-slate-700 group-hover:text-lime-400 transition-colors flex-shrink-0 mt-0.5" />
+                <CheckCircle
+                  size={20}
+                  className="text-slate-200 dark:text-slate-700 group-hover:text-lime-400 transition-colors flex-shrink-0 mt-0.5"
+                />
               </div>
             </button>
           ))}
@@ -205,7 +226,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           onClick={() => setMultipleResults([])}
           className="w-full py-3 text-center text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
         >
-          â† Volver a buscar
+          ← Volver a buscar por otra dirección
         </button>
       </section>
     );
@@ -215,14 +236,14 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
     <section className="max-w-2xl mx-auto px-8 py-16">
       <div className="mb-10">
         <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-3">
-          Â¿DÃ³nde estÃ¡ tu propiedad?
+          ¿Dónde está tu propiedad?
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-lg">
           Buscamos en el Catastro oficial para obtener los datos reales del inmueble
         </p>
       </div>
 
-      {/* Toggle de modo */}
+      {/* Toggle modo */}
       <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-8">
         <button
           onClick={() => setSearchMode('direccion')}
@@ -233,7 +254,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           }`}
         >
           <MapPin size={16} />
-          Por direcciÃ³n
+          Por dirección
         </button>
         <button
           onClick={() => setSearchMode('refcatastral')}
@@ -249,10 +270,10 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
       </div>
 
       {searchMode === 'refcatastral' ? (
-        /* â”€â”€ Modo REF CATASTRAL â”€â”€ */
+        /* ── REF CATASTRAL ── */
         <div className="space-y-4 mb-8">
           <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-sm text-blue-700 dark:text-blue-300">
-            La referencia catastral tiene 20 caracteres y la encontrarÃ¡s en el recibo del IBI o en la escritura de la propiedad.
+            La referencia catastral tiene 20 caracteres y la encontrarás en el recibo del IBI o en la escritura de la propiedad.
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
@@ -272,8 +293,19 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           </div>
         </div>
       ) : (
-        /* â”€â”€ Modo DIRECCIÃ“N â”€â”€ */
+        /* ── DIRECCIÓN ── */
         <div className="space-y-5 mb-8">
+
+          {/* Aviso para pisos */}
+          {isPisoType && (
+            <div className="p-3 bg-lime-50 dark:bg-lime-950/20 border border-lime-200 dark:border-lime-900 rounded-lg flex items-start gap-2 text-sm text-lime-800 dark:text-lime-300">
+              <Building2 size={16} className="flex-shrink-0 mt-0.5" />
+              <span>
+                Al seleccionar el número del edificio verás <strong>todos los pisos disponibles</strong> para que elijas el tuyo.
+              </span>
+            </div>
+          )}
+
           {/* Provincia */}
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
@@ -310,10 +342,10 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
             </select>
           </div>
 
-          {/* Tipo de vÃ­a */}
+          {/* Tipo de vía */}
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              Tipo de vÃ­a
+              Tipo de vía
             </label>
             <select
               value={formState.tipoVia}
@@ -332,10 +364,10 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
             </select>
           </div>
 
-          {/* VÃ­a */}
+          {/* Calle / Vía */}
           <div ref={viaRef} className="relative">
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              Calle / VÃ­a <span className="text-red-500">*</span>
+              Calle / Vía <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -352,7 +384,11 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                 {viaSuggestions.map((via, idx) => (
                   <button
                     key={idx}
-                    onClick={() => { setFormState(prev => ({ ...prev, via: via.nombre })); setSelectedVia({ tipo: via.tipo, nombre: via.nombre }); setShowViaSuggestions(false); }}
+                    onClick={() => {
+                      setFormState(prev => ({ ...prev, via: via.nombre }));
+                      setSelectedVia({ tipo: via.tipo, nombre: via.nombre });
+                      setShowViaSuggestions(false);
+                    }}
                     className="w-full text-left px-4 py-2.5 hover:bg-lime-50 dark:hover:bg-lime-950/20 text-slate-900 dark:text-white text-sm border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                   >
                     <span className="text-slate-400 text-xs mr-1">{via.tipo}</span> {via.nombre}
@@ -362,10 +398,15 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
             )}
           </div>
 
-          {/* NÃºmero */}
+          {/* Número — al seleccionar, auto-busca */}
           <div ref={numRef} className="relative">
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              NÃºmero <span className="text-red-500">*</span>
+              Número <span className="text-red-500">*</span>
+              {isPisoType && (
+                <span className="ml-2 text-xs font-normal text-lime-600 dark:text-lime-400">
+                  — al elegir aparecerán todos los pisos del edificio
+                </span>
+              )}
             </label>
             <input
               type="text"
@@ -382,21 +423,25 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                 {numeroSuggestions.map((num, idx) => (
                   <button
                     key={idx}
-                    onClick={() => { setFormState(prev => ({ ...prev, numero: num.numero, refCatastralManual: num.rc })); setShowNumeroSuggestions(false); }}
+                    onClick={() => handleSelectNumero(num)}
                     className="w-full text-left px-4 py-2.5 hover:bg-lime-50 dark:hover:bg-lime-950/20 text-slate-900 dark:text-white text-sm border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                   >
-                    NÃºmero {num.numero}
+                    Número {num.numero}
+                    {isPisoType && (
+                      <span className="text-xs text-slate-400 ml-2">— ver pisos disponibles</span>
+                    )}
                   </button>
                 ))}
               </div>
             )}
           </div>
+
         </div>
       )}
 
-      {/* BotÃ³n buscar */}
+      {/* Botón buscar manual */}
       <button
-        onClick={handleSearch}
+        onClick={() => doSearch()}
         disabled={searching || loading}
         className={`w-full py-4 rounded-lg font-bold uppercase tracking-[0.1em] text-sm transition-all mb-6 flex items-center justify-center gap-2 ${
           searching || loading
@@ -425,7 +470,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
             text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-900
             transition-colors"
         >
-          AtrÃ¡s
+          Atrás
         </button>
       </div>
     </section>
