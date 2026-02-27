@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { RefreshCw, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 
 export function SyncPropertiesClient() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [singlePropertyId, setSinglePropertyId] = useState('');
+  const [backfillProgress, setBackfillProgress] = useState<string[]>([]);
+  const [backfillLoading, setBackfillLoading] = useState(false);
 
   const handleSyncSingle = async () => {
     if (!singlePropertyId) {
@@ -48,6 +50,39 @@ export function SyncPropertiesClient() {
       setResult({ error: error.message });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBackfillDescriptions = async () => {
+    if (!confirm('¿Rellenar descripciones para todas las propiedades sin texto? Esto llamará al API de Inmovilla (ficha) y puede tardar varios minutos.')) return;
+    setBackfillLoading(true);
+    setBackfillProgress([]);
+    setResult(null);
+    let batch = 0;
+    try {
+      while (true) {
+        batch++;
+        setBackfillProgress(prev => [...prev, `Lote ${batch}: sincronizando...`]);
+        const res = await fetch('/api/admin/sync-incremental?batchSize=10');
+        const data = await res.json();
+        if (data.error) {
+          setBackfillProgress(prev => [...prev, `❌ Error: ${data.error}`]);
+          break;
+        }
+        setBackfillProgress(prev => [
+          ...prev.slice(0, -1),
+          `Lote ${batch}: ${data.synced ?? 0} propiedades sincronizadas (${data.message ?? ''})`
+        ]);
+        if (data.isComplete || !data.total || data.synced === 0) {
+          setBackfillProgress(prev => [...prev, '✅ Todas las propiedades tienen descripción']);
+          break;
+        }
+        await new Promise(r => setTimeout(r, 500));
+      }
+    } catch (e: any) {
+      setBackfillProgress(prev => [...prev, `❌ ${e.message}`]);
+    } finally {
+      setBackfillLoading(false);
     }
   };
 
@@ -97,6 +132,31 @@ export function SyncPropertiesClient() {
         <p className="text-sm text-slate-500 mt-4">
           ⏱️ Esto sincroniza todas las propiedades del CRM. Puede tardar 1-5 minutos.
         </p>
+      </div>
+
+      {/* Backfill Descriptions */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-2 dark:text-white flex items-center gap-2">
+          <FileText size={18} /> Rellenar Descripciones
+        </h3>
+        <p className="text-sm text-slate-500 mb-4">
+          Obtiene la descripción en español de cada propiedad desde el CRM Inmovilla (ficha) para las que aún no tienen texto. Requiere estar en Vercel con el proxy Arsys activo.
+        </p>
+        <button
+          onClick={handleBackfillDescriptions}
+          disabled={backfillLoading || loading}
+          className="px-6 py-2 bg-emerald-600 text-white rounded font-semibold hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2"
+        >
+          <RefreshCw size={18} className={backfillLoading ? 'animate-spin' : ''} />
+          {backfillLoading ? 'Procesando...' : 'Rellenar Descripciones'}
+        </button>
+        {backfillProgress.length > 0 && (
+          <div className="mt-4 bg-slate-50 dark:bg-slate-950 rounded p-4 text-sm font-mono space-y-1 max-h-48 overflow-y-auto">
+            {backfillProgress.map((line, i) => (
+              <div key={i} className="text-slate-600 dark:text-slate-400">{line}</div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Results */}
