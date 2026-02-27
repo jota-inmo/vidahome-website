@@ -359,26 +359,102 @@ Solución: Consultar blog_translation_log para trackear
 
 Ideas para extender:
 
-1. **Auto-publicar después de traducción**
+1. **🤖 Generación de artículos con Perplexity** ← _PRÓXIMA FEATURE_
+   - Describir el tema desde el panel admin
+   - Perplexity genera HTML completo (H1, H2, párrafos, listas, bloques de imagen)
+   - Previsualización antes de publicar
+   - Fotos propias subidas desde Supabase Storage (placeholders `[FOTO_1]` en el HTML)
+   - Auto-traducción a los 6 idiomas en el mismo flujo
+   - Ver detalle en sección: **"💡 Generación IA con Perplexity (Planificado)"**
+
+2. **Auto-publicar después de traducción**
    - Post original se publica automáticamente
    - Traducciones quedan en draft para revisar
 
-2. **Compartir automáticamente a redes**
+3. **Compartir automáticamente a redes**
    - Twitter/LinkedIn automático
    - Con imagen destacada + link
 
-3. **Email newsletter**
+4. **Email newsletter**
    - Enviar artículo nuevo a suscriptores
    - Per idioma
 
-4. **Analytics integrado**
+5. **Analytics integrado**
    - Ver vistas por artículo
    - Tiempo promedio lectura
    - Bounce rate
 
-5. **Correlaciones automáticas**
+6. **Correlaciones automáticas**
    - Sugerir artículos relacionados
    - Link "Más artículos" al final
+
+---
+
+## 💡 Generación IA con Perplexity (Planificado)
+
+> **Estado**: Diseñado, pendiente de implementación
+
+### Flujo completo
+
+```
+Admin describe el artículo
+        ↓
+Perplexity genera HTML estructurado (con placeholders de foto)
+        ↓
+Previsualización + edición manual si hace falta
+        ↓
+Admin sube sus propias fotos → se insertan en los placeholders
+        ↓
+Un clic → publica en ES + auto-traduce a EN/FR/DE/IT/PL
+```
+
+### Formulario de generación (panel admin)
+
+| Campo | Descripción |
+|---|---|
+| **Tema / Título sugerido** | Ej: "Consejos para comprar tu primera vivienda en España" |
+| **Tono** | Informativo / Comercial / SEO / Divulgativo |
+| **Longitud** | Corto (800p) / Medio (1500p) / Largo (2500p) |
+| **Secciones clave** | Opcional: indicar H2s que debe incluir |
+| **CTA final** | Texto del llamado a la acción (o dejar a Perplexity) |
+
+### Estructura HTML que genera Perplexity
+
+```html
+<h1>Título del artículo</h1>
+<p>Introducción...</p>
+
+<h2>Primera sección</h2>
+<p>Contenido...</p>
+[FOTO_1]   ← placeholder → el admin sube su foto
+
+<h2>Segunda sección</h2>
+<ul>
+  <li>Punto 1</li>
+  <li>Punto 2</li>
+</ul>
+[FOTO_2]   ← placeholder → el admin sube su foto
+
+<h2>Conclusión</h2>
+<p>Resumen + CTA...</p>
+```
+
+### Por qué fotos propias (no Unsplash)
+- URLs externas pueden caer o cambiar
+- Las fotos propias (del local, de propiedades, del equipo) dan más autenticidad
+- El bucket `blog-images` ya existe en Supabase Storage
+- Control total sobre el contenido visual
+
+### API a usar
+- **Generación**: Perplexity (`sonar-pro` model, ya integrado en el proyecto)
+- **Prompt**: Instrucciones específicas de sector inmobiliario + localización Grau de Gandia
+- **Traducción**: mismo sistema Perplexity ya existente para propiedades
+
+### Archivos a crear cuando se implemente
+```
+src/app/api/admin/generate-blog/route.ts   (POST - genera HTML con Perplexity)
+src/app/[locale]/admin/blog/page.tsx       (añadir botón "Generar con IA" + modal)
+```
 
 ---
 
