@@ -10,14 +10,48 @@ if (!supabaseUrl || !supabaseServiceRole) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceRole);
 
-// Culturally-appropriate hero slide titles for each language
-const HERO_TITLES = {
-    es: 'Hogares excepcionales, experiencia inigualable',
-    en: 'Homes that inspire, where luxury finds its place',
-    fr: 'Vivre exceptionnellement, au cœur du Grau',
-    de: 'Außergewöhnliche Häuser, leidenschaftlich vermittelt',
-    it: 'Case straordinarie, dove nascono i vostri sogni',
-    pl: 'Niezwykłe mieszkania, doświadczenie bez granic'
+// Per-slide titles indexed by slide order (0-4)
+const HERO_TITLES_BY_ORDER: Record<number, Record<string, string>> = {
+    0: {
+        es: 'Hogares excepcionales, experiencia inigualable',
+        en: 'Homes that inspire, where luxury finds its place',
+        fr: 'Vivre exceptionnellement, au cœur du Grau',
+        de: 'Außergewöhnliche Häuser, leidenschaftlich vermittelt',
+        it: 'Case straordinarie, dove nascono i vostri sogni',
+        pl: 'Niezwykłe mieszkania, doświadczenie bez granic'
+    },
+    1: {
+        es: 'Vive el Mediterráneo desde tu propia piscina',
+        en: 'Live the Mediterranean from your own pool',
+        fr: 'Vivez la Méditerranée depuis votre propre piscine',
+        de: 'Das Mittelmeer erleben — vom eigenen Pool aus',
+        it: 'Vivi il Mediterraneo dalla tua piscina privata',
+        pl: 'Poczuj Morze Śródziemne we własnym basenie'
+    },
+    2: {
+        es: 'Espacios donde cada detalle cuenta',
+        en: 'Spaces where every detail matters',
+        fr: 'Des espaces où chaque détail compte',
+        de: 'Räume, in denen jedes Detail zählt',
+        it: 'Spazi dove ogni dettaglio conta',
+        pl: 'Przestrzenie, gdzie każdy detal ma znaczenie'
+    },
+    3: {
+        es: 'El lugar donde los sueños se convierten en hogar',
+        en: 'The place where dreams become home',
+        fr: 'L\'endroit où les rêves deviennent un foyer',
+        de: 'Der Ort, wo Träume zum Zuhause werden',
+        it: 'Il luogo dove i sogni diventano casa',
+        pl: 'Miejsce, gdzie marzenia stają się domem'
+    },
+    4: {
+        es: 'Comodidad y estilo en cada rincón',
+        en: 'Comfort and style in every corner',
+        fr: 'Confort et élégance à chaque coin',
+        de: 'Komfort und Stil in jedem Winkel',
+        it: 'Comfort e stile in ogni angolo',
+        pl: 'Komfort i styl w każdym zakątku'
+    }
 };
 
 async function populateHeroTranslations() {
@@ -42,8 +76,8 @@ async function populateHeroTranslations() {
                     {
                         id: crypto.randomUUID(),
                         video_path: '/videos/cocina.mp4',
-                        title: HERO_TITLES.es,
-                        titles: HERO_TITLES,
+                        title: HERO_TITLES_BY_ORDER[0].es,
+                        titles: HERO_TITLES_BY_ORDER[0],
                         link_url: '',
                         order: 0,
                         active: true,
@@ -56,17 +90,17 @@ async function populateHeroTranslations() {
             return;
         }
 
-        // Update existing slides with translations
+        // Update existing slides with per-slide translations
         for (const slide of slides) {
-            console.log(`📝 Processing slide: ${slide.id}`);
-            
-            const updatedTitles = HERO_TITLES;
+            const order: number = slide.order ?? 0;
+            const slideTitles = HERO_TITLES_BY_ORDER[order] ?? HERO_TITLES_BY_ORDER[0];
+            console.log(`📝 Processing slide order ${order}: "${slideTitles.es}"`);
 
             const { data: updated, error: updateError } = await supabase
                 .from('hero_slides')
                 .update({
-                    titles: updatedTitles,
-                    title: HERO_TITLES.es // Keep sync with Spanish title
+                    titles: slideTitles,
+                    title: slideTitles.es
                 })
                 .eq('id', slide.id)
                 .select();
