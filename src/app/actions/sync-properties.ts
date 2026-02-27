@@ -462,3 +462,86 @@ export async function syncDeltaAction(): Promise<{
         return { ...EMPTY, error: error.message };
     }
 }
+
+/**
+ * Fetch ficha descriptions for properties that have empty description_es.
+ * Calls the Inmovilla ficha endpoint for each ref (requires Arsys proxy).
+ * Returns cod_ofers where a description was found.
+ */
+export async function fetchFichaDescriptionsAction(refs: string[]): Promise<{
+    success: boolean;
+    fetched: number;
+    missing: number;
+    updated: string[];
+    error?: string;
+}> {
+    try {
+        if (!INMOVILLA_NUMAGENCIA || !INMOVILLA_PASSWORD) {
+            return { success: false, fetched: 0, missing: 0, updated: [], error: 'Inmovilla credentials not configured' };
+        }
+
+        const api = new InmovillaWebApiService(
+            INMOVILLA_NUMAGENCIA,
+            INMOVILLA_PASSWORD,
+            addnumagencia,
+            inmoLang,
+            '127.0.0.1',
+            'vidahome.es'
+        );
+
+        // Load cod_ofers for the requested refs
+        const { data: rows } = await supabaseAdmin
+            .from('property_metadata')
+            .select('cod_ofer, ref, tipo, precio, poblacion, descriptions')
+            .in('ref', refs);
+
+        if (!rows?.length) {
+            return { success: false, fetched: 0, missing: refs.length, updated: [], error: 'No matching properties found' };
+        }
+
+        const updated: string[] = [];
+        const now = new Date().toISOString();
+
+        for (const row of rows) {
+            try {
+                const detail = await api.getPropertyDetails(row.cod_ofer);
+                const descEs = detail?.descripciones?.trim() || '';
+
+                if (!descEs) continue;
+
+                const existingDesc = row.descriptions || {};
+                const merged = {
+                    ...existingDesc,
+                    description_es: descEs,
+                };
+
+                // Save to property_metadata
+                await supabaseAdmin
+                    .from('property_metadata')
+                    .update({ descriptions: merged, updated_at: now })
+                    .eq('cod_ofer', row.cod_ofer);
+
+                // Save to properties backup
+                await supabaseAdmin.from('properties').upsert({
+                    property_id: row.cod_ofer,
+                    ref: row.ref,
+                    description_es: descEs,
+                }, { onConflict: 'property_id' });
+
+                updated.push(row.ref);
+            } catch (e: any) {
+                console.warn(`[FetchFicha] Failed for ref ${row.ref}:`, e.message);
+            }
+        }
+
+        return {
+            success: true,
+            fetched: updated.length,
+            missing: rows.length - updated.length,
+            updated,
+        };
+    } catch (error: any) {
+        console.error('[FetchFicha] Error:', error);
+        return { success: false, fetched: 0, missing: 0, updated: [], error: error.message };
+    }
+}

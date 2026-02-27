@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { RefreshCw, CheckCircle, AlertCircle, FileText } from 'lucide-react';
+import { RefreshCw, CheckCircle, AlertCircle, FileText, Search } from 'lucide-react';
 
 export function SyncPropertiesClient() {
   const [loading, setLoading] = useState(false);
@@ -10,6 +10,29 @@ export function SyncPropertiesClient() {
   const [deltaResult, setDeltaResult] = useState<any>(null);
   const [backfillProgress, setBackfillProgress] = useState<string[]>([]);
   const [backfillLoading, setBackfillLoading] = useState(false);
+  const [fichaRefs, setFichaRefs] = useState('');
+  const [fichaLoading, setFichaLoading] = useState(false);
+  const [fichaResult, setFichaResult] = useState<any>(null);
+
+  const handleFetchFicha = async () => {
+    const refs = fichaRefs.split(/[;,\s]+/).map(r => r.trim()).filter(Boolean);
+    if (!refs.length) return;
+    setFichaLoading(true);
+    setFichaResult(null);
+    try {
+      const res = await fetch('/api/admin/fetch-ficha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refs }),
+      });
+      const data = await res.json();
+      setFichaResult(data);
+    } catch (e: any) {
+      setFichaResult({ error: e.message });
+    } finally {
+      setFichaLoading(false);
+    }
+  };
 
   const handleDeltaSync = async () => {
     setDeltaLoading(true);
@@ -163,6 +186,49 @@ export function SyncPropertiesClient() {
             {backfillProgress.map((line, i) => (
               <div key={i} className="text-slate-600 dark:text-slate-400">{line}</div>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Fetch ficha by refs */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-2 dark:text-white flex items-center gap-2">
+          <Search size={18} /> Obtener descripción por referencias
+        </h3>
+        <p className="text-sm text-slate-500 mb-3">
+          Llama a la ficha de Inmovilla para obtener <strong>description_es</strong> de referencias concretas. Pega las referencias separadas por coma, punto y coma o espacio.
+        </p>
+        <textarea
+          className="w-full h-20 px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded bg-white dark:bg-slate-950 dark:text-white font-mono resize-none mb-3"
+          placeholder="2960;2959;A2958;A2884;2664..."
+          value={fichaRefs}
+          onChange={e => setFichaRefs(e.target.value)}
+        />
+        <button
+          onClick={handleFetchFicha}
+          disabled={fichaLoading || !fichaRefs.trim()}
+          className="px-6 py-2 bg-violet-600 text-white rounded font-semibold hover:bg-violet-700 disabled:opacity-50 flex items-center gap-2"
+        >
+          <Search size={18} className={fichaLoading ? 'animate-spin' : ''} />
+          {fichaLoading ? 'Consultando ficha...' : 'Obtener descripciones'}
+        </button>
+        {fichaResult && (
+          <div className={`mt-4 rounded p-4 text-sm ${
+            fichaResult.error
+              ? 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300'
+              : 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300'
+          }`}>
+            {fichaResult.error ? `❌ ${fichaResult.error}` : (
+              <>
+                <p className="font-semibold">{fichaResult.message}</p>
+                {fichaResult.updated?.length > 0 && (
+                  <p className="mt-1 text-xs opacity-75">Refs con descripción: {fichaResult.updated.join(', ')}</p>
+                )}
+                {fichaResult.missing > 0 && (
+                  <p className="mt-1 text-xs opacity-75">⚠️ Sin descripción en Inmovilla: {fichaResult.missing} propiedad(es)</p>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>

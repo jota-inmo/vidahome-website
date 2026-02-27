@@ -105,16 +105,29 @@ async function translateOneLang(lang: string, spanish: string, propertyData: str
 
 async function main() {
   const force = process.argv.includes("--force");
-  console.log(`🚀 Fix descriptions + translate (force=${force})\n`);
+
+  // --refs A,B,C  →  only process those refs
+  const refsArg = process.argv.find(a => a.startsWith("--refs="));
+  const targetRefs = refsArg
+    ? refsArg.replace("--refs=", "").split(",").map(r => r.trim()).filter(Boolean)
+    : null;
+
+  console.log(`🚀 Fix descriptions + translate (force=${force}${targetRefs ? `, refs=${targetRefs.join(",")}` : ""})\n`);
 
   const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
 
-  // Fetch all active properties
-  const { data: props } = await sb
+  // Fetch properties — optionally filtered by ref list
+  let query = sb
     .from("property_metadata")
     .select("cod_ofer, ref, tipo, precio, poblacion, descriptions, full_data")
     .eq("nodisponible", false)
     .limit(300);
+
+  if (targetRefs) {
+    query = query.in("ref", targetRefs);
+  }
+
+  const { data: props } = await query;
 
   if (!props?.length) { console.log("No properties found"); return; }
   console.log(`📊 ${props.length} active properties loaded\n`);
