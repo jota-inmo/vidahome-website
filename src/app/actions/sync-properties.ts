@@ -99,10 +99,32 @@ export async function syncAllPropertiesAction() {
             }
         }
 
-        // Prepare batch upsert
+        // IDs currently active in Inmovilla
+        const activeIds = new Set(allProperties.map((p: any) => p.cod_ofer));
+
+        // Get all cod_ofer currently in our DB
+        const { data: existing } = await supabaseAdmin
+            .from('property_metadata')
+            .select('cod_ofer');
+
+        const existingIds: number[] = (existing || []).map((r: any) => r.cod_ofer);
+
+        // Mark properties no longer in Inmovilla as nodisponible
+        const toDeactivate = existingIds.filter(id => !activeIds.has(id));
+        if (toDeactivate.length > 0) {
+            await supabaseAdmin
+                .from('property_metadata')
+                .update({ nodisponible: true, updated_at: new Date().toISOString() })
+                .in('cod_ofer', toDeactivate);
+            console.log(`[Sync] ⚠️  Marked ${toDeactivate.length} properties as nodisponible:`, toDeactivate);
+        }
+
+        // Prepare batch upsert (active properties marked nodisponible = false)
         const upsertBatch = allProperties.map((p: any) => ({
             cod_ofer: p.cod_ofer,
             ref: p.ref,
+            poblacion: p.poblacion || '',
+            nodisponible: false,
             descriptions: {
                 description_es: p.descripciones || '',
                 description_en: '',
@@ -132,7 +154,7 @@ export async function syncAllPropertiesAction() {
         console.log(`[Sync] ✅ Synced ${successCount} properties to property_metadata`);
         return { 
             success: true, 
-            message: `Synced ${successCount} properties successfully`
+            message: `Synced ${successCount} properties. ${toDeactivate.length} marked as unavailable.`
         };
     } catch (error: any) {
         console.error('[Sync] Error syncing all properties:', error);

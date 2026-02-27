@@ -139,7 +139,7 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
         const [{ data: meta, error }, { data: features }] = await Promise.all([
             supabase
                 .from('property_metadata')
-                .select('cod_ofer, ref, full_data, descriptions, photos, main_photo')
+                .select('cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion')
                 .eq('cod_ofer', id)
                 .single(),
             supabase
@@ -180,7 +180,9 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
             mainImage: meta.main_photo,
             habitaciones: habitaciones,
             banyos: banyos,
-            m_cons: m_cons
+            m_cons: m_cons,
+            // Use resolved poblacion from DB column (preferred) over full_data fallback
+            poblacion: (meta as any).poblacion || fullData.poblacion || '',
         };
 
         return { success: true, data: propertyWithPhotos };
