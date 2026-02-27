@@ -339,4 +339,53 @@ CREATE TABLE discrepancias_dismissed (
 
 ---
 
+## 11. Correcciones y Ajustes — Sesión 27/02/2026
+
+### T2785 — Traspaso mostrado como "TRASPASADO" cuando estaba activo
+**Causa**: `property_metadata.nodisponible = true` para ref `T2785` pese a estar publicado.  
+**Fix**: `UPDATE property_metadata SET nodisponible = false WHERE ref = 'T2785'` (ejecutado vía `scripts/fix-traspaso-t2785.mjs`, luego eliminado).  
+**Verificación**: `{ cod_ofer: 26286576, ref: 'T2785', nodisponible: false }` ✅
+
+---
+
+### Página Vender — Etiqueta "Tasación Instantánea" corregida
+La etiqueta resultaba engañosa (el proceso no es automático).  
+**Cambio**: `"Tasación Instantánea"` → `"Solicita tu Valoración"` + eliminado texto `"en segundos"`.  
+**Archivos**: `src/app/[locale]/vender/page.tsx` y `src/app/[locale]/vender/page_new_6steps.tsx`.  
+**Commit**: `b86e154`
+
+---
+
+### SUPABASE_SERVICE_ROLE_KEY — Clave incorrecta detectada y corregida
+
+> ⚠️ **Importante para el futuro**: Si los scripts de mantenimiento dan resultados extraños (tablas que "no existen", DDL que falla silenciosamente), verificar siempre que la clave de servicio es real:
+
+```js
+// Verificar que el JWT tiene role: "service_role"
+const jwt = process.env.SUPABASE_SERVICE_ROLE_KEY;
+console.log(JSON.parse(Buffer.from(jwt.split('.')[1], 'base64').toString()));
+// Debe mostrar: { ..., "role": "service_role", ... }
+```
+
+**Causa**: `.env.local` y Vercel tenían configurada la **anon key** (role: `"anon"`) como `SUPABASE_SERVICE_ROLE_KEY`. Esto bloqueaba todas las operaciones DDL y los checks de tablas devolvían falsos positivos.  
+**Fix local**: `.env.local` actualizado con el JWT correcto de service_role del dashboard de Supabase.  
+**⚠️ Pendiente**: Actualizar también en **Vercel → Settings → Environment Variables**.
+
+---
+
+### RLS — Estado pendiente de ejecución
+
+El SQL completo para activar RLS en todas las tablas está preparado con bloques `DO $$ BEGIN ... EXCEPTION WHEN OTHERS THEN NULL; END $$` (cada sentencia es independiente, un fallo no aborta las demás).
+
+**⚠️ Pendiente**: pegar y ejecutar el bloque SQL en **Supabase → SQL Editor**.
+
+Tablas que cubre: `properties`, `property_metadata`, `property_features`, `hero_slides`, `company_settings`, `leads`, `valuation_leads`, `leads_valuation_v2`, `featured_properties`, `translation_log`, `blog_posts`, `blog_categories`, `blog_tags`, `blog_post_tags`, `rate_limits`, `sync_progress`, `price_audit`, `discrepancias_dismissed`, `encargos`.
+
+Política habitual por tipo:
+- **Lectura pública**: propiedades, hero, blog publicado → `USING (true)` / `USING (is_published = true)`
+- **Solo INSERT**: leads, analytics → `WITH CHECK (true)`
+- **Sin acceso público**: tablas internas → solo service_role desde el backend
+
+---
+
 *Documento actualizado el 27/02/2026 por Antigravity AI.*
