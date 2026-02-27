@@ -99,6 +99,15 @@ export async function syncAllPropertiesAction() {
             }
         }
 
+        // Deduplicate by cod_ofer — API can return same property on multiple pages
+        const seenIds = new Set<number>();
+        allProperties = allProperties.filter((p: any) => {
+            if (seenIds.has(p.cod_ofer)) return false;
+            seenIds.add(p.cod_ofer);
+            return true;
+        });
+        console.log(`[Sync] After dedup: ${allProperties.length} unique properties`);
+
         // IDs currently active in Inmovilla
         const activeIds = new Set(allProperties.map((p: any) => p.cod_ofer));
 
