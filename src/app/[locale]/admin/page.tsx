@@ -75,13 +75,6 @@ export default function AdminDashboard() {
             href: '/admin/translations-hub',
             color: 'from-fuchsia-500 to-pink-600'
         },
-        {
-            title: 'Blog',
-            desc: 'Crear y editar artículos, gestionar categorías y traducir contenido',
-            icon: <BookOpen className="w-6 h-6" />,
-            href: '/admin/blog',
-            color: 'from-rose-500 to-pink-600'
-        }
     ];
 
     const renderCards = (items: typeof webItems) => items.map((item) => (
@@ -125,15 +118,35 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Sección 2: Trabajo Inmobiliario */}
-                <div>
+                <div className="mb-10">
                     <div className="flex items-center gap-3 mb-5">
                         <span className="text-[10px] tracking-[0.4em] uppercase text-white/30">Trabajo Inmobiliario</span>
                         <div className="flex-1 h-px bg-white/5" />
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {renderCards(workItems)}
                     </div>
                 </div>
+
+                {/* Blog — standalone */}
+                <Link
+                    href="/admin/blog"
+                    className="group relative flex items-center justify-between bg-white/5 backdrop-blur-xl border border-white/10 px-8 py-5 rounded-sm hover:border-white/30 transition-all duration-500 overflow-hidden w-full"
+                >
+                    <div className="absolute top-0 right-0 w-48 h-24 bg-gradient-to-br from-rose-500 to-pink-600 opacity-0 group-hover:opacity-10 blur-3xl transition-opacity duration-500" />
+                    <div className="relative z-10 flex items-center gap-5">
+                        <div className="text-white/40 group-hover:text-white transition-colors duration-500">
+                            <BookOpen className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-base font-serif">Blog</h2>
+                            <p className="text-xs text-white/40 font-light">Crear y editar artículos, gestionar categorías y traducir contenido</p>
+                        </div>
+                    </div>
+                    <div className="relative z-10 inline-flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold group-hover:gap-4 transition-all">
+                        Entrar <ExternalLink size={12} />
+                    </div>
+                </Link>
 
                 <div className="mt-20 flex flex-col items-center gap-8 border-t border-white/5 pt-12">
                     <div className="flex gap-8">
