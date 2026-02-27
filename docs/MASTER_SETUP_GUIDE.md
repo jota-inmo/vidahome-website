@@ -219,6 +219,13 @@ Las peticiones a la API de Inmovilla dependen del idioma detectado. El parámetr
 1. **Tipos de Propiedad**: `src/lib/utils/property-types.ts` mapea términos de Inmovilla (Piso → Apartment).
 2. **Horarios Dinámicos**: `src/lib/utils/schedule-translator.ts` traduce cadenas de texto libre guardadas en Supabase (Lunes → Monday), permitiendo que la oficina cambie su horario sin romper la traducción.
 3. **Banner Multilingüe**: El componente `LuxuryHero` prioriza el campo `titles[locale]` de la base de datos, permitiendo transcreaciones manuales de los eslóganes en lugar de traducciones literales.
+   - **Títulos individuales por slide**: Cada uno de los 5 slides del hero tiene su propio título y traducciones independientes (6 idiomas), gestionados en la columna JSONB `titles` de `hero_slides` indexada por `order`.
+   - Actualizar con: `npx tsx scripts/populate-hero-translations.ts` (editar `HERO_TITLES_BY_ORDER` en el script)
+   - Slide 0 (traveling lateral): *Hogares excepcionales, experiencia inigualable*
+   - Slide 1 (piscina): *Vive el Mediterráneo desde tu propia piscina*
+   - Slide 2 (techo): *Espacios donde cada detalle cuenta*
+   - Slide 3 (cocina): *El lugar donde los sueños se convierten en hogar*
+   - Slide 4 (gato/cama): *Comodidad y estilo en cada rincón*
 
 ---
 
@@ -226,16 +233,28 @@ Las peticiones a la API de Inmovilla dependen del idioma detectado. El parámetr
 
 ## 9. Panel de Administración
 
-La ruta `/admin` ofrece acceso centralizado a todos los módulos de gestión:
+La ruta `/admin` está organizada en **dos secciones** visuales más un acceso independiente al Blog:
 
+### Sección 1 — Gestión de la Web (3 cards)
 | Ruta | Función |
 | :--- | :--- |
 | `/admin/hero` | Gestión de vídeos y textos del banner principal |
 | `/admin/featured` | Selección de las 6 propiedades destacadas en home |
 | `/admin/settings` | Datos de agencia: teléfono, horarios, contacto |
-| `/admin/translations-hub` | Traducciones automáticas (Perplexity) y manuales |
-| `/admin/sync` | Sincronización manual con el CRM Inmovilla |
+
+### Sección 2 — Trabajo Inmobiliario (3 cards)
+| Ruta | Función |
+| :--- | :--- |
 | `/admin/properties` | **Portfolio completo**: ver y editar todas las propiedades |
+| `/admin/sync` | Sincronización manual con el CRM Inmovilla |
+| `/admin/translations-hub` | Traducciones automáticas (Perplexity) y manuales |
+
+### Standalone — Blog
+| Ruta | Función |
+| :--- | :--- |
+| `/admin/blog` | Crear y editar artículos, gestionar categorías y traducir contenido |
+
+> **Planificado**: botón "Generar con IA" en `/admin/blog` que usa Perplexity para generar el HTML completo del artículo (con placeholders `[FOTO_1]`, `[FOTO_2]`). El admin sube sus propias fotos desde Supabase Storage y se insertan en los huecos. El sistema auto-traduce a los 6 idiomas en el mismo flujo. Ver spec en `BLOG_SYSTEM_COMPLETE.md § Generación IA con Perplexity`.
 
 ### `/admin/properties` — Ficha de Propiedades
 Muestra en tabla todas las propiedades del portfolio con los datos consolidados de `property_metadata` + `property_features`:
@@ -246,6 +265,18 @@ Muestra en tabla todas las propiedades del portfolio con los datos consolidados 
   - Textos en los 6 idiomas mediante pestañas (ES, EN, FR, DE, IT, PL)
 - **Búsqueda**: filtro en tiempo real por referencia, tipo o población
 - **Acciones de servidor**: `getPropertiesSummaryAction`, `updatePropertyDescriptionsAction`, `updatePropertyFeaturesAction` en `src/app/actions/properties-admin.ts`
+
+### Buscador de Propiedades — Categorías
+
+El buscador público (`src/components/PropertySearch.tsx`) tiene **tres tabs**:
+
+| Tab | `keyacci` / lógica | Badge en card |
+| :--- | :--- | :--- |
+| **Comprar** | `keyacci === 1`, refs que NO empiezan por `T` | `COMPRAR` |
+| **Alquilar** | `keyacci === 2`, refs que NO empiezan por `T` | `ALQUILAR` |
+| **Traspasos** | Refs que empiezan por `T` (ej: `T1234`) | `TRASPASO` |
+
+La detección de traspasos es exclusivamente por prefijo de referencia (`ref.toUpperCase().startsWith('T')`), sin depender de `keyacci`. Los traspasos quedan excluidos automáticamente de los tabs Comprar y Alquilar.
 
 Para consultar los datos en bruto puedes usar la VIEW de Supabase definida en `sql/property_summary_view.sql`:
 ```sql
@@ -302,7 +333,10 @@ CREATE TABLE discrepancias_dismissed (
 | `scripts/inspect-full-data.ts` | Inspecciona estructura de full_data en property_metadata |
 | `scripts/inspect-encargos.ts` | Inspecciona estructura de tabla encargos |
 | `scripts/translate-direct.ts` | Traducciones con Perplexity AI |
+| `scripts/fix-and-translate.ts` | Traduce propiedades con `--refs=A,B,C` y/o `--force` |
+| `scripts/populate-hero-translations.ts` | Actualiza títulos por slide (editar `HERO_TITLES_BY_ORDER`) |
+| `scripts/restore-from-properties.mjs` | Restaura `property_metadata.descriptions` desde tabla backup `properties` |
 
 ---
 
-*Documento actualizado el 26/02/2026 por Antigravity AI.*
+*Documento actualizado el 27/02/2026 por Antigravity AI.*

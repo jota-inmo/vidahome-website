@@ -439,8 +439,8 @@ Un clic → publica en ES + auto-traduce a EN/FR/DE/IT/PL
 <p>Resumen + CTA...</p>
 ```
 
-### Por qué fotos propias (no Unsplash)
-- URLs externas pueden caer o cambiar
+### Por qué fotos propias — opción seleccionada ✅
+- URLs externas (Unsplash/Pexels) pueden caer o cambiar sin avisar
 - Las fotos propias (del local, de propiedades, del equipo) dan más autenticidad
 - El bucket `blog-images` ya existe en Supabase Storage
 - Control total sobre el contenido visual
