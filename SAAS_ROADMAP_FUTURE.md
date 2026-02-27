@@ -1,27 +1,113 @@
 # 🚀 SAAS ROADMAP - Real Estate Platform (Futuro)
 
-> ⚠️ **ESTADO**: Documento de planificación futura  
-> **TIMELINE**: Post-desacoplamiento de Inmovilla (Fase 2 del proyecto)  
-> **PRIORIDAD**: Baja (current focus: mantener Vidahome operacional)
+> ⚠️ **ESTADO**: Documento de planificación activa  
+> **TIMELINE**: FASE 0 activa ahora → SaaS a partir de Mes 3  
+> **PRIORIDAD**: FASE 0 = ALTA (automatización interna) / SaaS = Media (post-validación)
 
 ---
 
 ## 📋 Tabla de Contenidos
-1. [Visión General](#visión-general)
-2. [Arquitectura Multi-Tenant](#arquitectura-multi-tenant)
-3. [Cambios Técnicos Necesarios](#cambios-técnicos-necesarios)
-4. [Modelo de Negocio](#modelo-de-negocio)
-5. [Roadmap de Desarrollo](#roadmap-de-desarrollo)
-6. [Go-to-Market Strategy](#go-to-market-strategy)
-7. [Análisis Financiero](#análisis-financiero)
-8. [Riesgos & Mitigación](#riesgos--mitigación)
+1. [FASE 0: Primero Tu Uso (Ahora)](#fase-0-primero-tu-uso-ahora)
+2. [Visión General SaaS](#visión-general-saas)
+3. [Arquitectura Multi-Tenant](#arquitectura-multi-tenant)
+4. [Cambios Técnicos Necesarios](#cambios-técnicos-necesarios)
+5. [Modelo de Negocio](#modelo-de-negocio)
+6. [Roadmap de Desarrollo SaaS](#roadmap-de-desarrollo-saas)
+7. [Go-to-Market Strategy](#go-to-market-strategy)
+8. [Análisis Financiero](#análisis-financiero)
+9. [Riesgos & Mitigación](#riesgos--mitigación)
 
 ---
 
-## 🎯 Visión General
+## 🏠 FASE 0: Primero Tu Uso (Ahora)
 
-### Idea
-Convertir el código actual de Vidahome en una **plataforma SaaS multi-idioma** para agencias inmobiliarias pequeñas y medianas.
+> **Objetivo**: Automatizar el 80% de los workflows de Vidahome antes de escalar a SaaS.  
+> **ROI Target**: 5-10 ventas/mes → 15-20 ventas/mes. Tiempo docs: 4h → 15 min.  
+> **Condición para pasar a SaaS**: ROI > 2x confirmado con métricas reales.
+
+---
+
+### 📅 Semana 1-2: Generador Encargos (Core)
+
+**Prioridad máxima** — Automatizar la documentación de compraventas:
+
+- [ ] **Nota Simple Auto** — Integración Catastro-API.es (€0.10/nota) → PDF automático desde ref catastral
+- [ ] **Email Notaría Formateado** — Plantilla profesional + ZIP adjuntos, asunto estructurado
+- [ ] **Email Banco Hipoteca** — Misma lógica, adaptado a tono financiero + docs pre-aprobación
+- [ ] **Solicitud CEE Auto** — Email al certificador habitual con datos de la propiedad
+
+**Edge Functions a crear:**
+```
+supabase/functions/nota-simple/    → 1-click ref catastral → PDF descargable
+supabase/functions/email-notaria/  → ZIP docs + asunto preciso + preview
+supabase/functions/email-banco/    → Hipoteca pre-aprobada, mismo patrón
+supabase/functions/solicitud-cee/  → Email certificador con datos automáticos
+```
+
+---
+
+### 📬 Funcionalidad Clave: Modal Envío Paquete Documentos
+
+> **UX**: 30 segundos de selección → email profesional enviado con adjuntos correctos.
+
+**Flujo de usuario:**
+1. Agente abre modal desde ficha de la propiedad/encargo
+2. Selecciona **destinatario** (checkbox): `☐ Notaría` / `☐ Banco`
+3. Selecciona **documentos a adjuntar** (checkboxes):
+   - `☐ Nota Simple` | `☐ Contrato Arras` | `☐ CEE` | `☐ IBI/Comunidad` | `☐ DNI Cliente`
+4. El sistema **auto-redacta** asunto y cuerpo del email según destinatario + docs seleccionados
+5. **Preview live** del email antes de enviar
+6. **Envío** → ZIP inteligente con solo los docs seleccionados
+7. **Tracking**: Enviado `[10:15]` → Abierto `[10:20]` → Respondido
+
+**Templates dinámicos:**
+```typescript
+const templates = {
+  notaria: {
+    asunto: `ESCRITURA LISTA - ${direccion} - ${fecha}`,
+    saludo: 'Estimado/a Oficial de Notaría',
+    seccion: 'DOCUMENTOS PARA ESCRITURA:',
+  },
+  banco: {
+    asunto: `HIPOTECA LISTA - ${direccion} - ${importe}€`,
+    saludo: 'Estimado/a Agente Hipotecario',
+    seccion: 'DOCUMENTOS PARA PRE-APROBACIÓN:',
+  }
+};
+// El texto completo se auto-genera con LLM usando los docs seleccionados
+```
+
+**Valor como add-on SaaS**: €10/mes "Paquetes Inteligentes"  
+**Tiempo implementación**: ~1 semana (reutiliza lógica de email-notaria)
+
+---
+
+### 📅 Semana 3-4: Leads + GEO (Ventaja Local)
+
+- [ ] **Leads Dashboard** — Supabase: `portal_source`, `status`, `agente`, funnel visual
+- [ ] **GEO Booster** — Cron job que publica propiedades en Google Business Profile automáticamente
+- [ ] **Reviews Auto Post-Venta** — NPS → si positivo, solicita review en Google Business
+
+---
+
+### 📅 Semana 5-6: Validación ROI
+
+**Métricas a medir antes de activar FASE SaaS:**
+
+| Métrica | Antes | Objetivo | Estado |
+|---------|-------|----------|--------|
+| Tiempo nota simple + arras + notaría | ~4h | 15 min | ⏳ |
+| Ventas/mes | 5-10 | 15-20 (2x funnel) | ⏳ |
+| Leads perdidos (sin seguimiento) | ~97% | ~70% | ⏳ |
+| Emails profesionales enviados/semana | manual | automatizado | ⏳ |
+
+**Criterio para activar SaaS**: ≥2 métricas con ROI > 2x durante 4 semanas consecutivas.
+
+---
+
+
+
+## 🎯 Visión General SaaS
 
 ### Concepto
 **"El Webflow para agencias inmobiliarias"** - Sitio web + admin panel profesional sin necesidad de código.
@@ -484,7 +570,7 @@ AÑO 3: €400,000+ (200+ clientes)
 
 ---
 
-## 📅 Roadmap de Desarrollo
+## 📅 Roadmap de Desarrollo SaaS
 
 ### Pre-requisitos:
 - [ ] Vidahome completamente desacoplado de arquitectura Inmovilla
@@ -851,13 +937,14 @@ Año 1, Q3-Q4 (si acquisition es buena)
 3. Documentación técnica completa
 4. Infrastructure as Code preparada
 
-### Próximas Acciones (Ahora):
+### Próximas Acciones Inmediatas:
 
-1. **Documentar**: Este documento ✅ (HECHO)
-2. **Monitorear**: Feedback de Vidahome
-3. **Desacoplar**: Refactor gradual de Inmovilla-specific logic
-4. **Investigar**: Competencia, pricing, market feedback
-5. **Preparar**: Infrastructure para multi-tenant cuando sea momento
+1. **FASE 0 activa NOW**: Generador encargos (nota simple + email notaría/banco)
+2. **Config Catastro-API.es**: Dar de alta cuenta, obtener API key (€0.10/nota)
+3. **Modal paquete docs**: Edge function `send-paquete-docs` con checkbox + ZIP
+4. **Test real**: Usar en 1 compraventa real → medir tiempo ahorrado
+5. **Medir ROI semana 6**: ¿2x en alguna métrica? → activar FASE SaaS
+6. **Investigar**: Contactar 3-5 agencias COAPI Valencia para validar interés beta
 
 ### Revisión Plan:
 - **Trimestral**: Evaluar progreso, validar asunciones
@@ -885,7 +972,8 @@ Año 1, Q3-Q4 (si acquisition es buena)
 ---
 
 **Documento creado**: 26 Feb 2026  
-**Estado**: Borrador / Planificación futura  
-**Siguiente revisión**: Q1 2027  
+**Última actualización**: 27 Feb 2026 (añadida FASE 0 + modal paquete docs)  
+**Estado**: Activo — FASE 0 en ejecución  
+**Siguiente revisión**: Semana 6 (validación ROI FASE 0)
 
-*Este documento es una visión futura. No representa un plan inmediato. La prioridad actual es mantener Vidahome operacional y validado.*
+*FASE 0: automatización interna → FASE SaaS: solo si ROI > 2x confirmado.*
