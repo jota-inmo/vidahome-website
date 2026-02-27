@@ -47,7 +47,8 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
     try {
         const { supabase } = await import('@/lib/supabase');
         
-        // Get property metadata with all necessary fields including descriptions for i18n
+        // Get property metadata: activas + las marcadas no disponibles en los últimos 10 días
+        const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
         const { data: properties, error } = await supabase
             .from('property_metadata')
             .select(`
@@ -59,9 +60,11 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 nodisponible,
                 main_photo,
                 full_data,
-                descriptions
+                descriptions,
+                updated_at
             `)
-            .eq('nodisponible', false)
+            .or(`nodisponible.eq.false,and(nodisponible.eq.true,updated_at.gte.${tenDaysAgo})`)
+            .order('nodisponible', { ascending: true })
             .order('cod_ofer', { ascending: false });
 
         if (error) throw error;
@@ -101,7 +104,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 tipo: row.tipo,
                 precio: row.precio || fullData.precioinmo || 0,
                 poblacion: row.poblacion || fullData.poblacion || '',
-                nodisponible: row.nodisponible,
+                nodisponible: !!row.nodisponible,
                 mainImage: row.main_photo,
                 // Use accurate data from property_features or full_data fallback
                 keyacci: fullData.keyacci,
