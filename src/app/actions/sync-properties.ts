@@ -136,19 +136,34 @@ export async function syncAllPropertiesAction() {
             (existingDescs || []).map((r: any) => [r.cod_ofer, r.descriptions || {}])
         );
 
-        // Prepare batch upsert — preserve existing translations, only update description_es
-        const upsertBatch = allProperties.map((p: any) => ({
+        // Prepare batch upsert — preserve existing translations, only update description_es if non-empty
+        // Load existing full_data so we don't overwrite rich ficha data with limited paginacion data
+        const { data: existingFullData } = await supabaseAdmin
+            .from('property_metadata')
+            .select('cod_ofer, full_data');
+        const existingFullDataMap = new Map(
+            (existingFullData || []).map((r: any) => [r.cod_ofer, r.full_data])
+        );
+
+        const upsertBatch = allProperties.map((p: any) => {
+            const existing = existingDescMap.get(p.cod_ofer) || {};
+            const newEs = p.descripciones || '';
+            // Prefer existing full_data (from ficha, has descriptions/coordinates)
+            // only use paginacion data if no existing full_data
+            const existingFd = existingFullDataMap.get(p.cod_ofer);
+            return {
             cod_ofer: p.cod_ofer,
             ref: p.ref,
             poblacion: p.poblacion || '',
             nodisponible: false,
             descriptions: {
-                ...(existingDescMap.get(p.cod_ofer) || {}), // preserve all existing translations
-                description_es: p.descripciones || '',       // only update Spanish from Inmovilla
+                ...existing,
+                ...(newEs ? { description_es: newEs } : {}),
             },
-            full_data: p,
+            full_data: existingFd || p,   // keep rich ficha data if available
             updated_at: new Date().toISOString()
-        }));
+            };
+        });
 
         // Upsert in batches to avoid timeout
         const batchSize = 20;
