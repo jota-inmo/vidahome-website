@@ -156,6 +156,49 @@ export async function syncAllPropertiesAction() {
         }
 
         console.log(`[Sync] ✅ Synced ${successCount} properties to property_metadata`);
+
+        // Also upsert to property_features for fast querying
+        const featuresBatch = allProperties.map((p: any) => ({
+            cod_ofer: p.cod_ofer,
+            precio: p.precioinmo || 0,
+            precioalq: p.precioalq || 0,
+            outlet: p.outlet || 0,
+            keyacci: p.keyacci || 1,
+            habitaciones: p.habitaciones || 0,
+            habitaciones_simples: p.habitaciones_simples || 0,
+            habitaciones_dobles: p.habitaciones_dobles || 0,
+            banos: p.banyos || 0,
+            aseos: p.aseos || 0,
+            superficie: p.m_cons || 0,
+            m_utiles: p.m_utiles || 0,
+            m_terraza: p.m_terraza || 0,
+            m_parcela: p.m_parcela || 0,
+            plantas: 0,
+            ascensor: p.ascensor || false,
+            parking: (p.parking_tipo || 0) > 0,
+            parking_tipo: p.parking_tipo || 0,
+            terraza: (p.m_terraza || 0) > 0,
+            piscina_com: p.piscina_com || false,
+            piscina_prop: p.piscina_prop || false,
+            aire_con: p.aire_con || false,
+            calefaccion: p.calefaccion || false,
+            diafano: p.diafano || false,
+            todoext: p.todoext || false,
+            zona: p.zona || null,
+            tipo: p.tipo_nombre || null,
+            distmar: p.distmar || 0,
+            synced_at: new Date().toISOString()
+        }));
+
+        for (let i = 0; i < featuresBatch.length; i += batchSize) {
+            const batch = featuresBatch.slice(i, i + batchSize);
+            const { error: featError } = await supabaseAdmin
+                .from('property_features')
+                .upsert(batch, { onConflict: 'cod_ofer' });
+            if (featError) console.warn('[Sync] property_features batch error:', featError.message);
+        }
+        console.log(`[Sync] ✅ Also synced ${featuresBatch.length} rows to property_features`);
+
         return { 
             success: true, 
             message: `Synced ${successCount} properties. ${toDeactivate.length} marked as unavailable.`

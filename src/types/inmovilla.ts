@@ -28,6 +28,24 @@ export interface PropertyListEntry {
     precio?: number;
     main_photo?: string;
     habdobles?: number;
+    // Extended fields from paginacion endpoint
+    habitaciones_simples?: number;
+    habitaciones_dobles?: number;
+    outlet?: number;
+    zona?: string;
+    distmar?: number;
+    m_utiles?: number;
+    m_terraza?: number;
+    m_parcela?: number;
+    aseos?: number;
+    ascensor?: boolean;
+    aire_con?: boolean;
+    calefaccion?: boolean;
+    parking_tipo?: number; // 0=sin, 1=opcional, 2=incluido
+    piscina_com?: boolean;
+    piscina_prop?: boolean;
+    diafano?: boolean;
+    todoext?: boolean;
 }
 
 export interface PropertyDetails {

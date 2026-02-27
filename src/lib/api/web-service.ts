@@ -126,6 +126,24 @@ function convertToPropertyListEntry(webProp: any, fullResponse?: any, languageId
         fechaact: '', // Not provided by Web API
         poblacion: poblacion,
         tipo_nombre: tipoNombre,
+        // Extended fields from paginacion
+        habitaciones_simples: webProp.habitaciones ? parseInt(webProp.habitaciones) : 0,
+        habitaciones_dobles: webProp.habdobles ? parseInt(webProp.habdobles) : 0,
+        outlet: webProp.outlet ? parseFloat(webProp.outlet) : 0,
+        zona: webProp.zona || undefined,
+        distmar: webProp.distmar ? parseInt(webProp.distmar) : 0,
+        m_utiles: webProp.m_uties ? parseFloat(webProp.m_uties) : (webProp.m_utiles ? parseFloat(webProp.m_utiles) : 0),
+        m_terraza: webProp.m_terraza ? parseFloat(webProp.m_terraza) : 0,
+        m_parcela: webProp.m_parcela ? parseFloat(webProp.m_parcela) : 0,
+        aseos: webProp.aseos ? parseInt(webProp.aseos) : 0,
+        ascensor: webProp.ascensor === 1 || webProp.ascensor === '1',
+        aire_con: webProp.aire_con === 1 || webProp.aire_con === '1',
+        calefaccion: webProp.calefaccion === 1 || webProp.calefaccion === '1',
+        parking_tipo: webProp.parking ? parseInt(webProp.parking) : 0,
+        piscina_com: webProp.piscina_com === 1 || webProp.piscina_com === '1',
+        piscina_prop: webProp.piscina_prop === 1 || webProp.piscina_prop === '1',
+        diafano: webProp.diafano === 1 || webProp.diafano === '1',
+        todoext: webProp.todoext === 1 || webProp.todoext === '1',
         mainImage
     };
 }
