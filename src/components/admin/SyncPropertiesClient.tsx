@@ -6,29 +6,22 @@ import { RefreshCw, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 export function SyncPropertiesClient() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [singlePropertyId, setSinglePropertyId] = useState('');
+  const [deltaLoading, setDeltaLoading] = useState(false);
+  const [deltaResult, setDeltaResult] = useState<any>(null);
   const [backfillProgress, setBackfillProgress] = useState<string[]>([]);
   const [backfillLoading, setBackfillLoading] = useState(false);
 
-  const handleSyncSingle = async () => {
-    if (!singlePropertyId) {
-      alert('Por favor ingresa el ID de la propiedad');
-      return;
-    }
-
-    setLoading(true);
-    setResult(null);
-
+  const handleDeltaSync = async () => {
+    setDeltaLoading(true);
+    setDeltaResult(null);
     try {
-      const response = await fetch(`/api/admin/sync?property_id=${singlePropertyId}`, {
-        method: 'POST',
-      });
-      const data = await response.json();
-      setResult(data);
-    } catch (error: any) {
-      setResult({ error: error.message });
+      const res = await fetch('/api/admin/sync-delta', { method: 'POST' });
+      const data = await res.json();
+      setDeltaResult(data);
+    } catch (e: any) {
+      setDeltaResult({ error: e.message });
     } finally {
-      setLoading(false);
+      setDeltaLoading(false);
     }
   };
 
@@ -92,37 +85,48 @@ export function SyncPropertiesClient() {
 
   return (
     <div className="space-y-6">
-      {/* Single Property Sync */}
+      {/* Delta Sync */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">Sincronizar una propiedad nueva</h3>
-        
-        <div className="flex gap-2 mb-4">
-          <input
-            type="number"
-            placeholder="ID de la propiedad (cod_ofer)"
-            value={singlePropertyId}
-            onChange={(e) => setSinglePropertyId(e.target.value)}
-            className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-700 rounded bg-white dark:bg-slate-950 dark:text-white"
-            disabled={loading}
-          />
-          <button
-            onClick={handleSyncSingle}
-            disabled={loading}
-            className="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded font-semibold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            Sincronizar
-          </button>
-        </div>
-
-        <p className="text-sm text-slate-500">
-          Ejemplo: si creaste una propiedad con ID 12345 en Inmovilla, ingresa 12345 aquí.
+        <h3 className="text-lg font-semibold mb-2 dark:text-white">Sincronización incremental (recomendado)</h3>
+        <p className="text-sm text-slate-500 mb-4">
+          Compara el catálogo de Inmovilla con la base de datos y solo procesa las diferencias:
+          propiedades nuevas (se añaden), inactivas (se marcan como no disponibles) y
+          reactivadas. Las propiedades sin cambios se ignoran.
         </p>
+        <button
+          onClick={handleDeltaSync}
+          disabled={deltaLoading || loading}
+          className="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded font-semibold hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+        >
+          <RefreshCw size={18} className={deltaLoading ? 'animate-spin' : ''} />
+          {deltaLoading ? 'Calculando diferencias...' : 'Sincronizar diferencias'}
+        </button>
+        {deltaResult && (
+          <div className={`mt-4 rounded p-4 text-sm ${
+            deltaResult.error
+              ? 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300'
+              : 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300'
+          }`}>
+            {deltaResult.error ? `❌ ${deltaResult.error}` : (
+              <>
+                <p className="font-semibold">{deltaResult.message}</p>
+                {(deltaResult.added > 0 || deltaResult.removed > 0 || deltaResult.reactivated > 0) && (
+                  <ul className="mt-1 space-y-0.5 list-disc list-inside">
+                    {deltaResult.added > 0 && <li>🆕 {deltaResult.added} propiedades nuevas añadidas</li>}
+                    {deltaResult.removed > 0 && <li>🚫 {deltaResult.removed} marcadas como no disponibles</li>}
+                    {deltaResult.reactivated > 0 && <li>♻️ {deltaResult.reactivated} reactivadas</li>}
+                  </ul>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Sync All */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">Sincronizar TODAS las propiedades</h3>
+        <h3 className="text-lg font-semibold mb-2 dark:text-white">Sincronización completa</h3>
+        <p className="text-sm text-slate-500 mb-4">Rescribe todos los registros desde cero. Usar solo si hay inconsistencias graves en la BD.</p>
         
         <button
           onClick={handleSyncAll}

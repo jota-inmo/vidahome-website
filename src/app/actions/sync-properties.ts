@@ -232,3 +232,210 @@ export async function syncAllPropertiesAction() {
         return { success: false, error: error.message };
     }
 }
+
+/**
+ * Delta sync: only process differences between Inmovilla catalog and Supabase.
+ * - New properties  → insert with paginacion data + fetch ficha for description_es
+ * - Removed         → mark nodisponible = true
+ * - Reactivated     → mark nodisponible = false, update price/location
+ * - Unchanged       → skip entirely (no API calls wasted)
+ */
+export async function syncDeltaAction(): Promise<{
+    success: boolean;
+    added: number;
+    removed: number;
+    reactivated: number;
+    unchanged: number;
+    error?: string;
+}> {
+    const EMPTY = { success: false, added: 0, removed: 0, reactivated: 0, unchanged: 0 };
+
+    try {
+        if (!INMOVILLA_NUMAGENCIA || !INMOVILLA_PASSWORD) {
+            return { ...EMPTY, error: 'Inmovilla credentials not configured' };
+        }
+
+        const api = new InmovillaWebApiService(
+            INMOVILLA_NUMAGENCIA,
+            INMOVILLA_PASSWORD,
+            addnumagencia,
+            inmoLang,
+            '127.0.0.1',
+            'vidahome.es'
+        );
+
+        // ── 1. Fetch full Inmovilla catalog (paginacion) ─────────────────────
+        let allProperties: any[] = [];
+        let page = 1;
+        while (true) {
+            const batch = await api.getProperties({ page });
+            if (!batch || batch.length === 0) break;
+            allProperties.push(...batch);
+            page++;
+        }
+
+        // Deduplicate
+        const seen = new Set<number>();
+        allProperties = allProperties.filter((p: any) => {
+            if (seen.has(p.cod_ofer)) return false;
+            seen.add(p.cod_ofer);
+            return true;
+        });
+        console.log(`[Delta] Inmovilla catalog: ${allProperties.length} properties`);
+
+        const inmovMap = new Map(allProperties.map((p: any) => [p.cod_ofer, p]));
+        const inmovIds = new Set(inmovMap.keys());
+
+        // ── 2. Fetch Supabase state ───────────────────────────────────────────
+        const { data: sbRows } = await supabaseAdmin
+            .from('property_metadata')
+            .select('cod_ofer, nodisponible, descriptions');
+
+        const sbMap = new Map((sbRows || []).map((r: any) => [r.cod_ofer, r]));
+        const sbIds = new Set(sbMap.keys());
+
+        // ── 3. Compute diff ───────────────────────────────────────────────────
+        const newIds        = [...inmovIds].filter(id => !sbIds.has(id));
+        const removedIds    = [...sbIds].filter(id => !inmovIds.has(id) && !sbMap.get(id)?.nodisponible);
+        const reactivatedIds = [...sbIds].filter(id => inmovIds.has(id) && sbMap.get(id)?.nodisponible);
+
+        console.log(`[Delta] New: ${newIds.length}, Removed: ${removedIds.length}, Reactivated: ${reactivatedIds.length}`);
+
+        const now = new Date().toISOString();
+
+        // ── 4. Mark removed as nodisponible ───────────────────────────────────
+        if (removedIds.length > 0) {
+            await supabaseAdmin
+                .from('property_metadata')
+                .update({ nodisponible: true, updated_at: now })
+                .in('cod_ofer', removedIds);
+            // property_features may not have nodisponible column — best effort
+            try {
+                await supabaseAdmin
+                    .from('property_features')
+                    .delete()
+                    .in('cod_ofer', removedIds);
+            } catch { /* column missing or table missing — non-fatal */ }
+        }
+
+        // ── 5. Reactivate previously removed properties ───────────────────────
+        if (reactivatedIds.length > 0) {
+            const reactivatedUpserts = reactivatedIds.map(id => {
+                const p = inmovMap.get(id)!;
+                const existing = sbMap.get(id) || {};
+                return {
+                    cod_ofer: id,
+                    ref: p.ref,
+                    poblacion: p.poblacion || '',
+                    nodisponible: false,
+                    descriptions: existing.descriptions || {},
+                    updated_at: now,
+                };
+            });
+            await supabaseAdmin.from('property_metadata')
+                .upsert(reactivatedUpserts, { onConflict: 'cod_ofer' });
+        }
+
+        // ── 6. Insert new properties ──────────────────────────────────────────
+        if (newIds.length > 0) {
+            // Try to get descriptions via ficha (only works if Arsys proxy is available)
+            const fichaDescriptions = new Map<number, string>();
+            const hasProxy = !!(process.env.ARSYS_PROXY_URL && process.env.ARSYS_PROXY_SECRET);
+
+            if (hasProxy) {
+                console.log(`[Delta] Fetching ficha for ${newIds.length} new properties...`);
+                for (const id of newIds) {
+                    try {
+                        const detail = await api.getPropertyDetails(id);
+                        if (detail?.descripciones) fichaDescriptions.set(id, detail.descripciones);
+                    } catch {
+                        // non-fatal — we'll still insert without description
+                    }
+                }
+            }
+
+            const newUpserts = newIds.map(id => {
+                const p = inmovMap.get(id)!;
+                const descEs = fichaDescriptions.get(id) || '';
+                return {
+                    cod_ofer: id,
+                    ref: p.ref,
+                    poblacion: p.poblacion || '',
+                    nodisponible: false,
+                    descriptions: {
+                        description_es: descEs,
+                        description_en: '',
+                        description_fr: '',
+                        description_de: '',
+                        description_it: '',
+                        description_pl: '',
+                    },
+                    full_data: p,
+                    updated_at: now,
+                };
+            });
+
+            const batchSize = 20;
+            for (let i = 0; i < newUpserts.length; i += batchSize) {
+                await supabaseAdmin.from('property_metadata')
+                    .upsert(newUpserts.slice(i, i + batchSize), { onConflict: 'cod_ofer' });
+            }
+
+            // Also write to property_features
+            const newFeatures = newIds.map(id => {
+                const p = inmovMap.get(id)!;
+                return {
+                    cod_ofer: id,
+                    precio: p.precioinmo || 0,
+                    precioalq: p.precioalq || 0,
+                    outlet: p.outlet || 0,
+                    keyacci: p.keyacci || 1,
+                    habitaciones: p.habitaciones || 0,
+                    habitaciones_simples: p.habitaciones_simples || 0,
+                    habitaciones_dobles: p.habitaciones_dobles || 0,
+                    banos: p.banyos || 0,
+                    aseos: p.aseos || 0,
+                    superficie: p.m_cons || 0,
+                    m_utiles: p.m_utiles || 0,
+                    m_terraza: p.m_terraza || 0,
+                    m_parcela: p.m_parcela || 0,
+                    plantas: 0,
+                    ascensor: p.ascensor || false,
+                    parking: (p.parking_tipo || 0) > 0,
+                    parking_tipo: p.parking_tipo || 0,
+                    terraza: (p.m_terraza || 0) > 0,
+                    piscina_com: p.piscina_com || false,
+                    piscina_prop: p.piscina_prop || false,
+                    aire_con: p.aire_con || false,
+                    calefaccion: p.calefaccion || false,
+                    diafano: p.diafano || false,
+                    todoext: p.todoext || false,
+                    zona: p.zona || null,
+                    tipo: p.tipo_nombre || null,
+                    distmar: p.distmar || 0,
+                    nodisponible: false,
+                    synced_at: now,
+                };
+            });
+            for (let i = 0; i < newFeatures.length; i += batchSize) {
+                await supabaseAdmin.from('property_features')
+                    .upsert(newFeatures.slice(i, i + batchSize), { onConflict: 'cod_ofer' });
+            }
+        }
+
+        const unchanged = allProperties.length - newIds.length - reactivatedIds.length;
+
+        console.log(`[Delta] ✅ Done — added:${newIds.length} removed:${removedIds.length} reactivated:${reactivatedIds.length} unchanged:${unchanged}`);
+
+        return {
+            success: true,
+            added: newIds.length,
+            removed: removedIds.length,
+            reactivated: reactivatedIds.length,
+            unchanged,
+        };
+    } catch (error: any) {
+        console.error('[Delta] Error:', error);
+        return { ...EMPTY, error: error.message };
+    }
+}
