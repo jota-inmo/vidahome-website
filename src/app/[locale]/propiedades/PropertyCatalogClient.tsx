@@ -14,14 +14,25 @@ interface PropertyCatalogClientProps {
 export function PropertyCatalogClient({ initialProperties, populations }: PropertyCatalogClientProps) {
     const [allProperties] = useState<PropertyListEntry[]>(initialProperties);
     const [filteredProperties, setFilteredProperties] = useState<PropertyListEntry[]>(
-        initialProperties.filter(p => !p.keyacci || p.keyacci === 1) // default to Buy
+        initialProperties.filter(p => {
+            const ref = (p.ref || '').toUpperCase();
+            return !ref.startsWith('T') && (!p.keyacci || p.keyacci === 1); // default to Buy, exclude traspasos
+        })
     );
     const t = useTranslations('Search');
 
     const handleSearch = (filters: SearchFilters) => {
         let filtered = [...allProperties];
-        const targetAcci = filters.type === 'buy' ? 1 : 2;
-        filtered = filtered.filter(p => !p.keyacci || p.keyacci === targetAcci);
+
+        if (filters.type === 'transfer') {
+            // Traspasos: ref starts with 'T'
+            filtered = filtered.filter(p => (p.ref || '').toUpperCase().startsWith('T'));
+        } else {
+            // Exclude traspasos from comprar/alquilar
+            filtered = filtered.filter(p => !(p.ref || '').toUpperCase().startsWith('T'));
+            const targetAcci = filters.type === 'buy' ? 1 : 2;
+            filtered = filtered.filter(p => !p.keyacci || p.keyacci === targetAcci);
+        }
 
         if (filters.population) {
             filtered = filtered.filter(p => p.poblacion === filters.population);

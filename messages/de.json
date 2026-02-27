@@ -58,6 +58,7 @@
     "Search": {
         "buy": "Kaufen",
         "rent": "Mieten",
+        "transfer": "Übernahmen",
         "placeholder": "Immobilie oder Referenz...",
         "locationDefault": "Gesamte Provinz",
         "button": "Suchen",

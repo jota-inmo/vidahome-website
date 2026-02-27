@@ -28,7 +28,8 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
 
     const localizedType = translatePropertyType(property.tipo_nombre, locale);
     const isUnavailable = !!property.nodisponible;
-    const soldLabel = property.keyacci === 2 ? 'ALQUILADO' : 'VENDIDO';
+    const isTraspaso = (property.ref || '').toUpperCase().startsWith('T');
+    const soldLabel = isTraspaso ? 'TRASPASADO' : property.keyacci === 2 ? 'ALQUILADO' : 'VENDIDO';
 
     // Use real Inmovilla image if available, fallback to high-end architectural images
     const imageUrl = property.mainImage || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop`;
@@ -49,11 +50,11 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     priority={false}
                 />
 
-                {/* Badge venta/alquiler */}
+                {/* Badge venta/alquiler/traspaso */}
                 {!isUnavailable && (
                     <div className="absolute top-6 left-6">
                         <span className="px-3 py-1.5 bg-[#0a192f] text-white text-[10px] tracking-[0.2em] font-medium uppercase rounded-sm">
-                            {property.keyacci === 2 ? t('rent') : t('buy')}
+                            {isTraspaso ? t('transfer') : property.keyacci === 2 ? t('rent') : t('buy')}
                         </span>
                     </div>
                 )}

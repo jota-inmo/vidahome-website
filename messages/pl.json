@@ -58,6 +58,7 @@
     "Search": {
         "buy": "Kupić",
         "rent": "Wynająć",
+        "transfer": "Cesje",
         "placeholder": "Nieruchomość lub referencja...",
         "locationDefault": "Cała prowincja",
         "button": "Szukaj",

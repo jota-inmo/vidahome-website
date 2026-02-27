@@ -58,6 +58,7 @@
     "Search": {
         "buy": "Comprare",
         "rent": "Affittare",
+        "transfer": "Cessioni",
         "placeholder": "Immobile o Riferimento...",
         "locationDefault": "Tutta la provincia",
         "button": "Cerca",

@@ -58,6 +58,7 @@
     "Search": {
         "buy": "Acheter",
         "rent": "Louer",
+        "transfer": "Cessions",
         "placeholder": "Propriété ou Référence...",
         "locationDefault": "Toute la province",
         "button": "Chercher",

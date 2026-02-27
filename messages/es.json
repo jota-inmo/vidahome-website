@@ -58,6 +58,7 @@
     "Search": {
         "buy": "Comprar",
         "rent": "Alquilar",
+        "transfer": "Traspasos",
         "placeholder": "Vivienda o Referencia...",
         "locationDefault": "Toda la provincia",
         "button": "Buscar",
