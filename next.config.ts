@@ -19,7 +19,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'crm.inmovilla.com',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'yheqvroinbcrrpppzdzx.supabase.co',
+      },
     ],
   },
   experimental: {

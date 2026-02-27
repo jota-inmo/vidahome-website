@@ -31,7 +31,7 @@ export default function NosotrosPage() {
                     <div className="flex-1 w-full max-w-md animate-fade-in delay-200">
                         <div className="relative aspect-[4/5] rounded-sm overflow-hidden shadow-2xl md:rotate-2 hover:rotate-0 transition-transform duration-700">
                             <Image
-                                src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800"
+                                src="https://yheqvroinbcrrpppzdzx.supabase.co/storage/v1/object/public/media/nosotros/hero-portrait.jpg"
                                 alt="Mediterranean Architecture"
                                 fill
                                 className="object-cover"
@@ -67,7 +67,7 @@ export default function NosotrosPage() {
                         <div className="order-1 lg:order-2 space-y-8">
                             <div className="relative aspect-video rounded-sm overflow-hidden shadow-lg">
                                 <Image
-                                    src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800"
+                                    src="https://yheqvroinbcrrpppzdzx.supabase.co/storage/v1/object/public/media/nosotros/professional-meeting.jpg"
                                     alt="Professional meeting"
                                     fill
                                     className="object-cover"
@@ -187,7 +187,7 @@ export default function NosotrosPage() {
             <section className="py-24 px-6 bg-slate-900 text-white relative overflow-hidden">
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                     <Image
-                        src="https://images.unsplash.com/photo-1521791136364-798a7bc0d267?auto=format&fit=crop&q=80&w=1200"
+                        src="https://yheqvroinbcrrpppzdzx.supabase.co/storage/v1/object/public/media/nosotros/handshake-cta.jpg"
                         alt="Handshake"
                         fill
                         className="object-cover grayscale"
