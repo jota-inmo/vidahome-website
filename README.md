@@ -22,6 +22,17 @@ npm run test:watch    # Modo interactivo
 npm run lint          # Análisis estático
 ```
 
+## 🏷️ Releases (versionado semántico)
+Para publicar una release en **1 comando** (actualiza versión, crea tag Git y hace push):
+
+```bash
+npm run release:patch  # 0.1.0 -> 0.1.1 (fixes)
+npm run release:minor  # 0.1.0 -> 0.2.0 (features)
+npm run release:major  # 0.1.0 -> 1.0.0 (breaking changes)
+```
+
+Nota: ejecuta estos comandos con el árbol Git limpio.
+
 ## 🛠️ Integración con Inmovilla
 Para conectar con la API de Inmovilla desde Vercel, el sistema utiliza un **Arsys Proxy Layer** (debido a restricciones de IP).
 
