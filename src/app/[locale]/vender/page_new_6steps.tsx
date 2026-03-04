@@ -23,8 +23,6 @@ const INITIAL_STATE: SellFormState = {
   via: '',
   numero: '',
   refCatastralManual: '',
-  pisoPlanta: '',
-  puerta: '',
   nombre: '',
   email: '',
   telefono: '',
