@@ -25,7 +25,8 @@
     "verify-room-distinction": "tsx scripts/verify-room-distinction.ts",
     "check:property-features": "tsx scripts/check-property-features.ts",
     "setup:price-audit": "tsx scripts/setup-price-audit.ts",
-    "check:price-audit": "tsx scripts/check-price-audit.ts"
+    "check:price-audit": "tsx scripts/check-price-audit.ts",
+    "changelog:auto": "tsx scripts/update-changelog.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",

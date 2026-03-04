@@ -1,5 +1,13 @@
 # Changelog - Catastro Integration Fixes
 
+## [2026-03-04] - Resumen automático
+
+### 🤖 Último cambio
+- **Commit:** `0c773a2`
+- **Mensaje:** Docs: registrar último cambio y motivo en ULTIMOS_CAMBIOS.md
+- **Autor:** Jota Inmo
+
+---
 ## [2026-02-25] - Multilingual Footer & Property Features Table
 
 ### 🌍 Multilingual Capabilities Indicator
