@@ -41,10 +41,9 @@ export interface SellFormState {
   refCatastralManual?: string;
 
   // STEP 4: Detalles del inmueble
-  pisoPlanta?: string;       // Solo piso/apartamento
-  puerta?: string;           // Solo piso/apartamento
-  estadoInmueble?: string;   // Todos los tipos
-  notasAdicionales?: string; // Todos los tipos
+  habitaciones?: number;     // Número de habitaciones
+  banos?: number;            // Número de baños
+  notasAdicionales?: string; // Información adicional (opcional)
 
   // STEP 5: Propiedad del Catastro
   propertyFromCatastro?: {
@@ -96,8 +95,9 @@ export interface LeadValuationV2 {
   numero: string;
   ref_catastral_manual?: string;
 
-  piso_planta?: string;
-  puerta?: string;
+  habitaciones?: number;
+  banos?: number;
+  notas_adicionales?: string;
 
   catastro_data?: Record<string, any>;
 

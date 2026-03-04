@@ -146,7 +146,7 @@ export default function VenderPage() {
         {step === 1 && <OperationTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} />}
         {step === 2 && <PropertyTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
         {step === 3 && <AddressSearchStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} onPropertyFound={handlePropertyFound} loading={loading} />}
-        {step === 4 && <PropertyDetailsStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} isPisoType={isPisoOrApartamento} />}
+        {step === 4 && <PropertyDetailsStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
         {step === 5 && (
           formState.propertyFromCatastro
             ? <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { SellFormState } from '@/types/sell-form';
 import { toast } from 'sonner';
 
@@ -37,13 +37,8 @@ export default function VenderPage() {
   const [formState, setFormState] = useState<SellFormState>(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
 
-  // Determinar si mostrar step 4 (detalles de piso)
-  const isPisoOrApartamento = useMemo(() => {
-    return formState.propertyType === 'piso' || formState.propertyType === 'apartamento';
-  }, [formState.propertyType]);
-
-  // Calcular número de steps
-  const totalSteps = isPisoOrApartamento ? 6 : 5;
+  // Número total de pasos
+  const totalSteps = 6;
 
   const handleNextStep = () => {
     // Validaciones por step
@@ -60,22 +55,13 @@ export default function VenderPage() {
       return;
     }
 
-    if (isPisoOrApartamento && step === 4) {
-      // Detalles de piso - opcional
-      setStep(5);
-      return;
-    }
-
     if (step < totalSteps) {
       setStep(step + 1);
     }
   };
 
   const handleBackStep = () => {
-    // Si volvemos del step 5 y no hay piso, ir al step 3
-    if (step === 5 && !isPisoOrApartamento) {
-      setStep(3);
-    } else if (step > 1) {
+    if (step > 1) {
       setStep(step - 1);
     }
   };
@@ -87,9 +73,8 @@ export default function VenderPage() {
       estimation: details.estimation
     }));
 
-    // Ir al siguiente paso (revisión)
-    const nextStep = isPisoOrApartamento ? 5 : 4;
-    setStep(nextStep);
+    // Ir al siguiente paso (detalles del inmueble)
+    setStep(4);
   };
 
   const handleSubmitContact = async () => {
@@ -180,8 +165,8 @@ export default function VenderPage() {
           />
         )}
 
-        {/* STEP 4: Detalles de piso (condicional) */}
-        {step === 4 && isPisoOrApartamento && (
+        {/* STEP 4: Detalles del inmueble */}
+        {step === 4 && (
           <PropertyDetailsStep
             formState={formState}
             setFormState={setFormState}
@@ -191,7 +176,7 @@ export default function VenderPage() {
         )}
 
         {/* STEP 5: Revisión */}
-        {step === (isPisoOrApartamento ? 5 : 4) && formState.propertyFromCatastro && (
+        {step === 5 && formState.propertyFromCatastro && (
           <PropertyReviewStep
             formState={formState}
             setFormState={setFormState}
