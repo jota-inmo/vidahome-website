@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { SellFormState } from '@/types/sell-form';
 import { toast } from 'sonner';
 
@@ -36,9 +36,17 @@ export default function VenderPage() {
   const [step, setStep] = useState(1);
   const [formState, setFormState] = useState<SellFormState>(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
+  const formContainerRef = useRef<HTMLDivElement>(null);
 
   // Número total de pasos
   const totalSteps = 6;
+
+  // Scroll suave al contenedor del formulario cuando cambia el paso
+  useEffect(() => {
+    if (formContainerRef.current) {
+      formContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [step]);
 
   const handleNextStep = () => {
     // Validaciones por step
@@ -133,7 +141,7 @@ export default function VenderPage() {
       <StepsIndicator currentStep={step} totalSteps={totalSteps} />
 
       {/* Content */}
-      <div className="py-12">
+      <div ref={formContainerRef} className="py-12">
         {/* STEP 1: Tipo de operación */}
         {step === 1 && (
           <OperationTypeStep

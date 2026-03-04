@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SellFormState } from '@/types/sell-form';
 import { toast } from 'sonner';
 
@@ -36,10 +36,7 @@ export default function VenderPage() {
   const [step, setStep] = useState(1);
   const [formState, setFormState] = useState<SellFormState>(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const formContainerRef = useRef<HTMLDivElement>(null);
 
   // Step 4 siempre está activo para todos los tipos
   // Para piso/apartamento muestra también planta/puerta
@@ -48,6 +45,13 @@ export default function VenderPage() {
   }, [formState.propertyType]);
 
   const totalSteps = 6;
+
+  // Scroll suave al contenedor del formulario cuando cambia el paso
+  useEffect(() => {
+    if (formContainerRef.current) {
+      formContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [step]);
 
   const handleNextStep = () => {
     // Validaciones por step
@@ -142,7 +146,7 @@ export default function VenderPage() {
 
       <StepsIndicator currentStep={step} totalSteps={totalSteps} />
 
-      <div className="py-12">
+      <div ref={formContainerRef} className="py-12">
         {step === 1 && <OperationTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} />}
         {step === 2 && <PropertyTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
         {step === 3 && <AddressSearchStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} onPropertyFound={handlePropertyFound} loading={loading} />}
