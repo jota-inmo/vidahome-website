@@ -68,14 +68,12 @@ export default function VenderPage() {
 
     if (step < totalSteps) {
       setStep(step + 1);
-      scrollToTop();
     }
   };
 
   const handleBackStep = () => {
     if (step > 1) {
       setStep(step - 1);
-      scrollToTop();
     }
   };
 
