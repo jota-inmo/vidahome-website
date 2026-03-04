@@ -37,6 +37,10 @@ export default function VenderPage() {
   const [formState, setFormState] = useState<SellFormState>(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Step 4 siempre está activo para todos los tipos
   // Para piso/apartamento muestra también planta/puerta
   const isPisoOrApartamento = useMemo(() => {
@@ -62,12 +66,14 @@ export default function VenderPage() {
 
     if (step < totalSteps) {
       setStep(step + 1);
+      scrollToTop();
     }
   };
 
   const handleBackStep = () => {
     if (step > 1) {
       setStep(step - 1);
+      scrollToTop();
     }
   };
 
@@ -80,6 +86,7 @@ export default function VenderPage() {
 
     // Ir al paso de revisión (siempre step 5)
     setStep(5);
+    scrollToTop();
   };
 
   const handleSubmitContact = async () => {

@@ -115,9 +115,9 @@ export interface LeadValuationV2 {
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; group: string }[] = [
   // Residencial
-  { value: 'piso', label: 'Piso/Apartamento', group: 'Residencial' },
-  { value: 'apartamento', label: 'Apartamento de lujo', group: 'Residencial' },
-  { value: 'chalet', label: 'Chalet/Casa aislada', group: 'Residencial' },
+  { value: 'piso', label: 'Piso', group: 'Residencial' },
+  { value: 'apartamento', label: 'Apartamento', group: 'Residencial' },
+  { value: 'chalet', label: 'Casa/Chalet rústico', group: 'Residencial' },
   { value: 'casa-aislada', label: 'Casa aislada', group: 'Residencial' },
   { value: 'adosado', label: 'Adosado', group: 'Residencial' },
   { value: 'pareado', label: 'Pareado', group: 'Residencial' },
@@ -133,10 +133,10 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; group: string
   { value: 'aparcamiento', label: 'Aparcamiento', group: 'Otros' },
   { value: 'trastero', label: 'Trastero/Almacén pequeño', group: 'Otros' },
 
-  // Terrenos
-  { value: 'terreno-urbano', label: 'Terreno urbano', group: 'Terrenos' },
-  { value: 'terreno-urbanizable', label: 'Terreno urbanizable', group: 'Terrenos' },
-  { value: 'terreno-rustico', label: 'Terreno rústico', group: 'Terrenos' },
+  // Terreno
+  { value: 'terreno-urbano', label: 'Terreno urbano', group: 'Terreno' },
+  { value: 'terreno-urbanizable', label: 'Terreno no urbanizable', group: 'Terreno' },
+  { value: 'terreno-rustico', label: 'Terreno rústico', group: 'Terreno' },
 
   // Otros
   { value: 'otra', label: 'Otro tipo de propiedad', group: 'Otros' }

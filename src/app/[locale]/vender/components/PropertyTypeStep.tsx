@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { PropertyType, SellFormState, PROPERTY_TYPES } from '@/types/sell-form';
 
 interface PropertyTypeStepProps {
@@ -16,8 +16,12 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
   onNext,
   onBack
 }) => {
-  const handleSelect = (type: PropertyType) => {
-    setFormState(prev => ({ ...prev, propertyType: type, propertyTypeOther: undefined }));
+  const categories = ['Residencial', 'Comercial', 'Terreno', 'Otros'];
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const handleSelect = (type: { value: PropertyType; group: string }) => {
+    setFormState(prev => ({ ...prev, propertyType: type.value, propertyTypeOther: undefined }));
+    setSelectedCategory(type.group);
   };
 
   const handleOtherText = (text: string) => {
@@ -35,6 +39,10 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
   }, []);
 
   const isOtra = formState.propertyType === 'otra';
+  const selectedTypeGroup = useMemo(() => {
+    return PROPERTY_TYPES.find(type => type.value === formState.propertyType)?.group || null;
+  }, [formState.propertyType]);
+  const activeCategory = selectedCategory || selectedTypeGroup || 'Residencial';
 
   return (
     <section className="max-w-4xl mx-auto px-8 py-16">
@@ -47,40 +55,64 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
         </p>
       </div>
 
-      <div className="space-y-8 mb-12">
-        {Object.entries(groupedTypes).map(([group, types]) => (
-          <div key={group}>
-            <h3 className="text-sm uppercase tracking-[0.2em] font-medium text-slate-400 dark:text-slate-500 mb-4">
-              {group}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {types.map(type => (
-                <button
-                  key={type.value}
-                  onClick={() => handleSelect(type.value)}
-                  className={`
-                    p-4 text-left rounded-lg border-2 transition-all
-                    ${formState.propertyType === type.value
-                      ? 'border-lime-400 bg-lime-50 dark:bg-lime-950/20 shadow-md'
-                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-950'
-                    }
-                  `}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-slate-900 dark:text-white">
-                      {type.label}
-                    </span>
-                    {formState.propertyType === type.value && (
-                      <div className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        ✓
-                      </div>
-                    )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {categories.map(category => {
+          const isActive = activeCategory === category;
+          return (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`
+                p-5 text-left rounded-lg border-2 transition-all
+                ${isActive
+                  ? 'border-lime-400 bg-lime-50 dark:bg-lime-950/20 shadow-md'
+                  : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-950'
+                }
+              `}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-slate-900 dark:text-white">{category}</span>
+                {isActive && (
+                  <div className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    ✓
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mb-12">
+        <h3 className="text-sm uppercase tracking-[0.2em] font-medium text-slate-400 dark:text-slate-500 mb-4">
+          {activeCategory}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {(groupedTypes[activeCategory] || []).map(type => (
+            <button
+              key={type.value}
+              onClick={() => handleSelect(type)}
+              className={`
+                p-4 text-left rounded-lg border-2 transition-all
+                ${formState.propertyType === type.value
+                  ? 'border-lime-400 bg-lime-50 dark:bg-lime-950/20 shadow-md'
+                  : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-950'
+                }
+              `}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-slate-900 dark:text-white">
+                  {type.label}
+                </span>
+                {formState.propertyType === type.value && (
+                  <div className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    ✓
+                  </div>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Otro tipo - campo de texto */}
