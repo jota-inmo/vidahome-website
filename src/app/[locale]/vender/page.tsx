@@ -86,7 +86,6 @@ export default function VenderPage() {
 
     // Piso/apartamento: pasar por detalles (step 4). Resto: ir a revisión (step 5)
     setStep(isPisoOrApartamento ? 4 : 5);
-    scrollToTop();
   };
 
   const handleSubmitContact = async () => {
