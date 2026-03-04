@@ -167,6 +167,54 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
         </div>
       </div>
 
+      {/* Detalles proporcionados por el usuario */}
+      {(formState.habitaciones || formState.banos || formState.notasAdicionales) && (
+        <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-8 mb-8">
+          <h3 className="text-lg font-serif text-slate-900 dark:text-white mb-6">
+            Detalles que proporcionaste
+          </h3>
+          <div className="space-y-4">
+            {/* Grid de habitaciones y baños */}
+            {(formState.habitaciones || formState.banos) && (
+              <div className="grid grid-cols-2 gap-4">
+                {formState.habitaciones && (
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
+                      Habitaciones
+                    </p>
+                    <p className="text-xl font-serif text-slate-900 dark:text-white">
+                      {formState.habitaciones}
+                    </p>
+                  </div>
+                )}
+                {formState.banos && (
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
+                      Baños
+                    </p>
+                    <p className="text-xl font-serif text-slate-900 dark:text-white">
+                      {formState.banos}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Información adicional */}
+            {formState.notasAdicionales && (
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-2">
+                  Información adicional
+                </p>
+                <p className="text-slate-900 dark:text-white leading-relaxed">
+                  {formState.notasAdicionales}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Estimación de valor */}
       {est && (
         <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-8 mb-8">
