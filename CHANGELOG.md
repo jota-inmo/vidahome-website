@@ -3,6 +3,14 @@
 ## [2026-03-04] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `9dad0e5`
+- **Mensaje:** Automatizar resumen de último cambio en CHANGELOG
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-04] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `0c773a2`
 - **Mensaje:** Docs: registrar último cambio y motivo en ULTIMOS_CAMBIOS.md
 - **Autor:** Jota Inmo
