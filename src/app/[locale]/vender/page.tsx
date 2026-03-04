@@ -84,8 +84,8 @@ export default function VenderPage() {
       estimation: details.estimation
     }));
 
-    // Ir al paso de revisión (siempre step 5)
-    setStep(5);
+    // Piso/apartamento: pasar por detalles (step 4). Resto: ir a revisión (step 5)
+    setStep(isPisoOrApartamento ? 4 : 5);
     scrollToTop();
   };
 

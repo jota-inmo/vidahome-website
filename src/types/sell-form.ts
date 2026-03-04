@@ -20,6 +20,7 @@ export type PropertyType =
   | 'almacen'
   | 'terreno-urbano'
   | 'terreno-urbanizable'
+  | 'terreno-no-urbanizable'
   | 'terreno-rustico'
   | 'otra';
 
@@ -135,7 +136,8 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; group: string
 
   // Terreno
   { value: 'terreno-urbano', label: 'Terreno urbano', group: 'Terreno' },
-  { value: 'terreno-urbanizable', label: 'Terreno no urbanizable', group: 'Terreno' },
+  { value: 'terreno-urbanizable', label: 'Terreno urbanizable', group: 'Terreno' },
+  { value: 'terreno-no-urbanizable', label: 'Terreno no urbanizable', group: 'Terreno' },
   { value: 'terreno-rustico', label: 'Terreno rústico', group: 'Terreno' },
 
   // Otros
