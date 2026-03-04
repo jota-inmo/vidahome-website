@@ -144,19 +144,19 @@ export const LuxuryHero = () => {
             {/* Static Search Overlay - Outside Swiper to stay fixed */}
             <div className={`absolute bottom-16 md:bottom-24 left-0 right-0 z-20 transition-all duration-1000 px-6 md:px-8 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <div className="max-w-4xl mx-auto group">
-                    <div className="bg-white/5 backdrop-blur-2xl p-2 md:p-1.5 rounded-sm border border-white/10 shadow-3xl flex flex-col md:flex-row items-stretch gap-2 hover:bg-white/10 transition-colors duration-500">
+                    <div className="bg-black/80 backdrop-blur-xl p-3 md:p-2 rounded-lg border-2 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col md:flex-row items-stretch gap-2 hover:bg-black/90 hover:border-white/30 transition-all duration-500">
                         <div className="flex-grow relative">
                             <input
                                 type="text"
                                 placeholder={t('searchPlaceholder')}
-                                className="w-full bg-white/5 border-none text-white placeholder:text-white/40 text-[10px] md:text-xs py-4 md:py-5 px-10 focus:ring-1 focus:ring-teal-500/50 rounded-sm transition-all uppercase tracking-[0.2em] font-medium"
+                                className="w-full bg-white/10 border-none text-white placeholder:text-white/60 text-[10px] md:text-xs py-4 md:py-5 px-10 focus:ring-2 focus:ring-teal-400/70 rounded-md transition-all uppercase tracking-[0.2em] font-medium focus:bg-white/15"
                             />
-                            <Search className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-white/30" size={16} />
+                            <Search className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-white/50" size={16} />
                         </div>
 
                         <Link
                             href="/propiedades"
-                            className="bg-white text-[#0a192f] px-8 md:px-12 py-4 md:py-5 text-[10px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold hover:bg-teal-500 hover:text-white transition-all flex items-center justify-center gap-3 rounded-sm active:scale-95"
+                            className="bg-white text-[#0a192f] px-8 md:px-12 py-4 md:py-5 text-[10px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold hover:bg-teal-400 hover:text-slate-900 transition-all flex items-center justify-center gap-3 rounded-md active:scale-95 shadow-lg"
                         >
                             {t('viewCatalog')}
                         </Link>
