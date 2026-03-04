@@ -100,7 +100,11 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
       return;
     }
     if (searchMode === 'refcatastral' && refCatastralInput.replace(/\s/g, '').length < 14) {
-      toast.error('Introduce una referencia catastral válida');
+      toast.error('La referencia catastral debe tener al menos 14 caracteres');
+      return;
+    }
+    if (searchMode === 'refcatastral' && refCatastralInput.replace(/\s/g, '').length > 20) {
+      toast.error('La referencia catastral no puede tener más de 20 caracteres');
       return;
     }
 
@@ -125,8 +129,18 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
 
       const result = await res.json();
 
+      // Verificar si hay mensajes de error del Catastro
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
       if (!result.found || !result.properties?.length) {
-        toast.error('No se encontró ninguna propiedad con esos datos');
+        if (searchMode === 'refcatastral') {
+          toast.error('No se encontró ninguna propiedad con esa referencia catastral. Verifica que esté correcta.');
+        } else {
+          toast.error('No se encontró ninguna propiedad con esos datos. Intenta con la referencia catastral.');
+        }
         return;
       }
 
@@ -273,7 +287,17 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
         /* ── REF CATASTRAL ── */
         <div className="space-y-4 mb-8">
           <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-sm text-blue-700 dark:text-blue-300">
-            La referencia catastral tiene 20 caracteres y la encontrarás en el recibo del IBI o en la escritura de la propiedad.
+            <p className="mb-2">
+              La referencia catastral se encuentra en:
+            </p>
+            <ul className="list-disc ml-5 space-y-1">
+              <li>Recibo del IBI</li>
+              <li>Escritura de la propiedad</li>
+              <li>Sede electrónica del Catastro (<a href="https://www1.sedecatastro.gob.es/Accesos/SECAccDescargaDatos.aspx" target="_blank" rel="noopener" className="underline">enlace</a>)</li>
+            </ul>
+            <p className="mt-2 text-xs">
+              <strong>Formato:</strong> 14 caracteres (parcela) o 20 caracteres (inmueble completo)
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
@@ -283,13 +307,29 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               type="text"
               value={refCatastralInput}
               onChange={e => setRefCatastralInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-              placeholder="Ej. 7198701YJ4179N0001XF"
-              maxLength={22}
-              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+              placeholder="Ej. 7198701YJ4179N0001XF o 7198701YJ4179N"
+              maxLength={20}
+              className={`
+                w-full px-4 py-3 border rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono tracking-widest
-                focus:ring-2 focus:ring-lime-400 outline-none"
+                focus:ring-2 focus:ring-lime-400 outline-none transition-colors
+                ${refCatastralInput.length >= 14 && refCatastralInput.length <= 20
+                  ? 'border-lime-300 dark:border-lime-700'
+                  : 'border-slate-300 dark:border-slate-700'
+                }
+              `}
             />
-            <p className="text-xs text-slate-400 mt-1">{refCatastralInput.length}/20 caracteres</p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs text-slate-400">
+                {refCatastralInput.length}/20 caracteres
+                {refCatastralInput.length >= 14 && refCatastralInput.length <= 20 && (
+                  <span className="ml-2 text-lime-600 dark:text-lime-400">✓ Longitud válida</span>
+                )}
+                {refCatastralInput.length > 0 && refCatastralInput.length < 14 && (
+                  <span className="ml-2 text-orange-600 dark:text-orange-400">Mínimo 14</span>
+                )}
+              </p>
+            </div>
           </div>
         </div>
       ) : (
