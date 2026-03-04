@@ -13,6 +13,16 @@ interface ContactFormStepProps {
   loading?: boolean;
 }
 
+// Helper: Convertir código de país (+34) a CountryCode (ES)
+const getCountryCodeFromPhoneCode = (phoneCode: string): CountryCode => {
+  for (const [key, value] of Object.entries(COUNTRY_CODES)) {
+    if (value.code === phoneCode) {
+      return key as CountryCode;
+    }
+  }
+  return 'ES'; // Default
+};
+
 export const ContactFormStep: React.FC<ContactFormStepProps> = ({
   formState,
   setFormState,
@@ -20,17 +30,29 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
   onBack,
   loading = false
 }) => {
-  const phone = usePhoneValidation(formState.indicativoPais as CountryCode || 'ES');
+  const initialCountry = getCountryCodeFromPhoneCode(formState.indicativoPais || '+34');
+  const phone = usePhoneValidation(initialCountry);
   const [emailError, setEmailError] = useState('');
+  const [initialized, setInitialized] = useState(false);
+
+  // Inicializar teléfono si ya existe en formState (al volver atrás)
+  useEffect(() => {
+    if (!initialized && formState.telefono) {
+      phone.setRawPhone(formState.telefono);
+      setInitialized(true);
+    }
+  }, [initialized, formState.telefono, phone]);
 
   // Sincronizar estado global con el hook del teléfono
   useEffect(() => {
-    setFormState(prev => ({
-      ...prev,
-      telefono: phone.rawPhone,
-      indicativoPais: phone.countryInfo?.code || '+34'
-    }));
-  }, [phone.rawPhone, phone.country, phone.countryInfo]);
+    if (initialized || phone.rawPhone) {
+      setFormState(prev => ({
+        ...prev,
+        telefono: phone.rawPhone,
+        indicativoPais: phone.countryInfo?.code || '+34'
+      }));
+    }
+  }, [phone.rawPhone, phone.country, phone.countryInfo, initialized]);
 
   // Validar email
   const validateEmail = (email: string) => {
