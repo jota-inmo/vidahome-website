@@ -5,57 +5,67 @@
 import { useState, useCallback, useMemo } from 'react';
 import { PhoneValidationResult, COUNTRY_CODES, CountryCode } from '@/types/sell-form';
 
-// Validación por país (simplificada pero funcional)
-const PHONE_PATTERNS: Record<string, { pattern: RegExp; length: number; description: string }> = {
+// Validación por país (MÁS FLEXIBLE - acepta variaciones de longitud)
+const PHONE_PATTERNS: Record<string, { pattern: RegExp; minLength: number; maxLength: number; description: string }> = {
   ES: {
-    pattern: /^(?:\+?34)?[679]\d{8}$/,
-    length: 9,
-    description: 'Comienza con 6, 7 o 9'
+    pattern: /^(?:\+?34)?[0-9]{8,10}$/,
+    minLength: 8,
+    maxLength: 10,
+    description: 'Entre 8 y 10 dígitos'
   },
   FR: {
-    pattern: /^(?:\+?33)?[1-9]\d{8}$/,
-    length: 9,
-    description: 'Comienza con 1-9'
+    pattern: /^(?:\+?33)?[0-9]{8,10}$/,
+    minLength: 8,
+    maxLength: 10,
+    description: 'Entre 8 y 10 dígitos'
   },
   IT: {
-    pattern: /^(?:\+?39)?[023-9]\d{9}$/,
-    length: 10,
-    description: '10 dígitos'
+    pattern: /^(?:\+?39)?[0-9]{8,11}$/,
+    minLength: 8,
+    maxLength: 11,
+    description: 'Entre 8 y 11 dígitos'
   },
   DE: {
-    pattern: /^(?:\+?49)?[2-9]\d{9,10}$/,
-    length: 10,
-    description: '10-11 dígitos'
+    pattern: /^(?:\+?49)?[0-9]{8,12}$/,
+    minLength: 8,
+    maxLength: 12,
+    description: 'Entre 8 y 12 dígitos'
   },
   UK: {
-    pattern: /^(?:\+?44)?[2-9]\d{9}$/,
-    length: 10,
-    description: '10 dígitos'
+    pattern: /^(?:\+?44)?[0-9]{8,11}$/,
+    minLength: 8,
+    maxLength: 11,
+    description: 'Entre 8 y 11 dígitos'
   },
   PT: {
-    pattern: /^(?:\+?351)?[2-9]\d{8}$/,
-    length: 9,
-    description: '9 dígitos'
+    pattern: /^(?:\+?351)?[0-9]{8,10}$/,
+    minLength: 8,
+    maxLength: 10,
+    description: 'Entre 8 y 10 dígitos'
   },
   BE: {
-    pattern: /^(?:\+?32)?[1-9]\d{8}$/,
-    length: 9,
-    description: '9 dígitos'
+    pattern: /^(?:\+?32)?[0-9]{8,10}$/,
+    minLength: 8,
+    maxLength: 10,
+    description: 'Entre 8 y 10 dígitos'
   },
   NL: {
-    pattern: /^(?:\+?31)?[1-9]\d{8}$/,
-    length: 9,
-    description: '9 dígitos'
+    pattern: /^(?:\+?31)?[0-9]{8,10}$/,
+    minLength: 8,
+    maxLength: 10,
+    description: 'Entre 8 y 10 dígitos'
   },
   AT: {
-    pattern: /^(?:\+?43)?[1-9]\d{8,9}$/,
-    length: 10,
-    description: '10-11 dígitos'
+    pattern: /^(?:\+?43)?[0-9]{8,12}$/,
+    minLength: 8,
+    maxLength: 12,
+    description: 'Entre 8 y 12 dígitos'
   },
   PL: {
-    pattern: /^(?:\+?48)?[1-9]\d{8}$/,
-    length: 9,
-    description: '9 dígitos'
+    pattern: /^(?:\+?48)?[0-9]{8,10}$/,
+    minLength: 8,
+    maxLength: 10,
+    description: 'Entre 8 y 10 dígitos'
   }
 };
 
@@ -108,7 +118,7 @@ export function usePhoneValidation(initialCountry: CountryCode = 'ES') {
     return cleaned;
   }, [detectCountry]);
 
-  // Validar teléfono completo
+  // Validar teléfono completo (MÁS PERMISIVO)
   const validate = useCallback((phone: string, selectedCountry: CountryCode): PhoneValidationResult => {
     const cleaned = normalize(phone);
     
@@ -121,22 +131,34 @@ export function usePhoneValidation(initialCountry: CountryCode = 'ES') {
       return { isValid: false, formatted: '', error: 'País no soportado' };
     }
 
-    // Validar con el patrón
-    const countryCode = COUNTRY_CODES[selectedCountry];
-    const numericCode = countryCode.code.replace('+', '');
-    const fullNumber = numericCode + cleaned;
-
-    const isValid = pattern.pattern.test(fullNumber);
-
-    if (!isValid) {
+    // Validación simple por longitud (más flexible)
+    if (cleaned.length < pattern.minLength) {
       return {
         isValid: false,
         formatted: '',
-        error: `Formato inválido para ${countryCode.name}. ${pattern.description}`
+        error: `Teléfono muy corto. Mínimo ${pattern.minLength} dígitos`
+      };
+    }
+
+    if (cleaned.length > pattern.maxLength) {
+      return {
+        isValid: false,
+        formatted: '',
+        error: `Teléfono muy largo. Máximo ${pattern.maxLength} dígitos`
+      };
+    }
+
+    // Solo verificar que sean números
+    if (!/^[0-9]+$/.test(cleaned)) {
+      return {
+        isValid: false,
+        formatted: '',
+        error: 'Solo se permiten números'
       };
     }
 
     // Formatear para mostrar
+    const countryCode = COUNTRY_CODES[selectedCountry];
     const formatted = formatPhoneForDisplay(cleaned, selectedCountry);
 
     return {
@@ -154,23 +176,13 @@ export function usePhoneValidation(initialCountry: CountryCode = 'ES') {
 
     if (!pattern) return digits;
 
-    const length = pattern.length;
-    if (digits.length < length) {
-      return digits;
+    // Formato genérico con espacios cada 3 dígitos
+    const parts: string[] = [];
+    for (let i = 0; i < digits.length; i += 3) {
+      parts.push(digits.slice(i, i + 3));
     }
 
-    // Para la mayoría de países europeos: +34 XXX XX XX XX
-    if (length === 9) {
-      return `${countryCode.code} ${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5, 7)} ${digits.slice(7)}`;
-    }
-    if (length === 10) {
-      return `${countryCode.code} ${digits.slice(0, 4)} ${digits.slice(4, 6)} ${digits.slice(6, 8)} ${digits.slice(8)}`;
-    }
-    if (length === 11) {
-      return `${countryCode.code} ${digits.slice(0, 5)} ${digits.slice(5, 7)} ${digits.slice(7, 9)} ${digits.slice(9)}`;
-    }
-
-    return `${countryCode.code} ${digits}`;
+    return `${countryCode.code} ${parts.join(' ')}`;
   };
 
   // Manejar cambio en el input (mientras escribe)
