@@ -3,6 +3,14 @@
 ## [2026-03-04] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `4432338`
+- **Mensaje:** Configurar git hook pre-commit para CHANGELOG automático
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-04] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `9dad0e5`
 - **Mensaje:** Automatizar resumen de último cambio en CHANGELOG
 - **Autor:** Jota Inmo

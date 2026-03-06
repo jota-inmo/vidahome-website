@@ -35,7 +35,13 @@ async function verifySessionToken(token: string, secret: string): Promise<boolea
     for (let i = 0; i < signature.length; i++) {
         result |= signature.charCodeAt(i) ^ expectedSignature.charCodeAt(i);
     }
-    return result === 0;
+    if (result !== 0) return false;
+
+    // Verificar expiración del token (24 horas)
+    const match = payload.match(/^admin:(\d+)$/);
+    if (!match) return false;
+    const tokenAge = Date.now() - parseInt(match[1], 10);
+    return tokenAge < 24 * 60 * 60 * 1000;
 }
 
 export async function middleware(request: NextRequest) {
