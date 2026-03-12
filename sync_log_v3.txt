@@ -1,0 +1,23 @@
+﻿[dotenv@17.2.4] injecting env (11) from .env -- tip: ­ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+­ƒöä Sincronizando propiedad REF 2963 (cod_ofer: 28342875)...
+
+Ô£à Detalles obtenidos de la API:
+   Tipo:     -
+   Precio:   115000
+   Poblaci├│n:-
+   Fotos:    16
+
+Ô×ò Insertando nueva propiedad...
+Ô£à Guardada en property_metadata
+Ô£à URLs generadas en property_urls
+
+­ƒôï Verificaci├│n final en Supabase:
+{
+  cod_ofer: 28342875,
+  ref: '2963',
+  tipo: '',
+  precio: 115000,
+  poblacion: ''
+}
+
+­ƒÄë Ya visible en: https://vidahome-website.vercel.app/es/propiedades/28342875

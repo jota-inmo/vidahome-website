@@ -1,0 +1,4 @@
+﻿[dotenv@17.2.4] injecting env (11) from .env -- tip: ­ƒøá´©Å  run anywhere with `dotenvx run -- yourcommand`
+­ƒÜÇ Starting URL generation for domain: vidahome-website.vercel.app
+­ƒôè Found 80 properties. Generating URLs...
+Ô£à Successfully generated and saved URLs for 80 properties.

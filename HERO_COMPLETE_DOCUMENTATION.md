@@ -8,11 +8,11 @@ Las traducciones multiidioma en los hero slides funcionan correctamente en todos
 
 ## 🎯 Resumen de Cambios Implementados
 
-### 1. Duración de Videos Reducida
-**Commit**: `700340e`
-- Entrada: 10 segundos
-- Salida: 6 segundos
-- Archivo: [src/components/LuxuryHero.tsx](src/components/LuxuryHero.tsx)
+### 1. Duración de Videos Personalizable
+**Fecha**: 2026-03-12
+- Entrada: Duración fija (6s)
+- Salida: Duración dinámica configurable desde el Admin Panel (en milisegundos)
+- Archivos: [src/components/LuxuryHero.tsx](src/components/LuxuryHero.tsx), [src/app/[locale]/admin/hero/page.tsx](src/app/[locale]/admin/hero/page.tsx)
 
 ### 2. Admin de Hero Expandido a 6 Idiomas
 **Commit**: `92aaef9`
@@ -68,7 +68,7 @@ El campo `titles` en la tabla `hero_slides` contiene:
 
 | Feature | Estado | Detalles |
 |---------|--------|----------|
-| Videos en banner | ✅ | Duración: 6s, con multi-idioma |
+| Videos en banner | ✅ | Duraciones personalizables desde Admin, con multi-idioma |
 | Frases culturales | ✅ | 6 idiomas, no traducciones literales |
 | Admin multiidioma | ✅ | Edición de 6 idiomas en panel |
 | Selector de idiomas | ✅ | Con banderas, limpio y visible |
@@ -115,5 +115,5 @@ npx tsx scripts/populate-hero-translations.ts
 
 ---
 
-**Última actualización**: 26 Febrero 2026  
-**Estado**: ✅ Producción Ready
+**Última actualización**: 12 Marzo 2026  
+**Estado**: ✅ Producción Ready (v1.2 - Duraciones Dinámicas)

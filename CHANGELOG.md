@@ -1,5 +1,13 @@
 # Changelog - Catastro Integration Fixes
 
+## [2026-03-12] - Resumen automático
+
+### 🤖 Último cambio
+- **Commit:** `3ba785b`
+- **Mensaje:** feat: hero slide custom duration + property URLs table
+- **Autor:** Jota Inmo
+
+---
 ## [2026-03-06] - Resumen automático
 
 ### 🤖 Último cambio

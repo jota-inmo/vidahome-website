@@ -1,0 +1,24 @@
+﻿[dotenv@17.2.4] injecting env (11) from .env -- tip: ­ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild
+­ƒöä Sincronizando propiedad REF 2963 (cod_ofer: 28342875)...
+
+Ô£à Detalles obtenidos de la API:
+   Tipo:     -
+   Precio:   115000
+   Poblaci├│n:-
+   Fotos:    16
+
+Ô×ò Insertando nueva propiedad...
+node.exe : ÔØî Error de Supabase: {
+En C:\Program Files\nodejs\npx.ps1: 29 Carácter: 3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ÔØî Error de Supa 
+   base: {:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  "code": "42501",
+  "details": null,
+  "hint": null,
+  "message": "new row violates row-level security policy for 
+table \"property_metadata\""
+}
