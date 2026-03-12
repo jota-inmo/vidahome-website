@@ -14,6 +14,7 @@ export interface HeroSlide {
     active: boolean;
     type: 'video' | 'image';
     poster?: string;
+    duration?: number; // In milliseconds
 }
 
 export async function getHeroSlidesAction(onlyActive = false): Promise<HeroSlide[]> {
@@ -64,7 +65,7 @@ export async function saveHeroSlideAction(slide: Partial<HeroSlide>) {
         revalidatePath('/de');
         revalidatePath('/it');
         revalidatePath('/pl');
-        
+
         return { success: true };
     } catch (e: any) {
         console.error('Error saving hero slide:', e);
@@ -91,7 +92,7 @@ export async function deleteHeroSlideAction(id: string) {
         revalidatePath('/de');
         revalidatePath('/it');
         revalidatePath('/pl');
-        
+
         return { success: true };
     } catch (e: any) {
         console.error('Error deleting hero slide:', e);

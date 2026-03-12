@@ -9,7 +9,7 @@ import { requireAdmin } from '@/lib/auth';
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
     const keyTipo = String(details.key_tipo || '');
-    return (tiposMap as Record<string,string>)[keyTipo] || details.tipo_nombre || '';
+    return (tiposMap as Record<string, string>)[keyTipo] || details.tipo_nombre || '';
 }
 
 /** Resolve poblacion from key_loca using the master map */
@@ -18,7 +18,7 @@ function resolvePoblacion(details: any): string {
     // 'ciudad' is the specific locality (e.g. "La Font d'En Carros")
     // 'poblacion' is the broader municipality (e.g. "Gandía")
     // Prefer the more specific one
-    return (localidadesMap as Record<string,string>)[keyLoca]
+    return (localidadesMap as Record<string, string>)[keyLoca]
         || details.ciudad
         || details.poblacion
         || '';
@@ -52,7 +52,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
 }> {
     try {
         const { supabase } = await import('@/lib/supabase');
-        
+
         // Get property metadata: activas + las marcadas no disponibles en los últimos 10 días
         const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
         const { data: properties, error } = await supabase
@@ -79,11 +79,11 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
         const { data: features, error: featError } = await supabase
             .from('property_features')
             .select('cod_ofer, habitaciones, habitaciones_simples, habitaciones_dobles, banos, superficie');
-        
+
         if (featError) {
             console.warn('[Actions] Error fetching features:', featError);
         }
-        
+
         // Create a lookup map for features
         const featuresMap = new Map((features || []).map((f: any) => [f.cod_ofer, f]));
 
@@ -93,7 +93,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
             const fullData = row.full_data || {};
             const feat = featuresMap.get(row.cod_ofer);
             const descriptions = (row.descriptions as Record<string, string>) || {};
-            
+
             // Use feature data if available, otherwise fall back to full_data
             // Total habitaciones = simples + dobles
             const habitaciones = feat?.habitaciones
@@ -103,7 +103,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
 
             // Apply locale-specific description, fallback to Spanish
             const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
-            
+
             return {
                 cod_ofer: row.cod_ofer,
                 ref: row.ref,
@@ -126,7 +126,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 numfotos: fullData.numfotos
             };
         });
-        
+
         const populations = [...new Set(formatted.map(p => p.poblacion).filter(Boolean))].sort() as string[];
 
         return { success: true, data: formatted, isConfigured: true, meta: { populations } };
@@ -143,7 +143,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
 export async function getPropertyDetailAction(id: number, locale: string = 'es'): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
     try {
         const { supabase } = await import('@/lib/supabase');
-        
+
         // Get property metadata and features in parallel
         const [{ data: meta, error }, { data: features }] = await Promise.all([
             supabase
@@ -227,7 +227,7 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
 export async function getFeaturedPropertiesWithDetailsAction(locale: string): Promise<{ success: boolean; data: any[] }> {
     try {
         const { supabase } = await import('@/lib/supabase');
-        
+
         // Get featured properties
         const { data: featured, error: featError } = await supabase
             .from('featured_properties')
@@ -268,10 +268,10 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                 const descKey = getDescriptionKey(locale);
                 // Try to get the translation for the requested locale, fallback to Spanish
                 const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
-                
+
                 // Get features for this property
                 const feat = featuresMap.get(meta.cod_ofer);
-                
+
                 // Total habitaciones = simples + dobles
                 const habitaciones = feat?.habitaciones
                     ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
@@ -338,8 +338,8 @@ async function recordPriceChange(
 ) {
     try {
         const priceChange = oldPrice ? newPrice - oldPrice : null;
-        const percentageChange = oldPrice && oldPrice !== 0 
-            ? ((newPrice - oldPrice) / oldPrice) * 100 
+        const percentageChange = oldPrice && oldPrice !== 0
+            ? ((newPrice - oldPrice) / oldPrice) * 100
             : null;
 
         await supabaseAdmin.from('price_audit').insert({
@@ -435,6 +435,36 @@ async function smartUpdateProperty(
 }
 
 /**
+ * Helper: Generate and save property URLs
+ */
+async function syncPropertyUrls(
+    supabaseAdmin: any,
+    cod_ofer: number,
+    ref: string
+) {
+    const baseDomain = process.env.INMOVILLA_DOMAIN || 'vidahome-website.vercel.app';
+    const locales = ['es', 'en', 'fr', 'de', 'it', 'pl'];
+
+    const urlData: any = {
+        cod_ofer,
+        ref,
+        updated_at: new Date().toISOString()
+    };
+
+    locales.forEach(locale => {
+        urlData[`url_${locale}`] = `https://${baseDomain}/${locale}/propiedades/${cod_ofer}`;
+    });
+
+    try {
+        await supabaseAdmin
+            .from('property_urls')
+            .upsert(urlData, { onConflict: 'cod_ofer' });
+    } catch (error) {
+        console.warn(`[Sync] Error updating URLs for ${cod_ofer}:`, error);
+    }
+}
+
+/**
  * ⭐ THE ONLY FUNCTION THAT CALLS INMOVILLA
  * 
  * Synchronize properties from Inmovilla to Supabase
@@ -515,14 +545,14 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                 const numFotos = (details as any).numfotos ? parseInt((details as any).numfotos as string) : 0;
                 const numAgencia = (details as any).numagencia || baseProp.numagencia || '';
                 const fotoLetra = (details as any).fotoletra || baseProp.fotoletra || '';
-                
+
                 // Generate URLs for all available photos
                 if (numFotos > 0 && numAgencia && fotoLetra) {
                     for (let i = 1; i <= numFotos; i++) {
                         photos.push(`https://fotos15.inmovilla.com/${numAgencia}/${baseProp.cod_ofer}/${fotoLetra}-${i}.jpg`);
                     }
                 }
-                
+
                 const mainPhoto = photos[0] || null;
                 // Use precioinmo (real price) instead of precio (commission-deducted)
                 const newPrice = details.precioinmo || details.precio || 0;
@@ -532,7 +562,7 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
 
                 if (existing) {
                     // EXISTING PROPERTY - Smart update only
-                    
+
                     // Check for price change
                     const oldPrice = existing.precio || null;
                     if (oldPrice !== newPrice) {
@@ -594,6 +624,8 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
                     if (!error) {
                         newCount++;
                         successCount++;
+                        // Generate URLs for new property
+                        await syncPropertyUrls(supabaseAdmin, baseProp.cod_ofer, baseProp.ref);
                         // Record as new property (no price change)
                         await recordPriceChange(supabaseAdmin, baseProp.cod_ofer, null, newPrice, 'New property synced');
                     } else {
@@ -610,7 +642,7 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
         console.log(`  🔄 Updated: ${updatedCount}`);
         console.log(`  💰 Price changes: ${priceChanges}`);
         console.log(`  📊 Total: ${successCount}/${validProperties.length}`);
-        
+
         return { success: true, synced: successCount };
     } catch (error: any) {
         console.error('[Sync] Error during sync:', error);
@@ -638,7 +670,7 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
 }> {
     if (!(await requireAdmin())) return { success: false, synced: 0, total: 0, isComplete: false, error: 'No autorizado' };
     console.log('[Sync Inc] Starting incremental sync with batchSize:', batchSize);
-    
+
     const token = process.env.INMOVILLA_TOKEN;
     const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
 
@@ -667,13 +699,13 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
         console.log('[Sync Inc] Current progress:', progress);
 
         const api = createInmovillaApi(token, authType);
-        
+
         // Get ALL properties to find pagination point
         console.log('[Sync Inc] Fetching ALL properties from Inmovilla API...');
         const allProperties = await api.getProperties({ page: 1 });
-        
+
         console.log('[Sync Inc] Received properties from API:', allProperties?.length || 0);
-        
+
         if (!allProperties || allProperties.length === 0) {
             console.log('[Sync Inc] No properties returned from API');
             return { success: true, synced: 0, total: 0, isComplete: true };
@@ -693,10 +725,10 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
         console.log('[Sync Inc] Valid properties after filtering:', validProperties.length);
 
         // Find where to resume
-        const lastSyncedIndex = progress?.last_synced_cod_ofer 
+        const lastSyncedIndex = progress?.last_synced_cod_ofer
             ? validProperties.findIndex(p => p.cod_ofer === progress.last_synced_cod_ofer)
             : -1;
-        
+
         const startIndex = lastSyncedIndex + 1;
         const endIndex = Math.min(startIndex + batchSize, validProperties.length);
         const batch = validProperties.slice(startIndex, endIndex);
@@ -711,7 +743,7 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                     status: 'idle',
                     error_message: null
                 });
-            
+
             console.log('[Sync] ✅ All properties synced!');
             return { success: true, synced: 0, total: validProperties.length, isComplete: true };
         }
@@ -730,14 +762,14 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                 const numFotos = (details as any).numfotos ? parseInt((details as any).numfotos as string) : 0;
                 const numAgencia = (details as any).numagencia || prop.numagencia || '';
                 const fotoLetra = (details as any).fotoletra || prop.fotoletra || '';
-                
+
                 // Generate URLs for all available photos
                 if (numFotos > 0 && numAgencia && fotoLetra) {
                     for (let i = 1; i <= numFotos; i++) {
                         photos.push(`https://fotos15.inmovilla.com/${numAgencia}/${prop.cod_ofer}/${fotoLetra}-${i}.jpg`);
                     }
                 }
-                
+
                 const mainPhoto = photos[0] || null;
 
                 const upsertData = {
@@ -773,6 +805,10 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
                         .from('property_metadata')
                         .update({ descriptions: mergedDescs })
                         .eq('cod_ofer', prop.cod_ofer);
+
+                    // Generate/Update URLs
+                    await syncPropertyUrls(supabaseAdmin, prop.cod_ofer, prop.ref);
+
                     // Also upsert to property_features for fast querying
                     const habitacionesSimples = details.habitaciones || 0;
                     const habitacionesDobles = details.habdobles || 0;

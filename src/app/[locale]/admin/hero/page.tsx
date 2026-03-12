@@ -214,6 +214,8 @@ export default function HeroAdmin() {
                                     <span className="flex items-center gap-1"><Play size={10} /> {slide.type}</span>
                                     <span>•</span>
                                     <span className="text-teal-500/70">Posición: {slide.order + 1}</span>
+                                    <span>•</span>
+                                    <span className="text-slate-400 font-mono">{(slide.duration || 5000) / 1000}s</span>
                                 </div>
                             </div>
 
@@ -384,11 +386,20 @@ export default function HeroAdmin() {
                                                 <label htmlFor="active" className="text-[10px] uppercase tracking-widest text-slate-500 font-bold cursor-pointer">Estado Activo</label>
                                             </div>
                                             <div className="space-y-3 flex-grow max-w-[100px]">
-                                                <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold block">Orden</label>
                                                 <input
                                                     type="number"
                                                     value={editingSlide.order ?? 0}
                                                     onChange={e => setEditingSlide(prev => ({ ...prev, order: parseInt(e.target.value) }))}
+                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-4 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
+                                                />
+                                            </div>
+                                            <div className="space-y-3 flex-grow max-w-[120px]">
+                                                <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold block">Duración (ms)</label>
+                                                <input
+                                                    type="number"
+                                                    step="500"
+                                                    value={editingSlide.duration ?? 5000}
+                                                    onChange={e => setEditingSlide(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
                                                     className="w-full bg-slate-50 dark:bg-slate-800/50 border-none px-4 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all rounded-sm text-[#0a192f] dark:text-white"
                                                 />
                                             </div>

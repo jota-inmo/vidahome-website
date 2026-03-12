@@ -28,6 +28,7 @@ const DEFAULT_SLIDES: any[] = [
 
 export const LuxuryHero = () => {
     const [slides, setSlides] = useState<HeroSlide[]>([]);
+    const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [isLoaded, setIsLoaded] = useState(false);
     const t = useTranslations('Hero');
     const locale = useLocale();
@@ -77,9 +78,10 @@ export const LuxuryHero = () => {
                 modules={[Autoplay, EffectFade]}
                 effect="fade"
                 autoplay={{
-                    delay: 5000,
+                    delay: slides[currentSlideIndex]?.duration || 5000,
                     disableOnInteraction: false,
                 }}
+                onSlideChange={(swiper) => setCurrentSlideIndex(swiper.realIndex)}
                 loop={slides.length > 1}
                 className="absolute inset-0 w-full h-full"
             >

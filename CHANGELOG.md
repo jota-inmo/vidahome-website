@@ -1,5 +1,13 @@
 # Changelog - Catastro Integration Fixes
 
+## [2026-03-06] - Resumen automático
+
+### 🤖 Último cambio
+- **Commit:** `058717a`
+- **Mensaje:** security: añadir verificación de expiración al token de sesión admin
+- **Autor:** Jota Inmo
+
+---
 ## [2026-03-04] - Resumen automático
 
 ### 🤖 Último cambio
