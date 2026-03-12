@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkAuthAction, logoutAction } from '@/app/actions';
 import { Link } from '@/i18n/routing';
-import { LayoutDashboard, Film, Star, LogOut, ExternalLink, Languages, RefreshCw, Building2, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Film, Star, LogOut, ExternalLink, Languages, RefreshCw, Building2, BookOpen, FileText } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [authorized, setAuthorized] = useState<boolean | null>(null);
@@ -50,6 +50,13 @@ export default function AdminDashboard() {
             icon: <LayoutDashboard className="w-6 h-6" />,
             href: '/admin/settings',
             color: 'from-orange-500 to-amber-600'
+        },
+        {
+            title: 'Contenidos Legales',
+            desc: 'Privacidad, Cookies y Aviso Legal',
+            icon: <FileText className="w-6 h-6" />,
+            href: '/admin/legal',
+            color: 'from-slate-500 to-slate-700'
         },
     ];
 

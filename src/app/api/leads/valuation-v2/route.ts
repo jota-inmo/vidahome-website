@@ -81,13 +81,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Aquí podrías enviar email, crear tarea en CRM, etc.
-    console.log('[API] New lead created:', data.id);
+    // Obtener email de notificaciones del admin
+    const { data: settings } = await supabase
+      .from('company_settings')
+      .select('value')
+      .eq('key', 'notifications_email')
+      .maybeSingle();
+    
+    const notificationTarget = settings?.value || 'info@vidahome.es';
+
+    // Enviar notificación al admin
+    try {
+      const { sendNotificationEmail } = await import('@/lib/mail');
+      await sendNotificationEmail(
+        notificationTarget,
+        `Nueva tasación recibida: ${nombre}`,
+        `
+        <h2>Nueva solicitud de valoración</h2>
+        <p><strong>Nombre:</strong> ${nombre}</p>
+        <p><strong>Email:</strong> ${email || 'No proporcionado'}</p>
+        <p><strong>Teléfono:</strong> ${indicativoPais} ${telefono}</p>
+        <p><strong>Operación:</strong> ${operationType}</p>
+        <p><strong>Propiedad:</strong> ${propertyType} ${propertyTypeOther ? `(${propertyTypeOther})` : ''}</p>
+        <p><strong>Ubicación:</strong> ${tipoVia} ${via} ${numero}, ${municipio} (${provincia})</p>
+        <p><strong>Mensaje:</strong> ${mensaje || 'Sin mensaje'}</p>
+        <p>---</p>
+        <p>Valor estimado Catastro: ${estimation?.max ? `${estimation.max} €` : 'No disponible'}</p>
+        `
+      );
+    } catch (mailErr) {
+      console.error('[API] Error sending notification email:', mailErr);
+    }
 
     // Enviar confirmación por email si se proporcionó
     if (email) {
-      // TODO: Implementar envío de email
-      console.log('[API] Would send email to:', email);
+      // TODO: Implementar envío de email de confirmación al cliente
+      console.log('[API] Would send confirmation email to:', email);
     }
 
     return NextResponse.json(

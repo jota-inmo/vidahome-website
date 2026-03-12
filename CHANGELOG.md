@@ -3,6 +3,14 @@
 ## [2026-03-12] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `a3e711a`
+- **Mensaje:** Fix: correct service_role key, sync property REF 2963, generate 80 property URLs, and enable custom hero video duration
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-12] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `3ba785b`
 - **Mensaje:** feat: hero slide custom duration + property URLs table
 - **Autor:** Jota Inmo

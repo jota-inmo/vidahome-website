@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth';
 export interface CompanySettings {
     phone: string;
     email: string;
+    notifications_email: string;
     address: string;
     hours_week: string;
     hours_sat: string;
@@ -16,6 +17,7 @@ export interface CompanySettings {
 const DEFAULT_SETTINGS: CompanySettings = {
     phone: '+34 659 02 75 12',
     email: 'info@vidahome.es',
+    notifications_email: 'info@vidahome.es',
     address: 'Carrer Joan XXIII, 1, 46730 Grau i Platja, Gandia, Valencia',
     hours_week: 'Lunes - Viernes: 09:00 - 14:00 y 17:00 - 20:00',
     hours_sat: 'Sábado: 09:30 - 13:30',

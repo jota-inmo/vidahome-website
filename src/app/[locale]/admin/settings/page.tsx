@@ -77,6 +77,17 @@ export default function AdminSettingsPage() {
                         </div>
 
                         <div>
+                            <label className="block text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-2">Email de Notificaciones (Formularios)</label>
+                            <input
+                                type="email"
+                                value={settings?.notifications_email || ''}
+                                onChange={e => setSettings(s => s ? { ...s, notifications_email: e.target.value } : null)}
+                                className="w-full bg-slate-50 border-none px-4 py-3 rounded-sm focus:ring-1 focus:ring-teal-500 transition-all"
+                            />
+                            <p className="text-[9px] text-slate-400 mt-1 italic">Dirección donde se recibirán los leads de "Vender" y "Contacto".</p>
+                        </div>
+
+                        <div>
                             <label className="block text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-2">URL de Instagram</label>
                             <div className="relative">
                                 <Instagram size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />

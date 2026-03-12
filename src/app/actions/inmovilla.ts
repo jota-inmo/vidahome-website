@@ -5,6 +5,7 @@ import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
 import tiposMap from '@/lib/api/tipos_map.json';
 import localidadesMap from '@/lib/api/localidades_map.json';
 import { requireAdmin } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
@@ -947,6 +948,33 @@ export async function submitLeadAction(formData: {
                 ...formData,
                 created_at: new Date().toISOString()
             }]);
+        }
+
+        // Send notification email
+        try {
+            const { data: settingsData } = await supabaseAdmin
+                .from('company_settings')
+                .select('value')
+                .eq('key', 'notifications_email')
+                .maybeSingle();
+            
+            const notificationTarget = settingsData?.value || 'info@vidahome.es';
+            const { sendNotificationEmail } = await import('@/lib/mail');
+            
+            await sendNotificationEmail(
+                notificationTarget,
+                `Nuevo lead de contacto: ${formData.nombre}`,
+                `
+                <h2>Nueva solicitud de contacto</h2>
+                <p><strong>Nombre:</strong> ${formData.nombre} ${formData.apellidos}</p>
+                <p><strong>Email:</strong> ${formData.email}</p>
+                <p><strong>Teléfono:</strong> ${formData.telefono}</p>
+                <p><strong>Mensaje:</strong> ${formData.mensaje}</p>
+                <p><strong>Propiedad (código):</strong> ${formData.cod_ofer > 0 ? formData.cod_ofer : 'General'}</p>
+                `
+            );
+        } catch (mailErr) {
+            console.error('Error sending lead notification email:', mailErr);
         }
 
         return { success: true };
