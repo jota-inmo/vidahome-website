@@ -21,9 +21,19 @@
 - **Por qué se cambió:** Para permitir un control total sobre el ritmo visual del banner principal sin necesidad de modificar código.
 - **Resultado:** El componente `LuxuryHero` ahora respeta la duración configurada individualmente para cada video o imagen.
 
-### 5. Robustez de Scripts de Servidor
-- **Qué se cambió:** Se actualizó la inicialización del cliente Supabase en todos los scripts (`scripts/*.ts`) añadiendo `{ auth: { persistSession: false } }`.
-- **Por qué se cambió:** Evita errores de persistencia de sesión en entornos headless o de solo servidor (Node.js).
+### 6. Gestión Dinámica de Contenidos Legales
+- **Qué se cambió:** Se implementó una tabla `legal_pages` en Supabase y una nueva interfaz en el Panel Admin.
+- **Por qué se cambió:** Para que el usuario pueda editar los textos de Privacidad, Cookies y Aviso Legal en los 6 idiomas sin tocar el código.
+- **Resultado:** Las páginas `/legal/*` ahora son dinámicas y editables desde el panel.
+
+### 7. Email de Notificaciones Configurable
+- **Qué se cambió:** Se añadió un campo "Email de Notificaciones" en la configuración de la agencia y se integró con **Resend**.
+- **Por qué se cambió:** Para permitir al usuario decidir a qué dirección de correo deben llegar los leads de contacto y tasaciones.
+- **Resultado:** Los formularios de la web ahora consultan la DB para saber a quién notificar cada envío.
+
+### 8. Despliegue de Esquema SQL
+- **Qué se cambió:** Se ejecutó `sql/legal_and_settings_setup.sql` para preparar las tablas necesarias.
+- **Resultado:** Entorno de base de datos listo para el manejo de contenidos dinámicos.
 
 ---
 

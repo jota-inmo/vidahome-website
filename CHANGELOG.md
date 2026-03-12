@@ -3,6 +3,21 @@
 ## [2026-03-12] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `1fbecc0`
+- **Mensaje:** Admin: Gestión dinámica de textos legales y email de notificaciones configurable
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-12] - Admin Panel: Contenidos Legales y Notificaciones
+- **Feat**: Implementada gestión dinámica de Privacidad, Cookies y Aviso Legal en 6 idiomas.
+- **Feat**: Añadida configuración de "Email de Notificaciones" en Datos de Agencia.
+- **Fix**: Unificado el sistema de envío de emails mediante Resend para Contacto y Tasaciones.
+- **Dev**: Creado esquema `legal_pages` y utilidades de mail centralizadas.
+
+
+## [2026-03-12] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `a3e711a`
 - **Mensaje:** Fix: correct service_role key, sync property REF 2963, generate 80 property URLs, and enable custom hero video duration
 - **Autor:** Jota Inmo
