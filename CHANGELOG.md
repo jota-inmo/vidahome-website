@@ -3,6 +3,14 @@
 ## [2026-03-12] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `c32f9d6`
+- **Mensaje:** Docs: Actualizar logs de cambios con mejoras del Panel Admin
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-12] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `1fbecc0`
 - **Mensaje:** Admin: Gestión dinámica de textos legales y email de notificaciones configurable
 - **Autor:** Jota Inmo

@@ -925,23 +925,24 @@ export async function submitLeadAction(formData: {
         };
     }
 
-    const token = process.env.INMOVILLA_TOKEN;
-    const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
-
     try {
-        // Optional: Send to Inmovilla if configured
-        if (token) {
-            const api = createInmovillaApi(token, authType);
-            await api.createClient({
-                nombre: formData.nombre,
-                apellidos: `${formData.apellidos} -- Mensaje: ${formData.mensaje.substring(0, 100)}`,
-                email: formData.email,
-                telefono1: formData.telefono,
-                ...(formData.cod_ofer > 0 ? { cod_ofer: formData.cod_ofer } : {})
-            });
+        // Resolve property reference for the email
+        let propertyRef = 'General';
+        if (formData.cod_ofer > 0) {
+            try {
+                const { supabase } = await import('@/lib/supabase');
+                const { data: propData } = await supabase
+                    .from('property_metadata')
+                    .select('ref')
+                    .eq('cod_ofer', formData.cod_ofer)
+                    .maybeSingle();
+                if (propData?.ref) propertyRef = propData.ref;
+            } catch (e) {
+                console.warn('Could not resolve ref for cod_ofer:', formData.cod_ofer);
+            }
         }
 
-        // Store in Supabase
+        // Store in Supabase (Internal backup)
         const { supabase } = await import('@/lib/supabase');
         if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
             await supabase.from('leads').insert([{
@@ -961,16 +962,19 @@ export async function submitLeadAction(formData: {
             const notificationTarget = settingsData?.value || 'info@vidahome.es';
             const { sendNotificationEmail } = await import('@/lib/mail');
             
+            // Format Subject: Solicitud [REF] Nombre Apellidos
+            const subject = `Solicitud [${propertyRef}] ${formData.nombre} ${formData.apellidos}`;
+            
             await sendNotificationEmail(
                 notificationTarget,
-                `Nuevo lead de contacto: ${formData.nombre}`,
+                subject,
                 `
                 <h2>Nueva solicitud de contacto</h2>
                 <p><strong>Nombre:</strong> ${formData.nombre} ${formData.apellidos}</p>
                 <p><strong>Email:</strong> ${formData.email}</p>
                 <p><strong>Teléfono:</strong> ${formData.telefono}</p>
                 <p><strong>Mensaje:</strong> ${formData.mensaje}</p>
-                <p><strong>Propiedad (código):</strong> ${formData.cod_ofer > 0 ? formData.cod_ofer : 'General'}</p>
+                <p><strong>Propiedad (código):</strong> ${propertyRef}</p>
                 `
             );
         } catch (mailErr) {
