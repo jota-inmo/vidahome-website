@@ -108,8 +108,8 @@
         "message": "Wiadomość / Zapytanie",
         "submit": "Wyślij zapytanie",
         "submitting": "Wysyłanie zapytania...",
-        "successTitle": "Zapytanie otrzymane",
-        "successText": "Nasz zespół doradców skontaktuje się z Tobą w krótkim czasie, aby omówić Twoim zainteresowaniem tą nieruchomością.",
+        "successTitle": "Zapytanie otrzymane!",
+        "successText": "Otrzymaliśmy Twoją wiadomość i skontaktujemy się z Tobą w ciągu najbliższych godzin. Dziękujemy za zaufanie do Vida Home!",
         "errorGeneric": "Nastąpił nieoczekiwany błąd",
         "errorSubmit": "Błąd podczas wysyłania formularza"
     },

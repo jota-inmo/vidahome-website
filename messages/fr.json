@@ -108,8 +108,8 @@
         "message": "Message / Consultation",
         "submit": "Envoyer la Demande",
         "submitting": "Envoi de la Demande...",
-        "successTitle": "Demande Reçue",
-        "successText": "Nos conseillers vous contacteront dans les plus brefs délais pour gérer votre intérêt pour cette propriété.",
+        "successTitle": "Demande reçue !",
+        "successText": "Nous avons bien reçu votre message et nous vous contacterons dans les prochaines heures. Merci de faire confiance à Vida Home !",
         "errorGeneric": "Une erreur inattendue s'est produite",
         "errorSubmit": "Erreur lors de l'envoi du formulaire"
     },

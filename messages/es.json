@@ -108,8 +108,8 @@
         "message": "Mensaje / Consulta",
         "submit": "Enviar Solicitud",
         "submitting": "Enviando Solicitud...",
-        "successTitle": "Solicitud Recibida",
-        "successText": "Nuestros asesores se pondrán en contacto con usted a la brevedad posible para gestionar su interés en esta propiedad.",
+        "successTitle": "¡Solicitud recibida!",
+        "successText": "Hemos recibido tu mensaje y nos pondremos en contacto contigo en las próximas horas. ¡Gracias por confiar en Vida Home!",
         "errorGeneric": "Ocurrió un error inesperado",
         "errorSubmit": "Error al enviar el formulario"
     },

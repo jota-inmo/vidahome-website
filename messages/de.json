@@ -108,8 +108,8 @@
         "message": "Nachricht / Anfrage",
         "submit": "Anfrage senden",
         "submitting": "Anfrage wird gesendet...",
-        "successTitle": "Anfrage erhalten",
-        "successText": "Unser Beraterteam wird sich in Kürze mit dir in Verbindung setzen, um dein Interesse an dieser Immobilie zu besprechen.",
+        "successTitle": "Anfrage erhalten!",
+        "successText": "Wir haben deine Nachricht erhalten und werden uns in den nächsten Stunden bei dir melden. Vielen Dank für dein Vertrauen in Vida Home!",
         "errorGeneric": "Ein unerwarteter Fehler ist aufgetreten",
         "errorSubmit": "Fehler beim Senden des Formulars"
     },

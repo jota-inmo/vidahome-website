@@ -108,8 +108,8 @@
         "message": "Messaggio / Richiesta",
         "submit": "Invia Richiesta",
         "submitting": "Invio in corso...",
-        "successTitle": "Richiesta Ricevuta",
-        "successText": "I nostri consulenti ti contatteranno il prima possibile per gestire il tuo interesse per questo immobile.",
+        "successTitle": "Richiesta ricevuta!",
+        "successText": "Abbiamo ricevuto il tuo messaggio e ti contatteremo nelle prossime ore. Grazie per aver scelto Vida Home!",
         "errorGeneric": "Si è verificato un errore imprevisto",
         "errorSubmit": "Errore nell'invio del modulo"
     },

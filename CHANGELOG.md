@@ -3,6 +3,14 @@
 ## [2026-03-13] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `dc6f42c`
+- **Mensaje:** i18n: Traducciones del Certificado Energetico en DE, FR, IT, PL
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-13] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `f519d64`
 - **Mensaje:** Feat: Implementar Certificado Energético dinámico desde la tabla encargos
 - **Autor:** Jota Inmo
