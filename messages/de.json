@@ -88,7 +88,16 @@
         "back": "Zurück",
         "notFound": "Immobilie nicht gefunden",
         "defaultType": "Immobilie",
-        "in": "in"
+        "in": "in",
+        "energyCertificate": "Energieausweis",
+        "energyConsumption": "Energieverbrauch",
+        "energyConsumptionUnit": "kWh/m² Jahr",
+        "emissions": "Emissionen",
+        "emissionsUnit": "kg CO2/m² Jahr",
+        "inProcess": "In Bearbeitung",
+        "moreEfficient": "Effizienter",
+        "lessEfficient": "Weniger effizient",
+        "value": "Wert"
     },
     "Contact": {
         "formTitle": "Informationen anfordern",

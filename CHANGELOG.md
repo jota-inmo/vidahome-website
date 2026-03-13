@@ -3,6 +3,14 @@
 ## [2026-03-13] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `f519d64`
+- **Mensaje:** Feat: Implementar Certificado Energético dinámico desde la tabla encargos
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-13] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `e756215`
 - **Mensaje:** Fix: Simplificar lead de contacto (solo email y Supabase) y ajustar formato de asunto
 - **Autor:** Jota Inmo
