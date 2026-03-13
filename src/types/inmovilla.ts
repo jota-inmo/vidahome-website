@@ -89,6 +89,11 @@ export interface PropertyDetails {
     longitud?: string | number;
     all_descriptions?: Record<string, string>;
     habdobles?: number;
+    // Energy Certificate (from encargos table)
+    energy_label?: string | null;
+    energy_consumption?: number | string | null;
+    emissions_label?: string | null;
+    emissions_value?: number | string | null;
     // Additional fields can be added here as needed
 }
 

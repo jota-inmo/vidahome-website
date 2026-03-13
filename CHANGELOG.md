@@ -1,5 +1,13 @@
 # Changelog - Catastro Integration Fixes
 
+## [2026-03-13] - Resumen automático
+
+### 🤖 Último cambio
+- **Commit:** `e756215`
+- **Mensaje:** Fix: Simplificar lead de contacto (solo email y Supabase) y ajustar formato de asunto
+- **Autor:** Jota Inmo
+
+---
 ## [2026-03-12] - Resumen automático
 
 ### 🤖 Último cambio

@@ -145,8 +145,8 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
     try {
         const { supabase } = await import('@/lib/supabase');
 
-        // Get property metadata and features in parallel
-        const [{ data: meta, error }, { data: features }] = await Promise.all([
+        // Get property metadata, features and energy data in parallel
+        const [{ data: meta, error }, { data: features }, { data: encargo }] = await Promise.all([
             supabase
                 .from('property_metadata')
                 .select('cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion')
@@ -156,6 +156,13 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
                 .from('property_features')
                 .select('cod_ofer, habitaciones, banos, superficie')
                 .eq('cod_ofer', id)
+                .maybeSingle(),
+            supabase
+                .from('encargos')
+                .select('edi_clase_energetica, edi_consumo_energia, edi_calificacion_emisiones, edi_emisiones')
+                .eq('cod_ofer', id)
+                .order('updated_at', { ascending: false })
+                .limit(1)
                 .maybeSingle()
         ]);
 
@@ -193,6 +200,11 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
             m_cons: m_cons,
             // Use resolved poblacion from DB column (preferred) over full_data fallback
             poblacion: (meta as any).poblacion || fullData.poblacion || '',
+            // Energy Certificate
+            energy_label: encargo?.edi_clase_energetica || null,
+            energy_consumption: encargo?.edi_consumo_energia || null,
+            emissions_label: encargo?.edi_calificacion_emisiones || null,
+            emissions_value: encargo?.edi_emisiones || null,
         };
 
         return { success: true, data: propertyWithPhotos };

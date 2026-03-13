@@ -26,6 +26,73 @@ import { useTranslations, useLocale } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { getPropertyDetailAction } from '@/app/actions/inmovilla';
+import { Zap, Leaf } from 'lucide-react';
+
+const EnergyRow = ({ letter, label, color, isActive }: { letter: string, label: string, color: string, isActive: boolean }) => (
+    <div className={`flex items-center mb-1 transition-all duration-500 ${isActive ? 'scale-105 z-10' : 'opacity-40 grayscale-[0.5]'}`}>
+        <div className={`
+            relative flex items-center justify-between px-3 py-1 text-white font-bold text-xs h-6
+            ${color} 
+            ${isActive ? 'shadow-lg shadow-black/10' : ''}
+        `} style={{ width: `${60 + (letter.charCodeAt(0) - 65) * 15}px`, clipPath: 'polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%)' }}>
+            <span>{letter}</span>
+            {isActive && <span className="text-[8px] ml-2 hidden md:inline">{label}</span>}
+        </div>
+        {isActive && (
+            <div className="ml-4 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-slate-900 dark:bg-white animate-pulse" />
+                <span className="text-xs font-bold tracking-widest uppercase">{label}</span>
+            </div>
+        )}
+    </div>
+);
+
+const EnergyScale = ({ activeLetter, title, value, unit, icon }: { activeLetter: string | null | undefined, title: string, value?: string | number | null | undefined, unit: string, icon: React.ReactNode }) => {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+    const colors = ['bg-[#00A651]', 'bg-[#4DB748]', 'bg-[#B3D135]', 'bg-[#FFF200]', 'bg-[#FBB03B]', 'bg-[#F26522]', 'bg-[#ED1C24]'];
+    const t = useTranslations('Property');
+
+    const normalizedActive = activeLetter?.toUpperCase().trim();
+    const isEnTramite = !normalizedActive || normalizedActive === 'EN TRAMITE' || normalizedActive === 'EN TRÁMITE' || normalizedActive === '—' || !letters.includes(normalizedActive);
+
+    return (
+        <div className="bg-slate-50/50 dark:bg-slate-900/30 p-8 border border-slate-100 dark:border-slate-800/50 rounded-sm">
+            <div className="flex items-center gap-3 mb-6">
+                <span className="text-slate-400">{icon}</span>
+                <h4 className="text-[10px] tracking-[0.2em] uppercase font-bold text-slate-500">{title}</h4>
+            </div>
+
+            <div className="relative">
+                {letters.map((L, i) => (
+                    <EnergyRow 
+                        key={L} 
+                        letter={L} 
+                        label={L === 'A' ? t('moreEfficient') : L === 'G' ? t('lessEfficient') : ''} 
+                        color={colors[i]} 
+                        isActive={!isEnTramite && normalizedActive === L} 
+                    />
+                ))}
+
+                {isEnTramite && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-slate-950/60 backdrop-blur-[2px] border-2 border-dashed border-slate-200 dark:border-slate-800 rotate-[-5deg]">
+                        <span className="text-xl font-bold tracking-[0.3em] uppercase text-slate-400 opacity-80">{t('inProcess')}</span>
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex justify-between items-end">
+                    <span className="text-[10px] uppercase tracking-widest text-slate-400">{isEnTramite ? t('inProcess') : t('value')}</span>
+                    <span className="text-2xl font-serif">
+                        {isEnTramite ? '-' : value || '-'}
+                        {!isEnTramite && <span className="text-[10px] ml-2 font-sans font-light text-slate-400">{unit}</span>}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 
 interface PropertyDetailClientProps {
@@ -177,6 +244,32 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
                                 </div>
                             ))}
                         </div>
+
+                        {/* Certificado Energético */}
+                        <section className="mb-20">
+                            <div className="flex items-center gap-4 mb-10">
+                                <h2 className="text-2xl font-serif text-slate-900 dark:text-white">{t('energyCertificate')}</h2>
+                                <div className="h-px flex-grow bg-slate-100 dark:bg-slate-900" />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <EnergyScale 
+                                    activeLetter={property.energy_label}
+                                    title={t('energyConsumption')}
+                                    value={property.energy_consumption}
+                                    unit={t('energyConsumptionUnit')}
+                                    icon={<Zap size={18} />}
+                                />
+                                <EnergyScale 
+                                    activeLetter={property.emissions_label}
+                                    title={t('emissions')}
+                                    value={property.emissions_value}
+                                    unit={t('emissionsUnit')}
+                                    icon={<Leaf size={18} />}
+                                />
+                            </div>
+                        </section>
+
 
                         {/* Ubicación */}
                         <section className="mb-20">

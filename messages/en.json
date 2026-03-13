@@ -88,7 +88,16 @@
         "back": "Back",
         "notFound": "Property not found",
         "defaultType": "Property",
-        "in": "in"
+        "in": "in",
+        "energyCertificate": "Energy Certificate",
+        "energyConsumption": "Energy consumption",
+        "energyConsumptionUnit": "kWh/m² year",
+        "emissions": "Emissions",
+        "emissionsUnit": "kg CO2/m² year",
+        "inProcess": "In Process",
+        "moreEfficient": "More efficient",
+        "lessEfficient": "Less efficient",
+        "value": "Value"
     },
     "Contact": {
         "formTitle": "Request Information",
