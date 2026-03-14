@@ -3,6 +3,14 @@
 ## [2026-03-13] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `98853cc`
+- **Mensaje:** i18n: Actualizar mensaje de exito del formulario de contacto en 6 idiomas
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-13] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `dc6f42c`
 - **Mensaje:** i18n: Traducciones del Certificado Energetico en DE, FR, IT, PL
 - **Autor:** Jota Inmo

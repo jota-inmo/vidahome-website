@@ -24,6 +24,9 @@ jobs:
       INMOVILLA_DOMAIN: ${{ secrets.INMOVILLA_DOMAIN }}
       ARSYS_PROXY_URL: ${{ secrets.ARSYS_PROXY_URL }}
       ARSYS_PROXY_SECRET: ${{ secrets.ARSYS_PROXY_SECRET }}
+      # Fix Node 20/24 warnings and ensure compatibility with modern actions
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout code
@@ -32,7 +35,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies

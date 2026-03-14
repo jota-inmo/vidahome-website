@@ -1,11 +1,9 @@
 import * as dotenv from "dotenv";
-
-// Load environment variables FIRST before any imports
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 import { createClient } from "@supabase/supabase-js";
-import { createInmovillaApi } from "../src/lib/api/properties";
+import { InmovillaWebApiService } from "../src/lib/api/web-service";
 
 /**
  * Manual sync trigger - execute without waiting for cron
@@ -18,17 +16,21 @@ async function manualSync() {
   console.log(`⚙️  Batch size: ${batchSize} properties`);
   console.log(`📅 Timestamp: ${new Date().toISOString()}\n`);
 
-  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const INMOVILLA_TOKEN = process.env.INMOVILLA_TOKEN;
+  
+  // Try Web API credentials first
+  const NUMAGENCIA = process.env.INMOVILLA_NUMAGENCIA;
+  const PASSWORD = process.env.INMOVILLA_PASSWORD;
+  const DOMAIN = process.env.INMOVILLA_DOMAIN || 'vidahome.es';
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     console.error("❌ Missing Supabase credentials");
     process.exit(1);
   }
 
-  if (!INMOVILLA_TOKEN) {
-    console.error("❌ Missing Inmovilla token");
+  if (!NUMAGENCIA || !PASSWORD) {
+    console.error("❌ Missing Inmovilla Web API credentials (NUMAGENCIA/PASSWORD)");
     process.exit(1);
   }
 
@@ -36,8 +38,15 @@ async function manualSync() {
     auth: { persistSession: false },
   });
 
-  const authType = (process.env.INMOVILLA_AUTH_TYPE as 'Token' | 'Bearer') || 'Bearer';
-  const api = createInmovillaApi(INMOVILLA_TOKEN, authType);
+  // Use the more stable Web API Service
+  const api = new InmovillaWebApiService(
+    NUMAGENCIA, 
+    PASSWORD, 
+    process.env.INMOVILLA_ADDNUMAGENCIA || '',
+    1, // Spanish
+    '127.0.0.1',
+    DOMAIN
+  );
 
   try {
     // Get ALL properties
@@ -93,13 +102,8 @@ async function manualSync() {
           continue;
         }
 
-        let photos: any[] = [];
-        if (Array.isArray(details.fotos)) {
-          photos = details.fotos;
-        } else if (details.fotos && typeof details.fotos === 'object') {
-          photos = Object.values(details.fotos).map((f: any) => f?.url || f);
-        }
-        const mainPhoto = photos[0] || null;
+        const photos = details.fotos_lista || [];
+        const mainPhoto = details.mainImage || photos[0] || null;
 
         const upsertData = {
           cod_ofer: prop.cod_ofer,
