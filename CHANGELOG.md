@@ -3,6 +3,14 @@
 ## [2026-03-14] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `b0cc2dc`
+- **Mensaje:** fix: Migrar sync a Web API y actualizar runtime a Node 22/24 para corregir errores de GitHub Actions
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-14] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `6517dae`
 - **Mensaje:** fix: Migrar sincronización a Web API con soporte de Proxy y actualizar Node a 20/24
 - **Autor:** Jota Inmo

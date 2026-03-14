@@ -1,9 +1,9 @@
 name: Auto-sync Properties from Inmovilla
 
 on:
-  schedule:
-    # Runs daily at 07:00 Madrid time
-    - cron: '0 6 * * *'
+#  schedule:
+#    # Runs daily at 07:00 Madrid time
+#    - cron: '0 6 * * *'
   # Allow manual trigger
   workflow_dispatch:
 
