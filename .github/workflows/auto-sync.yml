@@ -2,8 +2,7 @@ name: Auto-sync Properties from Inmovilla
 
 on:
   schedule:
-    # Runs daily at 07:00 Madrid time (06:00 UTC in winter, 05:00 UTC in summer)
-    # Limited to 1 cron per day on Vercel Hobby plan
+    # Runs daily at 07:00 Madrid time
     - cron: '0 6 * * *'
   # Allow manual trigger
   workflow_dispatch:
@@ -24,7 +23,7 @@ jobs:
       INMOVILLA_DOMAIN: ${{ secrets.INMOVILLA_DOMAIN }}
       ARSYS_PROXY_URL: ${{ secrets.ARSYS_PROXY_URL }}
       ARSYS_PROXY_SECRET: ${{ secrets.ARSYS_PROXY_SECRET }}
-      # Fix Node 20/24 warnings and ensure compatibility with modern actions
+      # Force modern Node runtime for all actions to suppress v20 deprecation warnings
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -35,7 +34,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies

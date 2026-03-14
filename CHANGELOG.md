@@ -1,5 +1,13 @@
 # Changelog - Catastro Integration Fixes
 
+## [2026-03-14] - Resumen automático
+
+### 🤖 Último cambio
+- **Commit:** `6517dae`
+- **Mensaje:** fix: Migrar sincronización a Web API con soporte de Proxy y actualizar Node a 20/24
+- **Autor:** Jota Inmo
+
+---
 ## [2026-03-13] - Resumen automático
 
 ### 🤖 Último cambio
