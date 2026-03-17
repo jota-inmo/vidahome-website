@@ -3,6 +3,14 @@
 ## [2026-03-14] - Resumen automático
 
 ### 🤖 Último cambio
+- **Commit:** `eff0fb1`
+- **Mensaje:** chore: Desactivar crons de sincronización con Inmovilla
+- **Autor:** Jota Inmo
+
+---
+## [2026-03-14] - Resumen automático
+
+### 🤖 Último cambio
 - **Commit:** `b0cc2dc`
 - **Mensaje:** fix: Migrar sync a Web API y actualizar runtime a Node 22/24 para corregir errores de GitHub Actions
 - **Autor:** Jota Inmo
