@@ -185,6 +185,25 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
         const banyos = feat?.banos || fullData.banyos || 0;
         const m_cons = feat?.superficie || fullData.m_cons || 0;
 
+        // Fotos: usar Cloudinary (fotos_inmuebles ORDER BY orden) si existen,
+        // fallback al CDN de Inmovilla (property_metadata.photos)
+        let fotos_lista: string[] = meta.photos || [];
+        let main_photo: string | null = meta.main_photo || null;
+
+        if (meta.ref) {
+            const { data: cloudinaryFotos } = await supabase
+                .from('fotos_inmuebles')
+                .select('url_cloudinary')
+                .eq('ref', meta.ref)
+                .eq('visible', true)
+                .order('orden', { ascending: true });
+
+            if (cloudinaryFotos && cloudinaryFotos.length > 0) {
+                fotos_lista = cloudinaryFotos.map((f: any) => f.url_cloudinary);
+                main_photo = fotos_lista[0];
+            }
+        }
+
         // Enrich with photos if available
         const propertyWithPhotos = {
             ...fullData,
@@ -192,9 +211,9 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
             ref: meta.ref,
             descripciones: localizedDesc,
             all_descriptions: descriptions,
-            fotos_lista: meta.photos || [],
-            main_photo: meta.main_photo,
-            mainImage: meta.main_photo,
+            fotos_lista,
+            main_photo,
+            mainImage: main_photo,
             habitaciones: habitaciones,
             banyos: banyos,
             m_cons: m_cons,
