@@ -115,8 +115,38 @@ export async function POST(request: NextRequest) {
 
     // Enviar confirmación por email si se proporcionó
     if (email) {
-      // TODO: Implementar envío de email de confirmación al cliente
-      console.log('[API] Would send confirmation email to:', email);
+      try {
+        const { sendNotificationEmail } = await import('@/lib/mail');
+        await sendNotificationEmail(
+          email,
+          'Hemos recibido tu solicitud — VidaHome Gandía',
+          `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background: #1a1a2e; padding: 24px; text-align: center;">
+              <h1 style="color: #fff; margin: 0; font-size: 22px;">VidaHome Gandía</h1>
+            </div>
+            <div style="padding: 32px 24px;">
+              <h2 style="color: #1a1a2e;">Hola ${nombre},</h2>
+              <p>Hemos recibido tu solicitud de valoración correctamente. Nos pondremos en contacto contigo en las próximas <strong>24-48 horas</strong>.</p>
+              <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; margin: 24px 0;">
+                <h3 style="margin: 0 0 12px; color: #1a1a2e;">Resumen de tu solicitud</h3>
+                <p style="margin: 4px 0;"><strong>Operación:</strong> ${operationType === 'sell' ? 'Vender' : 'Alquilar'}</p>
+                <p style="margin: 4px 0;"><strong>Propiedad:</strong> ${propertyType}${propertyTypeOther ? ` (${propertyTypeOther})` : ''}</p>
+                <p style="margin: 4px 0;"><strong>Ubicación:</strong> ${via ? `${tipoVia} ${via} ${numero}, ` : ''}${municipio || ''} ${provincia ? `(${provincia})` : ''}</p>
+                ${estimation?.max ? `<p style="margin: 4px 0;"><strong>Estimación catastral:</strong> ${Number(estimation.max).toLocaleString('es-ES')} €</p>` : ''}
+              </div>
+              <p>Si tienes cualquier pregunta, puedes contactarnos en <a href="mailto:info@vidahome.es" style="color: #1a1a2e;">info@vidahome.es</a> o llamarnos al <strong>+34 962 870 870</strong>.</p>
+              <p style="margin-top: 32px;">Un saludo,<br><strong>El equipo de VidaHome Gandía</strong></p>
+            </div>
+            <div style="background: #f0f0f0; padding: 16px; text-align: center; font-size: 12px; color: #666;">
+              VidaHome Gandía S.L. · Gandía, Valencia · <a href="https://vidahome.es" style="color: #666;">vidahome.es</a>
+            </div>
+          </div>
+          `
+        );
+      } catch (mailErr) {
+        console.error('[API] Error sending confirmation email to client:', mailErr);
+      }
     }
 
     return NextResponse.json(

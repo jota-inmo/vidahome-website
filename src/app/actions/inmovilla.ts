@@ -226,7 +226,7 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
             emissions_value: encargo?.edi_emisiones || null,
         };
 
-        return { success: true, data: propertyWithPhotos };
+        return { success: true, data: propertyWithPhotos as PropertyDetails };
     } catch (error: any) {
         console.error('[Actions] getPropertyDetailAction Error:', error);
         return { success: false, error: error.message };
