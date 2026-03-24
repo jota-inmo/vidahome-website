@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SellFormState } from '@/types/sell-form';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 // Componentes de pasos
 import { StepsIndicator } from './components/StepsIndicator';
@@ -31,6 +32,7 @@ const INITIAL_STATE: SellFormState = {
 };
 
 export default function VenderPage() {
+  const t = useTranslations('Vender');
   const [step, setStep] = useState(1);
   const [formState, setFormState] = useState<SellFormState>(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
@@ -54,15 +56,15 @@ export default function VenderPage() {
   const handleNextStep = () => {
     // Validaciones por step
     if (step === 1 && !formState.operationType) {
-      toast.error('Por favor, selecciona venta o alquiler');
+      toast.error(t('toastSelectOperation'));
       return;
     }
     if (step === 2 && !formState.propertyType) {
-      toast.error('Por favor, selecciona un tipo de propiedad');
+      toast.error(t('toastSelectPropertyType'));
       return;
     }
     if (step === 3 && (!formState.provincia || !formState.municipio)) {
-      toast.error('Por favor, completa la dirección');
+      toast.error(t('toastCompleteAddress'));
       return;
     }
 
@@ -99,11 +101,11 @@ export default function VenderPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Error enviando solicitud');
+        throw new Error(error.error || t('toastErrorTitle'));
       }
 
-      toast.success('¡Solicitud enviada!', {
-        description: 'Un agente se pondrá en contacto contigo pronto para una valoración profesional.'
+      toast.success(t('toastSuccessTitle'), {
+        description: t('toastSuccessDesc')
       });
 
       // Resetear formulario
@@ -111,8 +113,8 @@ export default function VenderPage() {
       setStep(1);
     } catch (error: any) {
       console.error('Error:', error);
-      toast.error('Error al enviar solicitud', {
-        description: error.message || 'Por favor, inténtalo de nuevo'
+      toast.error(t('toastErrorTitle'), {
+        description: error.message || t('toastErrorDesc')
       });
     } finally {
       setLoading(false);
@@ -125,16 +127,16 @@ export default function VenderPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-lime-50 to-teal-50 dark:from-lime-950/20 dark:to-teal-950/20 opacity-50" />
         <div className="relative max-w-4xl mx-auto text-center">
           <span className="text-[10px] tracking-[0.5em] uppercase text-slate-400 mb-6 block">
-            Solicita tu Valoración
+            {t('subtitle')}
           </span>
           <h1 className="text-5xl md:text-7xl font-serif mb-8 text-[#0a192f] dark:text-white leading-tight">
-            ¿Cuánto vale tu <br />
+            {t('title')} <br />
             <span className="italic pr-4 bg-clip-text text-transparent bg-gradient-to-r from-lime-500 to-teal-500">
-              propiedad
+              {t('titleHighlight')}
             </span>?
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 font-light max-w-2xl mx-auto">
-            Descubre el valor de mercado de tu inmueble con datos oficiales del Catastro.
+            {t('description')}
           </p>
         </div>
       </section>
@@ -150,8 +152,8 @@ export default function VenderPage() {
           formState.propertyFromCatastro
             ? <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />
             : <div className="max-w-2xl mx-auto text-center py-16 px-8">
-                <p className="text-slate-500 mb-6">No se encontró ninguna propiedad. Por favor, vuelve a buscar la dirección.</p>
-                <button onClick={handleBackStep} className="px-6 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">← Volver a búsqueda</button>
+                <p className="text-slate-500 mb-6">{t('noPropertyFound')}</p>
+                <button onClick={handleBackStep} className="px-6 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">{t('backToSearch')}</button>
               </div>
         )}
         {step === totalSteps && <ContactFormStep formState={formState} setFormState={setFormState} onSubmit={handleSubmitContact} onBack={handleBackStep} loading={loading} />}
@@ -159,16 +161,16 @@ export default function VenderPage() {
 
       <section className="py-20 px-8 bg-slate-900 dark:bg-slate-950 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-serif mb-6">¿Preguntas?</h2>
+          <h2 className="text-3xl font-serif mb-6">{t('questionsTitle')}</h2>
           <p className="text-slate-300 mb-8">
-            Nuestro equipo está disponible para ayudarte en el proceso de valoración
+            {t('questionsDesc')}
           </p>
           <div className="flex flex-col md:flex-row gap-6 justify-center">
             <a href="tel:+34961234567" className="px-8 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">
-              Llamar ahora
+              {t('callNow')}
             </a>
             <a href="mailto:info@vidahome.es" className="px-8 py-3 border border-white rounded-lg font-medium hover:bg-white hover:text-slate-900 transition-colors">
-              Enviar email
+              {t('sendEmail')}
             </a>
           </div>
         </div>
@@ -176,5 +178,3 @@ export default function VenderPage() {
     </div>
   );
 }
-
-

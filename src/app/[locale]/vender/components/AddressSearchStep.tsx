@@ -5,6 +5,7 @@ import { SellFormState } from '@/types/sell-form';
 import { getCatastroProvinciasAction, getCatastroMunicipiosAction } from '@/app/actions';
 import { toast } from 'sonner';
 import { MapPin, Hash, Search, Home, Ruler, CheckCircle, Building2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type SearchMode = 'direccion' | 'refcatastral';
 
@@ -27,6 +28,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
   onPropertyFound,
   loading = false
 }) => {
+  const t = useTranslations('Vender');
   const [searchMode, setSearchMode] = useState<SearchMode>('direccion');
   const [provincias, setProvincias] = useState<string[]>([]);
   const [municipios, setMunicipios] = useState<string[]>([]);
@@ -45,12 +47,12 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
   const isPisoType = PISO_TYPES.includes((formState.propertyType || '').toLowerCase());
 
   useEffect(() => {
-    getCatastroProvinciasAction().then(setProvincias).catch(() => toast.error('Error al cargar provincias'));
+    getCatastroProvinciasAction().then(setProvincias).catch(() => toast.error(t('toastCatastroError')));
   }, []);
 
   useEffect(() => {
     if (!formState.provincia) return;
-    getCatastroMunicipiosAction(formState.provincia).then(setMunicipios).catch(() => toast.error('Error al cargar municipios'));
+    getCatastroMunicipiosAction(formState.provincia).then(setMunicipios).catch(() => toast.error(t('toastCatastroError')));
   }, [formState.provincia]);
 
   useEffect(() => {
@@ -86,25 +88,24 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
 
   const fetchDetails = async (rc: string) => {
     const detailsRes = await fetch(`/api/catastro/details?ref=${encodeURIComponent(rc)}`);
-    if (!detailsRes.ok) throw new Error('Error al obtener detalles');
+    if (!detailsRes.ok) throw new Error('Error');
     return await detailsRes.json();
   };
 
-  // Función principal de búsqueda, acepta parámetros opcionales para auto-trigger
   const doSearch = async (overrideNumero?: string, overrideTipoVia?: string) => {
     const numero = overrideNumero ?? formState.numero;
     const tipoVia = overrideTipoVia ?? selectedVia?.tipo ?? formState.tipoVia;
 
     if (searchMode === 'direccion' && (!formState.provincia || !formState.municipio || !formState.via || !numero)) {
-      toast.error('Completa provincia, municipio, calle y número');
+      toast.error(t('toastCompleteFields'));
       return;
     }
     if (searchMode === 'refcatastral' && refCatastralInput.replace(/\s/g, '').length < 14) {
-      toast.error('La referencia catastral debe tener al menos 14 caracteres');
+      toast.error(t('toastRefMinChars'));
       return;
     }
     if (searchMode === 'refcatastral' && refCatastralInput.replace(/\s/g, '').length > 20) {
-      toast.error('La referencia catastral no puede tener más de 20 caracteres');
+      toast.error(t('toastRefMaxChars'));
       return;
     }
 
@@ -123,13 +124,12 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
 
       if (!res.ok) {
         const err = await res.json();
-        toast.error(err.error || 'Error al buscar en el Catastro');
+        toast.error(err.error || t('toastCatastroError'));
         return;
       }
 
       const result = await res.json();
 
-      // Verificar si hay mensajes de error del Catastro
       if (result.error) {
         toast.error(result.error);
         return;
@@ -137,9 +137,9 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
 
       if (!result.found || !result.properties?.length) {
         if (searchMode === 'refcatastral') {
-          toast.error('No se encontró ninguna propiedad con esa referencia catastral. Verifica que esté correcta.');
+          toast.error(t('toastNotFoundRef'));
         } else {
-          toast.error('No se encontró ninguna propiedad con esos datos. Intenta con la referencia catastral.');
+          toast.error(t('toastNotFoundAddress'));
         }
         return;
       }
@@ -147,24 +147,21 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
       if (result.properties.length === 1) {
         const details = await fetchDetails(result.properties[0].referenciaCatastral);
         onPropertyFound(details);
-        toast.success('¡Propiedad encontrada!');
+        toast.success(t('toastPropertyFound'));
       } else {
-        // Múltiples unidades — mostrar selector
         setMultipleResults(result.properties);
       }
     } catch (error) {
       console.error('Search error:', error);
-      toast.error('Error al consultar el Catastro');
+      toast.error(t('toastCatastroError'));
     } finally {
       setSearching(false);
     }
   };
 
-  // Cuando se selecciona un número del desplegable, auto-buscar para mostrar todas las unidades
   const handleSelectNumero = (num: any) => {
     setFormState(prev => ({ ...prev, numero: num.numero, refCatastralManual: num.rc }));
     setShowNumeroSuggestions(false);
-    // Auto-búsqueda para mostrar todas las unidades en ese número
     doSearch(num.numero);
   };
 
@@ -173,9 +170,9 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
     try {
       const details = await fetchDetails(property.referenciaCatastral);
       onPropertyFound(details);
-      toast.success('¡Propiedad seleccionada!');
+      toast.success(t('toastPropertySelected'));
     } catch {
-      toast.error('Error al obtener los detalles del inmueble');
+      toast.error(t('toastPropertyDetailsError'));
     } finally {
       setSearching(false);
     }
@@ -189,13 +186,10 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           <div className="flex items-center gap-3 mb-3">
             <Building2 size={28} className="text-lime-500" />
             <h2 className="text-4xl font-serif text-slate-900 dark:text-white">
-              Elige tu vivienda
+              {t('addressSelectTitle')}
             </h2>
           </div>
-          <p className="text-slate-600 dark:text-slate-400">
-            Se encontraron <strong>{multipleResults.length} inmuebles</strong> en ese número.
-            Selecciona el que corresponde a tu propiedad.
-          </p>
+          <p className="text-slate-600 dark:text-slate-400" dangerouslySetInnerHTML={{ __html: t('addressSelectFound', { count: multipleResults.length }) }} />
         </div>
 
         <div className="space-y-3 mb-8">
@@ -240,7 +234,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           onClick={() => setMultipleResults([])}
           className="w-full py-3 text-center text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
         >
-          ← Volver a buscar por otra dirección
+          {t('addressBackToSearch')}
         </button>
       </section>
     );
@@ -250,10 +244,10 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
     <section className="max-w-2xl mx-auto px-8 py-16">
       <div className="mb-10">
         <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-3">
-          ¿Dónde está tu propiedad?
+          {t('addressTitle')}
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-lg">
-          Buscamos en el Catastro oficial para obtener los datos reales del inmueble
+          {t('addressDesc')}
         </p>
       </div>
 
@@ -268,7 +262,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           }`}
         >
           <MapPin size={16} />
-          Por dirección
+          {t('addressByAddress')}
         </button>
         <button
           onClick={() => setSearchMode('refcatastral')}
@@ -279,7 +273,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           }`}
         >
           <Hash size={16} />
-          Por ref. catastral
+          {t('addressByRef')}
         </button>
       </div>
 
@@ -288,26 +282,26 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
         <div className="space-y-4 mb-8">
           <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-sm text-blue-700 dark:text-blue-300">
             <p className="mb-2">
-              La referencia catastral se encuentra en:
+              {t('addressRefInfo')}
             </p>
             <ul className="list-disc ml-5 space-y-1">
-              <li>Recibo del IBI</li>
-              <li>Escritura de la propiedad</li>
-              <li>Sede electrónica del Catastro (<a href="https://www1.sedecatastro.gob.es/Accesos/SECAccDescargaDatos.aspx" target="_blank" rel="noopener" className="underline">enlace</a>)</li>
+              <li>{t('addressRefIbi')}</li>
+              <li>{t('addressRefEscritura')}</li>
+              <li>{t('addressRefSede')} (<a href="https://www1.sedecatastro.gob.es/Accesos/SECAccDescargaDatos.aspx" target="_blank" rel="noopener" className="underline">enlace</a>)</li>
             </ul>
             <p className="mt-2 text-xs">
-              <strong>Formato:</strong> 14 caracteres (parcela) o 20 caracteres (inmueble completo)
+              <strong>{t('addressRefFormat')}</strong>
             </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              Referencia catastral <span className="text-red-500">*</span>
+              {t('addressRefLabel')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={refCatastralInput}
               onChange={e => setRefCatastralInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-              placeholder="Ej. 7198701YJ4179N0001XF o 7198701YJ4179N"
+              placeholder={t('addressRefPlaceholder')}
               maxLength={20}
               className={`
                 w-full px-4 py-3 border rounded-lg
@@ -321,12 +315,12 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
             />
             <div className="flex items-center justify-between mt-1">
               <p className="text-xs text-slate-400">
-                {refCatastralInput.length}/20 caracteres
+                {t('addressChars', { count: refCatastralInput.length })}
                 {refCatastralInput.length >= 14 && refCatastralInput.length <= 20 && (
-                  <span className="ml-2 text-lime-600 dark:text-lime-400">✓ Longitud válida</span>
+                  <span className="ml-2 text-lime-600 dark:text-lime-400">{t('addressValidLength')}</span>
                 )}
                 {refCatastralInput.length > 0 && refCatastralInput.length < 14 && (
-                  <span className="ml-2 text-orange-600 dark:text-orange-400">Mínimo 14</span>
+                  <span className="ml-2 text-orange-600 dark:text-orange-400">{t('addressMinChars')}</span>
                 )}
               </p>
             </div>
@@ -340,16 +334,14 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           {isPisoType && (
             <div className="p-3 bg-lime-50 dark:bg-lime-950/20 border border-lime-200 dark:border-lime-900 rounded-lg flex items-start gap-2 text-sm text-lime-800 dark:text-lime-300">
               <Building2 size={16} className="flex-shrink-0 mt-0.5" />
-              <span>
-                Al seleccionar el número del edificio verás <strong>todos los pisos disponibles</strong> para que elijas el tuyo.
-              </span>
+              <span>{t('addressPisoInfo')}</span>
             </div>
           )}
 
           {/* Provincia */}
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              Provincia <span className="text-red-500">*</span>
+              {t('addressProvince')} <span className="text-red-500">*</span>
             </label>
             <select
               value={formState.provincia}
@@ -358,7 +350,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
                 focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
             >
-              <option value="">Selecciona provincia...</option>
+              <option value="">{t('addressSelectProvince')}</option>
               {provincias.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
@@ -366,7 +358,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           {/* Municipio */}
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              Municipio <span className="text-red-500">*</span>
+              {t('addressMunicipality')} <span className="text-red-500">*</span>
             </label>
             <select
               value={formState.municipio}
@@ -377,7 +369,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed
                 focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
             >
-              <option value="">Selecciona municipio...</option>
+              <option value="">{t('addressSelectMunicipality')}</option>
               {municipios.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
@@ -385,7 +377,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           {/* Tipo de vía */}
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              Tipo de vía
+              {t('addressRoadType')}
             </label>
             <select
               value={formState.tipoVia}
@@ -394,27 +386,27 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
                 focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
             >
-              <option value="">Selecciona tipo...</option>
-              <option value="CL">Calle</option>
-              <option value="AV">Avenida</option>
-              <option value="PZ">Plaza</option>
-              <option value="CA">Camino</option>
-              <option value="CR">Carrera</option>
-              <option value="CT">Carretera</option>
+              <option value="">{t('addressSelectType')}</option>
+              <option value="CL">{t('addressStreet')}</option>
+              <option value="AV">{t('addressAvenue')}</option>
+              <option value="PZ">{t('addressSquare')}</option>
+              <option value="CA">{t('addressPath')}</option>
+              <option value="CR">{t('addressRoad')}</option>
+              <option value="CT">{t('addressHighway')}</option>
             </select>
           </div>
 
           {/* Calle / Vía */}
           <div ref={viaRef} className="relative">
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              Calle / Vía <span className="text-red-500">*</span>
+              {t('addressStreetVia')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formState.via}
               onChange={e => { setFormState(prev => ({ ...prev, via: e.target.value })); setShowViaSuggestions(true); }}
               onFocus={() => setShowViaSuggestions(true)}
-              placeholder="Ej. San Francisco de Borja"
+              placeholder={t('addressStreetPlaceholder')}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
                 focus:ring-2 focus:ring-lime-400 outline-none"
@@ -438,13 +430,13 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
             )}
           </div>
 
-          {/* Número — al seleccionar, auto-busca */}
+          {/* Número */}
           <div ref={numRef} className="relative">
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-              Número <span className="text-red-500">*</span>
+              {t('addressNumber')} <span className="text-red-500">*</span>
               {isPisoType && (
                 <span className="ml-2 text-xs font-normal text-lime-600 dark:text-lime-400">
-                  — al elegir aparecerán todos los pisos del edificio
+                  {t('addressFloorHint')}
                 </span>
               )}
             </label>
@@ -453,7 +445,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               value={formState.numero}
               onChange={e => { setFormState(prev => ({ ...prev, numero: e.target.value })); setShowNumeroSuggestions(true); }}
               onFocus={() => setShowNumeroSuggestions(true)}
-              placeholder="Ej. 14"
+              placeholder={t('addressNumberPlaceholder')}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
                 focus:ring-2 focus:ring-lime-400 outline-none"
@@ -466,9 +458,9 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                     onClick={() => handleSelectNumero(num)}
                     className="w-full text-left px-4 py-2.5 hover:bg-lime-50 dark:hover:bg-lime-950/20 text-slate-900 dark:text-white text-sm border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                   >
-                    Número {num.numero}
+                    {t('addressNumberPrefix', { n: num.numero })}
                     {isPisoType && (
-                      <span className="text-xs text-slate-400 ml-2">— ver pisos disponibles</span>
+                      <span className="text-xs text-slate-400 ml-2">{t('addressSeeFloors')}</span>
                     )}
                   </button>
                 ))}
@@ -492,12 +484,12 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
         {searching || loading ? (
           <>
             <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-            Buscando en el Catastro...
+            {t('addressSearching')}
           </>
         ) : (
           <>
             <Search size={16} />
-            Buscar propiedad
+            {t('addressSearchButton')}
           </>
         )}
       </button>
@@ -510,7 +502,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
             text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-900
             transition-colors"
         >
-          Atrás
+          {t('back')}
         </button>
       </div>
     </section>

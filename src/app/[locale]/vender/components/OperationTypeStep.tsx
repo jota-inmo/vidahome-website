@@ -3,6 +3,7 @@
 import React from 'react';
 import { OperationType, SellFormState } from '@/types/sell-form';
 import { Heart, Home } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface OperationTypeStepProps {
   formState: SellFormState;
@@ -15,19 +16,20 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
   setFormState,
   onNext
 }) => {
+  const t = useTranslations('Vender');
+
   const handleSelect = (type: OperationType) => {
     setFormState(prev => ({ ...prev, operationType: type }));
-    // No auto-advance, dejar que usuario haga clic en siguiente
   };
 
   return (
     <section className="max-w-2xl mx-auto px-8 py-16">
       <div className="mb-12">
         <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-4">
-          ¿Qué quieres hacer?
+          {t('operationTitle')}
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-lg">
-          Selecciona si quieres vender o alquilar tu propiedad
+          {t('operationDesc')}
         </p>
       </div>
 
@@ -56,17 +58,17 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
               <Home size={32} strokeWidth={1.5} />
             </div>
             <h3 className="text-2xl font-serif text-slate-900 dark:text-white mb-2">
-              Vender
+              {t('operationSell')}
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-sm">
-              Quiero vender mi propiedad y conocer su valor en el mercado
+              {t('operationSellDesc')}
             </p>
             {formState.operationType === 'venta' && (
               <div className="mt-4 inline-flex items-center gap-2 text-lime-600 dark:text-lime-400 text-sm font-medium">
                 <span className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white">
                   ✓
                 </span>
-                Seleccionado
+                {t('selected')}
               </div>
             )}
           </div>
@@ -96,17 +98,17 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
               <Heart size={32} strokeWidth={1.5} />
             </div>
             <h3 className="text-2xl font-serif text-slate-900 dark:text-white mb-2">
-              Alquilar
+              {t('operationRent')}
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-sm">
-              Quiero alquilar mi propiedad y encontrar inquilinos
+              {t('operationRentDesc')}
             </p>
             {formState.operationType === 'alquiler' && (
               <div className="mt-4 inline-flex items-center gap-2 text-lime-600 dark:text-lime-400 text-sm font-medium">
                 <span className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white">
                   ✓
                 </span>
-                Seleccionado
+                {t('selected')}
               </div>
             )}
           </div>
@@ -126,7 +128,7 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
             }
           `}
         >
-          Siguiente
+          {t('next')}
         </button>
       </div>
     </section>

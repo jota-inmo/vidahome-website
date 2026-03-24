@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface StepsIndicatorProps {
     currentStep: number;
@@ -9,13 +10,15 @@ interface StepsIndicatorProps {
 }
 
 export function StepsIndicator({ currentStep, totalSteps = 6 }: StepsIndicatorProps) {
-    const stepLabels = totalSteps === 6
-        ? ['Operación', 'Tipo de propiedad', 'Ubicación', 'Detalles', 'Revisión', 'Contacto']
-        : ['Operación', 'Tipo de propiedad', 'Ubicación', 'Revisión', 'Contacto'];
-    
+    const t = useTranslations('Vender');
+
+    const stepKeys6 = ['stepsOperation', 'stepsPropertyType', 'stepsLocation', 'stepsDetails', 'stepsReview', 'stepsContact'] as const;
+    const stepKeys5 = ['stepsOperation', 'stepsPropertyType', 'stepsLocation', 'stepsReview', 'stepsContact'] as const;
+    const stepKeys = totalSteps === 6 ? stepKeys6 : stepKeys5;
+
     const steps = Array.from({ length: totalSteps }, (_, i) => ({
         id: i + 1,
-        label: stepLabels[i] || `Paso ${i + 1}`
+        label: stepKeys[i] ? t(stepKeys[i]) : t('stepsStep', { n: i + 1 })
     }));
 
     return (

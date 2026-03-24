@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { SellFormState, COUNTRY_CODES, CountryCode } from '@/types/sell-form';
 import { usePhoneValidation } from '@/lib/hooks/usePhoneValidation';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ContactFormStepProps {
   formState: SellFormState;
@@ -30,6 +31,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
   onBack,
   loading = false
 }) => {
+  const t = useTranslations('Vender');
   const initialCountry = getCountryCodeFromPhoneCode(formState.indicativoPais || '+34');
   const phone = usePhoneValidation(initialCountry);
   const [emailError, setEmailError] = useState('');
@@ -60,10 +62,9 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
       setEmailError('');
       return true;
     }
-    // Validación simple pero funcional
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = regex.test(email);
-    setEmailError(isValid ? '' : 'Email inválido');
+    setEmailError(isValid ? '' : t('contactEmailInvalid'));
     return isValid;
   };
 
@@ -75,22 +76,19 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validar nombre
     if (!formState.nombre?.trim()) {
-      alert('Por favor, introduce tu nombre');
+      alert(t('contactAlertName'));
       return;
     }
 
-    // Validar teléfono
     const phoneValidation = phone.validate();
     if (!phoneValidation.isValid) {
-      alert(phoneValidation.error || 'Teléfono inválido');
+      alert(phoneValidation.error || t('contactAlertPhone'));
       return;
     }
 
-    // Validar email si se proporcionó
     if (formState.email && !validateEmail(formState.email)) {
-      alert('Email inválido');
+      alert(t('contactAlertEmail'));
       return;
     }
 
@@ -101,10 +99,10 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
     <section className="max-w-2xl mx-auto px-8 py-16">
       <div className="mb-12">
         <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-4">
-          ¿Cómo te contactamos?
+          {t('contactTitle')}
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-lg">
-          Información para que nuestro equipo se ponga en contacto contigo
+          {t('contactDesc')}
         </p>
       </div>
 
@@ -112,13 +110,13 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
         {/* Nombre */}
         <div>
           <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Tu nombre <span className="text-red-500">*</span>
+            {t('contactName')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formState.nombre}
             onChange={e => setFormState(prev => ({ ...prev, nombre: e.target.value }))}
-            placeholder="Tu nombre..."
+            placeholder={t('contactNamePlaceholder')}
             required
             className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
@@ -129,7 +127,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
         {/* Email (opcional) */}
         <div>
           <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Email <span className="text-slate-400 text-xs">(opcional)</span>
+            {t('contactEmail')} <span className="text-slate-400 text-xs">{t('contactEmailOptional')}</span>
           </label>
           <input
             type="email"
@@ -151,7 +149,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
               {!emailError ? (
                 <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
                   <CheckCircle2 size={16} />
-                  Email válido
+                  {t('contactEmailValid')}
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
@@ -162,14 +160,14 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
             </div>
           )}
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Te enviaremos la tasación por aquí (pero también puedes contactar por teléfono)
+            {t('contactEmailHint')}
           </p>
         </div>
 
         {/* Teléfono (inteligente) */}
         <div>
           <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Teléfono <span className="text-red-500">*</span>
+            {t('contactPhone')} <span className="text-red-500">*</span>
           </label>
           <div className="flex gap-2 mb-3">
             {/* Selector de país */}
@@ -211,7 +209,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
               {!phone.error ? (
                 <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
                   <CheckCircle2 size={16} />
-                  {phone.validate().formatted || 'Teléfono válido'}
+                  {phone.validate().formatted || t('contactPhoneValid')}
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
@@ -223,19 +221,19 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
           )}
 
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-            Detectamos automáticamente tu país. Acepta diferentes formatos: +34 677 123456, 677-12-34-56, etc.
+            {t('contactPhoneHint')}
           </p>
         </div>
 
         {/* Mensaje (opcional) */}
         <div>
           <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
-            Mensaje <span className="text-slate-400 text-xs">(opcional)</span>
+            {t('contactMessage')} <span className="text-slate-400 text-xs">{t('contactEmailOptional')}</span>
           </label>
           <textarea
             value={formState.mensaje || ''}
             onChange={e => setFormState(prev => ({ ...prev, mensaje: e.target.value.slice(0, 500) }))}
-            placeholder="Ej. El piso tiene reforma moderna, ascensor, terraza con vistas..."
+            placeholder={t('contactMessagePlaceholder')}
             rows={4}
             className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
@@ -243,7 +241,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
           />
           <div className="flex justify-between items-center mt-2">
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Información que nos ayude a mejorar la tasación
+              {t('contactMessageHint')}
             </p>
             <span className="text-xs text-slate-400">
               {formState.mensaje?.length || 0}/500
@@ -264,7 +262,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
               text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-900
               transition-colors"
           >
-            Atrás
+            {t('back')}
           </button>
           <button
             type="submit"
@@ -277,7 +275,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
               }
             `}
           >
-            {loading ? 'Enviando...' : 'Enviar Solicitud'}
+            {loading ? t('contactSending') : t('contactSubmit')}
           </button>
         </div>
       </form>
@@ -285,8 +283,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
       {/* Disclaimer */}
       <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg text-center">
         <p className="text-xs text-slate-600 dark:text-slate-400">
-          Tus datos serán utilizados únicamente para contactarte sobre tu tasación. 
-          Conforme aceptas nuestra <a href="#" className="text-lime-600 dark:text-lime-400 underline">política de privacidad</a>.
+          {t('contactPrivacy')} <a href="#" className="text-lime-600 dark:text-lime-400 underline">{t('contactPrivacyLink')}</a>.
         </p>
       </div>
     </section>

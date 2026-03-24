@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { PropertyType, SellFormState, PROPERTY_TYPES } from '@/types/sell-form';
+import { useTranslations } from 'next-intl';
 
 interface PropertyTypeStepProps {
   formState: SellFormState;
@@ -10,12 +11,20 @@ interface PropertyTypeStepProps {
   onBack: () => void;
 }
 
+const CATEGORY_KEYS: Record<string, string> = {
+  'Residencial': 'propTypeResidential',
+  'Comercial': 'propTypeCommercial',
+  'Terreno': 'propTypeLand',
+  'Otros': 'propTypeOther',
+};
+
 export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
   formState,
   setFormState,
   onNext,
   onBack
 }) => {
+  const t = useTranslations('Vender');
   const categories = ['Residencial', 'Comercial', 'Terreno', 'Otros'];
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -48,10 +57,10 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
     <section className="max-w-4xl mx-auto px-8 py-16">
       <div className="mb-12">
         <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-4">
-          ¿Qué tipo de propiedad tienes?
+          {t('propTypeTitle')}
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-lg">
-          Selecciona la que mejor se ajuste a tu inmueble
+          {t('propTypeDesc')}
         </p>
       </div>
 
@@ -71,7 +80,7 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
               `}
             >
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-slate-900 dark:text-white">{category}</span>
+                <span className="font-semibold text-slate-900 dark:text-white">{t(CATEGORY_KEYS[category])}</span>
                 {isActive && (
                   <div className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     ✓
@@ -85,7 +94,7 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
 
       <div className="mb-12">
         <h3 className="text-sm uppercase tracking-[0.2em] font-medium text-slate-400 dark:text-slate-500 mb-4">
-          {activeCategory}
+          {t(CATEGORY_KEYS[activeCategory])}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {(groupedTypes[activeCategory] || []).map(type => (
@@ -119,13 +128,13 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
       {isOtra && (
         <div className="mb-12 p-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg">
           <label className="block text-sm font-medium text-slate-900 dark:text-white mb-3">
-            Especifica el tipo de propiedad
+            {t('propTypeSpecifyLabel')}
           </label>
           <input
             type="text"
             value={formState.propertyTypeOther || ''}
             onChange={e => handleOtherText(e.target.value)}
-            placeholder="Ej. Nave industrial, edificio de inversión, etc."
+            placeholder={t('propTypeSpecifyPlaceholder')}
             className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
               focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none"
@@ -142,7 +151,7 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
             text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-900
             transition-colors"
         >
-          Atrás
+          {t('back')}
         </button>
         <button
           onClick={onNext}
@@ -155,7 +164,7 @@ export const PropertyTypeStep: React.FC<PropertyTypeStepProps> = ({
             }
           `}
         >
-          Siguiente
+          {t('next')}
         </button>
       </div>
     </section>

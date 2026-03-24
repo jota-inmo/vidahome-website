@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { SellFormState } from '@/types/sell-form';
-import { CheckCircle2, MapPin, Ruler, DollarSign } from 'lucide-react';
+import { CheckCircle2, MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface PropertyReviewStepProps {
   formState: SellFormState;
@@ -17,6 +18,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
   onNext,
   onBack
 }) => {
+  const t = useTranslations('Vender');
   const prop = formState.propertyFromCatastro;
   const est = formState.estimation;
 
@@ -24,7 +26,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
     return (
       <section className="max-w-2xl mx-auto px-8 py-16">
         <div className="text-center">
-          <p className="text-slate-600 dark:text-slate-400">No se encontró propiedad</p>
+          <p className="text-slate-600 dark:text-slate-400">{t('reviewNotFound')}</p>
         </div>
       </section>
     );
@@ -34,10 +36,10 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
     <section className="max-w-2xl mx-auto px-8 py-16">
       <div className="mb-12">
         <h2 className="text-4xl font-serif text-slate-900 dark:text-white mb-4">
-          Confirmación de propiedad
+          {t('reviewTitle')}
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-lg">
-          Verifica que encontramos la propiedad correcta
+          {t('reviewDesc')}
         </p>
       </div>
 
@@ -49,7 +51,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
           </div>
           <div>
             <h3 className="text-lg font-serif text-slate-900 dark:text-white">
-              Propiedad encontrada en el Catastro
+              {t('reviewFoundTitle')}
             </h3>
           </div>
         </div>
@@ -61,7 +63,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
               <MapPin size={20} className="text-slate-400 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  Dirección
+                  {t('reviewAddress')}
                 </p>
                 <p className="text-slate-900 dark:text-white font-medium">
                   {prop.direccion}
@@ -78,7 +80,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
               </div>
               <div className="flex-1">
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  Referencia catastral
+                  {t('reviewCatastralRef')}
                 </p>
                 <p className="text-slate-900 dark:text-white font-mono text-sm">
                   {prop.referenciaCatastral}
@@ -93,7 +95,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
             {prop.superficie && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  Superficie
+                  {t('reviewArea')}
                 </p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-serif text-slate-900 dark:text-white">
@@ -108,7 +110,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
             {prop.anoConstruccion && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  Año construcción
+                  {t('reviewYear')}
                 </p>
                 <p className="text-xl font-serif text-slate-900 dark:text-white">
                   {prop.anoConstruccion}
@@ -120,7 +122,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
             {(formState.habitaciones || prop.habitaciones) && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  Habitaciones
+                  {t('reviewBedrooms')}
                 </p>
                 <p className="text-xl font-serif text-slate-900 dark:text-white">
                   {formState.habitaciones || prop.habitaciones}
@@ -132,7 +134,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
             {(formState.banos || prop.banos) && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  Baños
+                  {t('reviewBathrooms')}
                 </p>
                 <p className="text-xl font-serif text-slate-900 dark:text-white">
                   {formState.banos || prop.banos}
@@ -144,7 +146,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
             {prop.valorCatastral && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  Valor catastral
+                  {t('reviewCatastralValue')}
                 </p>
                 <p className="text-lg font-serif text-slate-900 dark:text-white">
                   €{prop.valorCatastral?.toLocaleString('es-ES')}
@@ -156,7 +158,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
             {prop.uso && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  Uso
+                  {t('reviewUse')}
                 </p>
                 <p className="text-slate-900 dark:text-white">
                   {prop.uso}
@@ -171,7 +173,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
       {formState.notasAdicionales && (
         <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-8 mb-8">
           <h3 className="text-lg font-serif text-slate-900 dark:text-white mb-6">
-            Información adicional
+            {t('reviewAdditionalInfo')}
           </h3>
           <p className="text-slate-900 dark:text-white leading-relaxed">
             {formState.notasAdicionales}
@@ -183,24 +185,24 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
       {est && (
         <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-8 mb-8">
           <h3 className="text-lg font-serif text-slate-900 dark:text-white mb-6">
-            Estimación de valor de mercado
+            {t('reviewEstimationTitle')}
           </h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-slate-600 dark:text-slate-400">Valor mínimo estimado:</span>
+              <span className="text-slate-600 dark:text-slate-400">{t('reviewEstMin')}</span>
               <span className="text-2xl font-serif text-lime-600 dark:text-lime-400">
                 €{est.min?.toLocaleString('es-ES')}
               </span>
             </div>
             <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
-              <span className="text-slate-600 dark:text-slate-400">Valor máximo estimado:</span>
+              <span className="text-slate-600 dark:text-slate-400">{t('reviewEstMax')}</span>
               <span className="text-2xl font-serif text-lime-600 dark:text-lime-400">
                 €{est.max?.toLocaleString('es-ES')}
               </span>
             </div>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-4">
-            Esta es una estimación inicial basada en datos del Catastro. Un agente profesional realizará una valoración completa tras contactarte.
+            {t('reviewEstNote')}
           </p>
         </div>
       )}
@@ -213,10 +215,10 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
           </div>
           <div>
             <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-              ¿Es esta tu propiedad?
+              {t('reviewIsYours')}
             </p>
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              Si no es correcta, vuelve atrás para realizar una nueva búsqueda. Si todo es correcto, continúa con tus datos de contacto.
+              {t('reviewIsYoursDesc')}
             </p>
           </div>
         </div>
@@ -231,15 +233,15 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
             text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-900
             transition-colors"
         >
-          Buscar otra
+          {t('reviewSearchAnother')}
         </button>
         <button
           onClick={onNext}
-          className="px-8 py-3 bg-lime-400 text-slate-900 hover:bg-lime-500 
+          className="px-8 py-3 bg-lime-400 text-slate-900 hover:bg-lime-500
             rounded-sm font-medium uppercase tracking-[0.1em] text-sm transition-all
             shadow-lg hover:shadow-xl hover:-translate-y-0.5"
         >
-          Sí, continuar con mis datos
+          {t('reviewConfirm')}
         </button>
       </div>
     </section>
