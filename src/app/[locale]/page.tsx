@@ -3,13 +3,17 @@ import { Link } from '@/i18n/routing';
 import { LuxuryHero } from '@/components/LuxuryHero';
 import { FeaturedGrid } from '@/components/FeaturedGrid';
 import { getTranslations } from 'next-intl/server';
+import { getHeroSlidesAction } from '@/app/actions';
 
 export default async function Home() {
-  const t = await getTranslations('Index');
+  const [t, heroSlides] = await Promise.all([
+    getTranslations('Index'),
+    getHeroSlidesAction(true),
+  ]);
 
   return (
     <div className="min-h-screen">
-      <LuxuryHero />
+      <LuxuryHero initialSlides={heroSlides} />
 
 
       {/* Propiedades Destacadas (Featured Properties) */}

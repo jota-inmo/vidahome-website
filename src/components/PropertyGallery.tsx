@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperType } from 'swiper';
 import { Navigation, Pagination, Autoplay, Keyboard, Zoom } from 'swiper/modules';
 import Image from 'next/image';
 import { Maximize2, X } from 'lucide-react';
@@ -18,6 +19,7 @@ interface PropertyGalleryProps {
 
 export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     if (!images || images.length === 0) {
         return (
@@ -29,6 +31,14 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
 
     const toggleFullScreen = () => setIsFullScreen(!isFullScreen);
 
+    // Only load images within 1 slide of the active slide (current, previous, next)
+    const shouldLoadSlide = (index: number) => {
+        if (index <= 1) return true; // Always load first two slides
+        const distance = Math.abs(index - activeIndex);
+        const wrapDistance = images.length - distance;
+        return Math.min(distance, wrapDistance) <= 1;
+    };
+
     return (
         <>
             <div className="relative h-[80vh] w-full overflow-hidden bg-black group">
@@ -38,18 +48,25 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
                     pagination={{ clickable: true }}
                     autoplay={{ delay: 5000 }}
                     loop={true}
+                    onSlideChange={(swiper: SwiperType) => setActiveIndex(swiper.realIndex)}
                     className="h-full w-full"
                 >
                     {images.map((img, index) => (
                         <SwiperSlide key={index} onClick={toggleFullScreen} className="cursor-pointer">
                             <div className="relative h-full w-full">
-                                <Image
-                                    src={img}
-                                    alt={`Imagen ${index + 1}`}
-                                    fill
-                                    className="object-contain"
-                                    priority={index === 0}
-                                />
+                                {shouldLoadSlide(index) ? (
+                                    <Image
+                                        src={img}
+                                        alt={`Imagen ${index + 1}`}
+                                        fill
+                                        className="object-contain"
+                                        priority={index === 0}
+                                        loading={index === 0 ? 'eager' : 'lazy'}
+                                        sizes="100vw"
+                                    />
+                                ) : (
+                                    <div className="h-full w-full bg-slate-900" />
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                             </div>
                         </SwiperSlide>

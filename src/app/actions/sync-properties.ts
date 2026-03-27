@@ -118,12 +118,12 @@ export async function syncAllPropertiesAction() {
 
         const existingIds: number[] = (existing || []).map((r: any) => r.cod_ofer);
 
-        // Mark properties no longer in Inmovilla as nodisponible
+        // Mark properties no longer in Inmovilla as nodisponible + hide from web
         const toDeactivate = existingIds.filter(id => !activeIds.has(id));
         if (toDeactivate.length > 0) {
             await supabaseAdmin
                 .from('property_metadata')
-                .update({ nodisponible: true, updated_at: new Date().toISOString() })
+                .update({ nodisponible: true, visible_web: false, updated_at: new Date().toISOString() })
                 .in('cod_ofer', toDeactivate);
             console.log(`[Sync] ⚠️  Marked ${toDeactivate.length} properties as nodisponible:`, toDeactivate);
         }
@@ -322,7 +322,7 @@ export async function syncDeltaAction(): Promise<{
         if (removedIds.length > 0) {
             await supabaseAdmin
                 .from('property_metadata')
-                .update({ nodisponible: true, updated_at: now })
+                .update({ nodisponible: true, visible_web: false, updated_at: now })
                 .in('cod_ofer', removedIds);
             // property_features may not have nodisponible column — best effort
             try {

@@ -5,7 +5,7 @@ import { Link } from '@/i18n/routing';
 import { Search } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
-import { getHeroSlidesAction, HeroSlide } from '@/app/actions';
+import type { HeroSlide } from '@/app/actions';
 import { supabase } from '@/lib/supabase';
 import { useTranslations, useLocale } from 'next-intl';
 
@@ -26,38 +26,56 @@ const DEFAULT_SLIDES: any[] = [
     }
 ];
 
-export const LuxuryHero = () => {
-    const [slides, setSlides] = useState<HeroSlide[]>([]);
+interface LuxuryHeroProps {
+    /** Pre-fetched slides from the server (SSR/ISR). Avoids client-side fetch on first load. */
+    initialSlides?: HeroSlide[];
+}
+
+export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
+    const [slides, setSlides] = useState<HeroSlide[]>(
+        initialSlides && initialSlides.length > 0
+            ? initialSlides
+            : DEFAULT_SLIDES as HeroSlide[]
+    );
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(
+        // If we got server data, mark as loaded immediately (no flash)
+        !!(initialSlides && initialSlides.length > 0)
+    );
     const t = useTranslations('Hero');
     const locale = useLocale();
 
-    const fetchSlides = async () => {
-        const dynamicSlides = await getHeroSlidesAction(true); // Only active
-        if (dynamicSlides && dynamicSlides.length > 0) {
-            setSlides(dynamicSlides);
-        } else {
-            setSlides(DEFAULT_SLIDES as HeroSlide[]);
-        }
-        setIsLoaded(true);
-    };
-
     useEffect(() => {
-        fetchSlides();
+        // If no initial slides were provided, fetch client-side (fallback)
+        if (!initialSlides || initialSlides.length === 0) {
+            import('@/app/actions').then(({ getHeroSlidesAction }) => {
+                getHeroSlidesAction(true).then((dynamicSlides) => {
+                    if (dynamicSlides && dynamicSlides.length > 0) {
+                        setSlides(dynamicSlides);
+                    }
+                    setIsLoaded(true);
+                });
+            });
+        }
 
-        // Realtime Subscription
+        // Realtime Subscription — keeps hero updated when admin edits slides
         const channel = supabase
             .channel('hero_changes')
             .on('postgres_changes', { event: '*', table: 'hero_slides', schema: 'public' }, () => {
-                fetchSlides();
+                import('@/app/actions').then(({ getHeroSlidesAction }) => {
+                    getHeroSlidesAction(true).then((dynamicSlides) => {
+                        if (dynamicSlides && dynamicSlides.length > 0) {
+                            setSlides(dynamicSlides);
+                        }
+                    });
+                });
             })
             .subscribe();
 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [initialSlides]);
 
     const getRealUrl = (path: string) => {
         if (path.startsWith('http') || path.startsWith('/')) return path;

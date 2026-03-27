@@ -54,14 +54,14 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
     try {
         const { supabase } = await import('@/lib/supabase');
 
-        // Get property metadata: activas + las marcadas no disponibles en los últimos 10 días
+        // Get property metadata: only visible_web=true, plus recently sold (nodisponible in last 10 days)
         const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
         const { data: properties, error } = await supabase
             .from('property_metadata')
             .select(`
-                cod_ofer, 
-                ref, 
-                tipo, 
+                cod_ofer,
+                ref,
+                tipo,
                 precio,
                 poblacion,
                 nodisponible,
@@ -70,6 +70,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 descriptions,
                 updated_at
             `)
+            .eq('visible_web', true)
             .or(`nodisponible.eq.false,and(nodisponible.eq.true,updated_at.gte.${tenDaysAgo})`)
             .order('nodisponible', { ascending: true })
             .order('cod_ofer', { ascending: false });
@@ -149,7 +150,7 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
         const [{ data: meta, error }, { data: features }, { data: encargo }] = await Promise.all([
             supabase
                 .from('property_metadata')
-                .select('cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion')
+                .select('cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web')
                 .eq('cod_ofer', id)
                 .single(),
             supabase
@@ -168,6 +169,11 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
 
         if (error || !meta) {
             return { success: false, error: 'Propiedad no encontrada' };
+        }
+
+        // Block detail page for deactivated or hidden properties
+        if ((meta as any).nodisponible || (meta as any).visible_web === false) {
+            return { success: false, error: 'Propiedad no disponible' };
         }
 
         // Get full property data from stored full_data
@@ -275,8 +281,10 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
         const [{ data: metadata, error }, { data: features, error: featError2 }] = await Promise.all([
             supabase
                 .from('property_metadata')
-                .select('cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion')
-                .in('cod_ofer', featuredIds),
+                .select('cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion, nodisponible, visible_web')
+                .in('cod_ofer', featuredIds)
+                .eq('visible_web', true)
+                .eq('nodisponible', false),
             supabase
                 .from('property_features')
                 .select('cod_ofer, habitaciones, banos, superficie')
