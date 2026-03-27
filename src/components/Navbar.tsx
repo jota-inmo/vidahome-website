@@ -13,12 +13,12 @@ export const Navbar = () => {
     const pathname = usePathname();
 
     const availableLocales = [
-        { id: 'es', label: 'ES', flag: '/flags/es.svg' },
-        { id: 'en', label: 'EN', flag: '/flags/en.svg' },
-        { id: 'fr', label: 'FR', flag: '/flags/fr.svg' },
-        { id: 'de', label: 'DE', flag: '/flags/de.svg' },
-        { id: 'it', label: 'IT', flag: '/flags/it.svg' },
-        { id: 'pl', label: 'PL', flag: '/flags/pl.svg' }
+        { id: 'es', label: 'ES', flag: '\u{1F1EA}\u{1F1F8}' },
+        { id: 'en', label: 'EN', flag: '\u{1F1EC}\u{1F1E7}' },
+        { id: 'fr', label: 'FR', flag: '\u{1F1EB}\u{1F1F7}' },
+        { id: 'de', label: 'DE', flag: '\u{1F1E9}\u{1F1EA}' },
+        { id: 'it', label: 'IT', flag: '\u{1F1EE}\u{1F1F9}' },
+        { id: 'pl', label: 'PL', flag: '\u{1F1F5}\u{1F1F1}' }
     ];
 
     return (
@@ -47,11 +47,7 @@ export const Navbar = () => {
                     {/* Language Switcher Dropdown */}
                     <div className="relative group border-l border-slate-200 dark:border-slate-800 pl-6 ml-2">
                         <button className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">
-                            <img 
-                                src={availableLocales.find(l => l.id === locale)?.flag} 
-                                alt={locale}
-                                className="w-5 h-4 rounded-sm object-cover"
-                            />
+                            <span className="text-base leading-none">{availableLocales.find(l => l.id === locale)?.flag}</span>
                             <span className="text-[10px] tracking-widest font-bold">{locale.toUpperCase()}</span>
                         </button>
                         
@@ -68,11 +64,7 @@ export const Navbar = () => {
                                             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                                 >
-                                    <img 
-                                        src={loc.flag} 
-                                        alt={loc.label}
-                                        className="w-5 h-4 rounded-sm object-cover"
-                                    />
+                                    <span className="text-base leading-none">{loc.flag}</span>
                                     <span className="tracking-widest">{loc.label}</span>
                                 </Link>
                             ))}
@@ -129,11 +121,7 @@ export const Navbar = () => {
                                             : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-800'
                                     }`}
                                 >
-                                    <img 
-                                        src={loc.flag} 
-                                        alt={loc.label}
-                                        className="w-6 h-4 rounded-sm object-cover"
-                                    />
+                                    <span className="text-lg leading-none">{loc.flag}</span>
                                     <span className="text-[10px]">{loc.label}</span>
                                 </Link>
                             ))}

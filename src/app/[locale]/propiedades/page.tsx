@@ -5,7 +5,7 @@ import { PropertyCatalogClient } from './PropertyCatalogClient';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations('Index');

@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { getBlogPostsAction } from '@/app/actions/blog';
@@ -44,11 +45,13 @@ export default async function BlogPage({ params }: { params: { locale: string } 
                             >
                                 {/* Image placeholder */}
                                 {post.featured_image_url && (
-                                    <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center overflow-hidden">
-                                        <img
+                                    <div className="relative w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 overflow-hidden">
+                                        <Image
                                             src={post.featured_image_url}
                                             alt={post.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            className="object-cover group-hover:scale-105 transition-transform"
                                         />
                                     </div>
                                 )}

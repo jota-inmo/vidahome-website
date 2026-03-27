@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Metadata } from 'next';
 import { getBlogPostBySlugAction } from '@/app/actions/blog';
 import { Link } from '@/i18n/routing';
@@ -57,11 +58,14 @@ export default async function BlogPostPage({
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
             {/* Hero/Featured Image */}
             {post.featured_image_url && (
-                <div className="w-full h-96 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center overflow-hidden">
-                    <img
+                <div className="relative w-full h-96 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 overflow-hidden">
+                    <Image
                         src={post.featured_image_url}
                         alt={post.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        priority
+                        sizes="100vw"
+                        className="object-cover"
                     />
                 </div>
             )}
