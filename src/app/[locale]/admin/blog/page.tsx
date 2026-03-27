@@ -1,15 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { Upload, X, Loader, AlertCircle, CheckCircle, Globe } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
 
 const LOCALES = [
     { id: 'es', label: 'Español' },
