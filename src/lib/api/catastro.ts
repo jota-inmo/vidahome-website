@@ -225,6 +225,18 @@ export class CatastroClient {
                 attempts.push({ tv: '', nv: nomVia, n: '', label: 'sin tipoVia ni numero' });
             }
 
+            // Si el nombre tiene varias palabras, probar con versiones más cortas
+            // Ej: "VERGE DELS DESAMPARATS" → probar "VERGE DELS" → "VERGE"
+            // El Catastro suele usar nombres abreviados
+            const words = nomVia.split(/\s+/);
+            if (words.length > 1) {
+                for (let i = words.length - 1; i >= 1; i--) {
+                    const shortName = words.slice(0, i).join(' ');
+                    attempts.push({ tv: tipoVia, nv: shortName, n: num, label: `parcial "${shortName}"` });
+                    attempts.push({ tv: '', nv: shortName, n: num, label: `parcial "${shortName}" sin tipoVia` });
+                }
+            }
+
             for (const attempt of attempts) {
                 const numeros = await this.getNumeros(prov, mun, attempt.tv, attempt.nv, attempt.n);
                 if (numeros.length > 0) {
