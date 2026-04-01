@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { SellFormState } from '@/types/sell-form';
-import { getCatastroProvinciasAction, getCatastroMunicipiosAction } from '@/app/actions';
+// Provincias y municipios via API routes (más fiable que server actions en client components)
 import { toast } from 'sonner';
 import { MapPin, Hash, Search, Home, Ruler, CheckCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -46,12 +46,18 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
 
 
   useEffect(() => {
-    getCatastroProvinciasAction().then(setProvincias).catch(() => toast.error(t('toastCatastroError')));
+    fetch('/api/catastro/provincias')
+      .then(r => r.json())
+      .then(setProvincias)
+      .catch(() => toast.error(t('toastCatastroError')));
   }, []);
 
   useEffect(() => {
     if (!formState.provincia) return;
-    getCatastroMunicipiosAction(formState.provincia).then(setMunicipios).catch(() => toast.error(t('toastCatastroError')));
+    fetch(`/api/catastro/municipios?provincia=${encodeURIComponent(formState.provincia)}`)
+      .then(r => r.json())
+      .then(setMunicipios)
+      .catch(() => toast.error(t('toastCatastroError')));
   }, [formState.provincia]);
 
   useEffect(() => {
