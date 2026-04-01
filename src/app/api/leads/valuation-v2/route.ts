@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   // Rate limiting — same as v1
   const rate = await checkRateLimit({
     key: 'valuation_lead',
-    limit: 5,
+    limit: 20,
     windowMs: 3600000,
   });
 
