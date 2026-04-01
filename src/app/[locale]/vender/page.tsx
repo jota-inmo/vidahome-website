@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { SellFormState } from '@/types/sell-form';
+import React, { useState, useRef, useEffect } from 'react';
+import { SellFormState, PropertyType } from '@/types/sell-form';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 
 // Componentes de pasos
 import { StepsIndicator } from './components/StepsIndicator';
 import { OperationTypeStep } from './components/OperationTypeStep';
-import { PropertyTypeStep } from './components/PropertyTypeStep';
 import { AddressSearchStep } from './components/AddressSearchStep';
-import { PropertyDetailsStep } from './components/PropertyDetailsStep';
 import { PropertyReviewStep } from './components/PropertyReviewStep';
 import { ContactFormStep } from './components/ContactFormStep';
 
@@ -38,13 +36,7 @@ export default function VenderPage() {
   const [loading, setLoading] = useState(false);
   const formContainerRef = useRef<HTMLDivElement>(null);
 
-  // Step 4 siempre está activo para todos los tipos
-  // Para piso/apartamento muestra también planta/puerta
-  const isPisoOrApartamento = useMemo(() => {
-    return formState.propertyType === 'piso' || formState.propertyType === 'apartamento';
-  }, [formState.propertyType]);
-
-  const totalSteps = 6;
+  const totalSteps = 4;
 
   // Scroll suave al contenedor del formulario cuando cambia el paso
   useEffect(() => {
@@ -54,20 +46,14 @@ export default function VenderPage() {
   }, [step]);
 
   const handleNextStep = () => {
-    // Validaciones por step
     if (step === 1 && !formState.operationType) {
       toast.error(t('toastSelectOperation'));
       return;
     }
-    if (step === 2 && !formState.propertyType) {
-      toast.error(t('toastSelectPropertyType'));
-      return;
-    }
-    if (step === 3 && (!formState.provincia || !formState.municipio)) {
+    if (step === 2 && (!formState.provincia || !formState.municipio)) {
       toast.error(t('toastCompleteAddress'));
       return;
     }
-
     if (step < totalSteps) {
       setStep(step + 1);
     }
@@ -80,14 +66,24 @@ export default function VenderPage() {
   };
 
   const handlePropertyFound = (details: any) => {
+    // Auto-detect property type from Catastro "uso" field
+    const uso = (details.property?.uso || '').toLowerCase();
+    let autoType: PropertyType = 'piso';
+    if (uso.includes('comerci')) autoType = 'local-comercial';
+    else if (uso.includes('oficina')) autoType = 'oficina';
+    else if (uso.includes('almac')) autoType = 'almacen';
+    else if (uso.includes('garaje') || uso.includes('parking')) autoType = 'garaje';
+    else if (uso.includes('suelo') || uso.includes('rústic')) autoType = 'terreno-urbano';
+
     setFormState(prev => ({
       ...prev,
       propertyFromCatastro: details.property,
-      estimation: details.estimation
+      estimation: details.estimation,
+      propertyType: prev.propertyType || autoType,
     }));
 
-    // Piso/apartamento: pasar por detalles (step 4). Resto: ir a revisión (step 5)
-    setStep(isPisoOrApartamento ? 4 : 5);
+    // Go to review step (step 3)
+    setStep(3);
   };
 
   const handleSubmitContact = async () => {
@@ -108,7 +104,6 @@ export default function VenderPage() {
         description: t('toastSuccessDesc')
       });
 
-      // Resetear formulario
       setFormState(INITIAL_STATE);
       setStep(1);
     } catch (error: any) {
@@ -145,18 +140,16 @@ export default function VenderPage() {
 
       <div ref={formContainerRef} className="py-12">
         {step === 1 && <OperationTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} />}
-        {step === 2 && <PropertyTypeStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
-        {step === 3 && <AddressSearchStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} onPropertyFound={handlePropertyFound} loading={loading} />}
-        {step === 4 && <PropertyDetailsStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />}
-        {step === 5 && (
+        {step === 2 && <AddressSearchStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} onPropertyFound={handlePropertyFound} loading={loading} />}
+        {step === 3 && (
           formState.propertyFromCatastro
-            ? <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={handleBackStep} />
+            ? <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={() => setStep(2)} />
             : <div className="max-w-2xl mx-auto text-center py-16 px-8">
                 <p className="text-slate-500 mb-6">{t('noPropertyFound')}</p>
-                <button onClick={handleBackStep} className="px-6 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">{t('backToSearch')}</button>
+                <button onClick={() => setStep(2)} className="px-6 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">{t('backToSearch')}</button>
               </div>
         )}
-        {step === totalSteps && <ContactFormStep formState={formState} setFormState={setFormState} onSubmit={handleSubmitContact} onBack={handleBackStep} loading={loading} />}
+        {step === 4 && <ContactFormStep formState={formState} setFormState={setFormState} onSubmit={handleSubmitContact} onBack={handleBackStep} loading={loading} />}
       </div>
 
       <section className="py-20 px-8 bg-slate-900 dark:bg-slate-950 text-white">

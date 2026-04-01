@@ -4,12 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SellFormState } from '@/types/sell-form';
 import { getCatastroProvinciasAction, getCatastroMunicipiosAction } from '@/app/actions';
 import { toast } from 'sonner';
-import { MapPin, Hash, Search, Home, Ruler, CheckCircle, Building2 } from 'lucide-react';
+import { MapPin, Hash, Search, Home, Ruler, CheckCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 type SearchMode = 'direccion' | 'refcatastral';
 
-const PISO_TYPES = ['piso', 'apartamento', 'planta baja', 'atico', 'dúplex', 'estudio'];
+// Property type is now auto-detected from Catastro results
 
 interface AddressSearchStepProps {
   formState: SellFormState;
@@ -44,7 +44,6 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
   const viaRef = useRef<HTMLDivElement>(null);
   const numRef = useRef<HTMLDivElement>(null);
 
-  const isPisoType = PISO_TYPES.includes((formState.propertyType || '').toLowerCase());
 
   useEffect(() => {
     getCatastroProvinciasAction().then(setProvincias).catch(() => toast.error(t('toastCatastroError')));
@@ -184,7 +183,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
       <section className="max-w-2xl mx-auto px-8 py-16">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <Building2 size={28} className="text-lime-500" />
+            <Home size={28} className="text-lime-500" />
             <h2 className="text-4xl font-serif text-slate-900 dark:text-white">
               {t('addressSelectTitle')}
             </h2>
@@ -330,14 +329,6 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
         /* ── DIRECCIÓN ── */
         <div className="space-y-5 mb-8">
 
-          {/* Aviso para pisos */}
-          {isPisoType && (
-            <div className="p-3 bg-lime-50 dark:bg-lime-950/20 border border-lime-200 dark:border-lime-900 rounded-lg flex items-start gap-2 text-sm text-lime-800 dark:text-lime-300">
-              <Building2 size={16} className="flex-shrink-0 mt-0.5" />
-              <span>{t('addressPisoInfo')}</span>
-            </div>
-          )}
-
           {/* Provincia */}
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
@@ -434,11 +425,6 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
           <div ref={numRef} className="relative">
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
               {t('addressNumber')} <span className="text-red-500">*</span>
-              {isPisoType && (
-                <span className="ml-2 text-xs font-normal text-lime-600 dark:text-lime-400">
-                  {t('addressFloorHint')}
-                </span>
-              )}
             </label>
             <input
               type="text"
@@ -459,9 +445,6 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                     className="w-full text-left px-4 py-2.5 hover:bg-lime-50 dark:hover:bg-lime-950/20 text-slate-900 dark:text-white text-sm border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                   >
                     {t('addressNumberPrefix', { n: num.numero })}
-                    {isPisoType && (
-                      <span className="text-xs text-slate-400 ml-2">{t('addressSeeFloors')}</span>
-                    )}
                   </button>
                 ))}
               </div>

@@ -14,7 +14,8 @@ export function StepsIndicator({ currentStep, totalSteps = 6 }: StepsIndicatorPr
 
     const stepKeys6 = ['stepsOperation', 'stepsPropertyType', 'stepsLocation', 'stepsDetails', 'stepsReview', 'stepsContact'] as const;
     const stepKeys5 = ['stepsOperation', 'stepsPropertyType', 'stepsLocation', 'stepsReview', 'stepsContact'] as const;
-    const stepKeys = totalSteps === 6 ? stepKeys6 : stepKeys5;
+    const stepKeys4 = ['stepsOperation', 'stepsLocation', 'stepsReview', 'stepsContact'] as const;
+    const stepKeys = totalSteps === 4 ? stepKeys4 : totalSteps === 6 ? stepKeys6 : stepKeys5;
 
     const steps = Array.from({ length: totalSteps }, (_, i) => ({
         id: i + 1,

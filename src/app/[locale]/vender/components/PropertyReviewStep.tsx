@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SellFormState } from '@/types/sell-form';
+import { SellFormState, PROPERTY_TYPES, PropertyType } from '@/types/sell-form';
 import { CheckCircle2, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -91,8 +91,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
 
           {/* Grid de datos */}
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-lime-300 dark:border-lime-700">
-            {/* Superficie */}
-            {prop.superficie && (
+            {(prop.superficie ?? 0) > 0 && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
                   {t('reviewArea')}
@@ -105,8 +104,6 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
                 </div>
               </div>
             )}
-
-            {/* Año construcción */}
             {prop.anoConstruccion && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
@@ -117,32 +114,6 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
                 </p>
               </div>
             )}
-
-            {/* Habitaciones */}
-            {(formState.habitaciones || prop.habitaciones) && (
-              <div>
-                <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  {t('reviewBedrooms')}
-                </p>
-                <p className="text-xl font-serif text-slate-900 dark:text-white">
-                  {formState.habitaciones || prop.habitaciones}
-                </p>
-              </div>
-            )}
-
-            {/* Baños */}
-            {(formState.banos || prop.banos) && (
-              <div>
-                <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
-                  {t('reviewBathrooms')}
-                </p>
-                <p className="text-xl font-serif text-slate-900 dark:text-white">
-                  {formState.banos || prop.banos}
-                </p>
-              </div>
-            )}
-
-            {/* Valor catastral */}
             {prop.valorCatastral && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
@@ -153,8 +124,6 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
                 </p>
               </div>
             )}
-
-            {/* Uso */}
             {prop.uso && (
               <div>
                 <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 mb-1">
@@ -168,18 +137,6 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Información adicional proporcionada */}
-      {formState.notasAdicionales && (
-        <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-8 mb-8">
-          <h3 className="text-lg font-serif text-slate-900 dark:text-white mb-6">
-            {t('reviewAdditionalInfo')}
-          </h3>
-          <p className="text-slate-900 dark:text-white leading-relaxed">
-            {formState.notasAdicionales}
-          </p>
-        </div>
-      )}
 
       {/* Estimación de valor */}
       {est && (
@@ -207,6 +164,91 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
         </div>
       )}
 
+      {/* Detalles adicionales */}
+      <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-8 mb-8">
+        <h3 className="text-lg font-serif text-slate-900 dark:text-white mb-6">
+          {t('detailsTitle')}
+        </h3>
+        <div className="space-y-5">
+          {/* Tipo de propiedad (auto-detectado, editable) */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              {t('propTypeTitle')}
+            </label>
+            <select
+              value={formState.propertyType}
+              onChange={e => setFormState(prev => ({ ...prev, propertyType: e.target.value as PropertyType }))}
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+            >
+              <option value="">{t('detailsSelect')}</option>
+              {PROPERTY_TYPES.map(type => (
+                <option key={type.value} value={type.value}>{type.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Habitaciones */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              {t('detailsBedrooms')}
+            </label>
+            <select
+              value={formState.habitaciones || ''}
+              onChange={e => setFormState(prev => ({ ...prev, habitaciones: e.target.value ? Number(e.target.value) : undefined }))}
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+            >
+              <option value="">{t('detailsSelect')}</option>
+              <option value="1">{t('detailsBedroom1')}</option>
+              <option value="2">{t('detailsBedrooms2')}</option>
+              <option value="3">{t('detailsBedrooms3')}</option>
+              <option value="4">{t('detailsBedrooms4')}</option>
+              <option value="5">{t('detailsBedrooms5')}</option>
+              <option value="6">{t('detailsBedrooms6')}</option>
+            </select>
+          </div>
+
+          {/* Baños */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              {t('detailsBathrooms')}
+            </label>
+            <select
+              value={formState.banos || ''}
+              onChange={e => setFormState(prev => ({ ...prev, banos: e.target.value ? Number(e.target.value) : undefined }))}
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+            >
+              <option value="">{t('detailsSelect')}</option>
+              <option value="1">{t('detailsBathroom1')}</option>
+              <option value="2">{t('detailsBathrooms2')}</option>
+              <option value="3">{t('detailsBathrooms3')}</option>
+              <option value="4">{t('detailsBathrooms4')}</option>
+            </select>
+          </div>
+
+          {/* Notas */}
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
+              {t('detailsAdditional')} <span className="text-slate-400 font-normal">{t('detailsOptional')}</span>
+            </label>
+            <textarea
+              value={formState.notasAdicionales || ''}
+              onChange={e => setFormState(prev => ({ ...prev, notasAdicionales: e.target.value }))}
+              placeholder={t('detailsAdditionalPlaceholder')}
+              rows={3}
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
+                bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+                focus:ring-2 focus:ring-lime-400 outline-none resize-none text-sm leading-relaxed"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Confirmación */}
       <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-6 mb-8">
         <div className="flex gap-3">
@@ -224,7 +266,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
         </div>
       </div>
 
-      {/* Botones de acción */}
+      {/* Botones */}
       <div className="flex gap-4 justify-center">
         <button
           onClick={onBack}
