@@ -396,7 +396,50 @@ export class CatastroClient {
             const xmlText = await response.text();
             const properties: CatastroProperty[] = [];
 
-            // Extraer todos los bloques <rcdnp>...</rcdnp> del XML
+            // Check for errors
+            if (xmlText.includes('<lerr>')) {
+                const cod = this.xmlVal(xmlText, 'cod');
+                const des = this.xmlVal(xmlText, 'des');
+                console.warn(`[Catastro] searchPropertiesByRC error: ${cod} - ${des}`);
+                return { found: false, properties: [], error: des || 'No encontrado' };
+            }
+
+            // For 20-char RCs: response has <bico> (single property)
+            if (xmlText.includes('<bico>')) {
+                const bicoMatch = xmlText.match(/<bico>([\s\S]*?)<\/bico>/);
+                if (bicoMatch) {
+                    const bico = bicoMatch[1];
+                    const direccion = this.xmlVal(bico, 'ldt') || 'Dirección no disponible';
+                    const superficie = parseInt(this.xmlVal(bico, 'sfc')) || 0;
+                    const anoConstruccion = parseInt(this.xmlVal(bico, 'ant')) || undefined;
+                    const uso = this.xmlVal(bico, 'luso') || 'Residencial';
+                    let valorCatastral = undefined;
+                    const vcat = this.xmlVal(bico, 'vcat');
+                    if (vcat) valorCatastral = parseFloat(vcat.replace(',', '.')) || undefined;
+
+                    properties.push({
+                        referenciaCatastral: cleanRc,
+                        direccion: direccion.trim(),
+                        superficie,
+                        anoConstruccion,
+                        uso,
+                        clase: 'Urbano',
+                        valorCatastral,
+                        habitaciones: 1,
+                        banos: 1,
+                        aseos: 0,
+                        terraza: false,
+                        reformado: false,
+                        ascensor: false,
+                        piscina: false,
+                        jardin: false
+                    });
+                    console.log(`[Catastro] searchPropertiesByRC: found bico for ${cleanRc}`);
+                    return { found: true, properties };
+                }
+            }
+
+            // For 14-char RCs (parcela): response has <rcdnp> blocks (multiple properties)
             const rcdnpBlocks = xmlText.match(/<rcdnp>([\s\S]*?)<\/rcdnp>/g) || [];
             console.log(`[Catastro] XML: encontrados ${rcdnpBlocks.length} inmuebles en parcela`);
 
