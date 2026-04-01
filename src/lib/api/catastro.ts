@@ -385,32 +385,8 @@ export class CatastroClient {
         try {
             const cleanRc = rc.replace(/\s/g, '').toUpperCase();
 
-            // Si la RC tiene 20 chars, usar el endpoint JSON normal
-            if (cleanRc.length === 20) {
-                const params = new URLSearchParams({ RefCat: cleanRc });
-                const url = `${this.infoRefUrl}/Consulta_DNPRC?${params}`;
-                console.log(`[Catastro] searchPropertiesByRC (JSON, RC completa): ${url}`);
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`API Error ${response.status}`);
-                const text = await response.text();
-                let data;
-                try { data = JSON.parse(text); } catch { return { found: false, properties: [] }; }
-                const root = data.consulta_dnprcResult || data.consulta_dnp || data;
-                if (root.lerr) {
-                    const err = root.lerr[0] || (root.lerr.err ? root.lerr.err[0] : null);
-                    if (err) return { found: false, properties: [], error: err.des };
-                }
-                const properties: CatastroProperty[] = [];
-                if (root.bico) {
-                    properties.push(this.mapJsonToProperty(root.bico.bi || root.bico));
-                } else if (root.lrcdnp) {
-                    const results = Array.isArray(root.lrcdnp.rcdnp) ? root.lrcdnp.rcdnp : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
-                    properties.push(...results.map((item: any) => this.mapJsonToProperty(item)));
-                }
-                return { found: properties.length > 0, properties };
-            }
-
-            // Para RCs de parcela (14 chars), usar el endpoint SOAP XML
+            // Always use XML endpoint (JSON endpoint returns 404 since ~2026)
+            // Para RCs de parcela (14 chars) o completas (20 chars), usar el endpoint SOAP XML
             const xmlUrl = `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RC=${cleanRc}`;
             console.log(`[Catastro] searchPropertiesByRC (XML, parcela ${cleanRc.length} chars): ${xmlUrl}`);
 
