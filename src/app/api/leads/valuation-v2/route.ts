@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
       user_name: nombre,
       user_email: email || null,
       user_phone: telefono,
-      user_country_code: indicativoPais,
+      user_country_code: indicativoPais || '+34',
       user_message: mensaje,
-      progress_step: 6,
+      progress_step: 4,
       completed: true,
       estimated_value: estimation?.max ? parseFloat(estimation.max.toString()) : undefined,
       status: 'new'
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('[API] Error inserting lead:', error);
       return NextResponse.json(
-        { error: 'Error al guardar la solicitud' },
+        { error: 'Error al guardar la solicitud', detail: error.message, code: error.code },
         { status: 500 }
       );
     }
