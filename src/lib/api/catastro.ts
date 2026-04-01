@@ -180,12 +180,12 @@ export class CatastroClient {
     }
 
     /**
-     * Buscar inmueble por dirección
-     * Usa el servicio Consulta_DNPLOC en formato JSON
+     * Buscar inmueble por dirección.
+     * Estrategia: primero ObtenerNumerero (callejero) para obtener la RC de parcela,
+     * luego searchPropertiesByRC (XML) para detalles — más fiable que Consulta_DNPLOC.
      */
     async searchByAddress(address: CatastroAddress): Promise<CatastroSearchResult> {
         try {
-            // Normalizar a mayúsculas como prefiere el Catastro
             const prov = address.provincia.toUpperCase();
             const mun = address.municipio.toUpperCase();
             const num = address.numero.toUpperCase();
@@ -203,168 +203,46 @@ export class CatastroClient {
                         break;
                     }
                 }
-                if (!tipoVia) tipoVia = 'CL'; // Default
+                if (!tipoVia) tipoVia = 'CL';
             } else {
-                // Si YA tenemos tipoVia, nos aseguramos de que no esté repetido en el nombre
-                // Ejemplo: tipoVia="CL", nomVia="CL MAJOR" -> nomVia="MAJOR"
                 const prefix = tipoVia + ' ';
                 if (nomVia.startsWith(prefix)) {
                     nomVia = nomVia.substring(prefix.length).trim();
                 }
             }
 
-            const params = new URLSearchParams({
-                Provincia: prov,
-                Municipio: mun,
-                TipoVia: tipoVia,
-                NomVia: nomVia,
-                Numero: num
-            });
+            console.log(`[Catastro] searchByAddress: ${tipoVia} ${nomVia} ${num}, ${mun} (${prov})`);
 
-            // IMPORTANTE: Consulta_DNPLOC pertenece al servicio Callejero, NO al de InformacionReferencia
-            const url = `${this.callejeroUrl}/Consulta_DNPLOC?${params}`;
-            console.log(`[Catastro] Buscando dirección: ${url}`);
-
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                console.error(`[Catastro] Error HTTP ${response.status}: ${response.statusText}`);
-                if (response.status === 503) {
-                    return {
-                        found: false,
-                        properties: [],
-                        error: 'El servicio del Catastro no está disponible temporalmente. Inténtalo más tarde.'
-                    };
-                }
-                throw new Error(`Catastro API error: ${response.status} ${response.statusText}`);
+            // Estrategia: ObtenerNumerero → RC → searchPropertiesByRC (XML)
+            // Intentamos varias combinaciones para maximizar resultados
+            const attempts: Array<{ tv: string; nv: string; n: string; label: string }> = [
+                { tv: tipoVia, nv: nomVia, n: num, label: 'exact' },
+                { tv: '', nv: nomVia, n: num, label: 'sin tipoVia' },
+            ];
+            // Si el número no es 1, también probamos con número vacío para traer todos
+            if (num !== '1' && num !== '') {
+                attempts.push({ tv: tipoVia, nv: nomVia, n: '', label: 'sin numero' });
+                attempts.push({ tv: '', nv: nomVia, n: '', label: 'sin tipoVia ni numero' });
             }
 
-            const text = await response.text();
-            console.log(`[Catastro] Respuesta raw: ${text.substring(0, 500)}...`);
+            for (const attempt of attempts) {
+                const numeros = await this.getNumeros(prov, mun, attempt.tv, attempt.nv, attempt.n);
+                if (numeros.length > 0) {
+                    // Priorizar coincidencia exacta en número
+                    const exactMatch = numeros.find(n => String(n.numero).trim() === String(num).trim());
+                    const matchToUse = exactMatch || numeros[0];
 
-            if (text.includes('Sistema no disponible')) {
-                return {
-                    found: false,
-                    properties: [],
-                    error: 'El servicio del Catastro no está disponible temporalmente.'
-                };
-            }
-
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                console.error('[Catastro] Error parseando JSON:', text.substring(0, 100));
-                return {
-                    found: false,
-                    properties: [],
-                    error: 'Error al procesar la respuesta del Catastro'
-                };
-            }
-
-            // Desempaquetar respuesta
-            const root = data.consulta_dnplocResult || data.consulta_dnp || data;
-
-            // Verificar errores
-            if (root.lerr) {
-                const err = root.lerr[0] || (root.lerr.err ? root.lerr.err[0] : null);
-                if (err) {
-                    const msg = err.des || 'Error desconocido';
-                    console.warn(`[Catastro] API devolvió error: ${err.cod} - ${msg}`);
-
-
-                    // Si el error es "43 - EL NUMERO NO EXISTE", intentamos recuperar la RC a través del callejero
-                    // Esto maneja casos donde DNPLOC falla pero el número sí está registrado en la parcela.
-                    if (err.cod === '43') { // Error 43: EL NUMERO NO EXISTE
-                        console.log(`[Catastro] Error 43 para ${tipoVia} ${nomVia} ${num}. Intentando fallback agresivo...`);
-
-                        try {
-                            // Intento A: Número exacto con TipoVia
-                            let numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, num);
-
-                            // Intento B: Número exacto SIN TipoVia (muy común que el tipo cause fallos)
-                            if (numeros.length === 0 && tipoVia) {
-                                console.log(`[Catastro] Fallback: Reintentando sin TipoVia...`);
-                                numeros = await this.getNumeros(prov, mun, '', nomVia, num);
-                            }
-
-                            // Intento C: Número '1' como wildcard para pillar la parcela si el número exacto no está mapeado
-                            if (numeros.length === 0 && num !== '1') {
-                                console.log(`[Catastro] Fallback: Probando con número 1...`);
-                                numeros = await this.getNumeros(prov, mun, tipoVia, nomVia, '1');
-                                if (numeros.length === 0 && tipoVia) {
-                                    numeros = await this.getNumeros(prov, mun, '', nomVia, '1');
-                                }
-                            }
-
-                            if (numeros.length > 0) {
-                                // Priorizar el que coincida en número si hemos traído varios
-                                const exactMatch = numeros.find(n => String(n.numero).trim() === String(num).trim());
-                                const matchToUse = exactMatch || numeros[0];
-
-                                if (matchToUse && matchToUse.rc) {
-                                    console.log(`[Catastro] Fallback exitoso. RC: ${matchToUse.rc}. Buscando inmuebles...`);
-                                    return await this.searchPropertiesByRC(matchToUse.rc);
-                                }
-                            }
-                        } catch (fbError) {
-                            console.warn('[Catastro] Falló recuperación por callejero:', fbError);
-                        }
+                    if (matchToUse?.rc) {
+                        console.log(`[Catastro] searchByAddress (${attempt.label}): RC ${matchToUse.rc}. Buscando inmuebles...`);
+                        return await this.searchPropertiesByRC(matchToUse.rc);
                     }
-
-                    if (err.cod === '43') {
-                        return {
-                            found: false,
-                            properties: [],
-                            error: 'No se encontró el número exacto en esa calle.'
-                        };
-                    }
-
-                    return {
-                        found: false,
-                        properties: [],
-                        error: `Catastro: ${msg}`
-                    };
                 }
+                console.log(`[Catastro] searchByAddress (${attempt.label}): sin resultados, siguiente intento...`);
             }
 
-            // Si hay lista de inmuebles (lrcdnp)
-            if (root.lrcdnp) {
-                const results = Array.isArray(root.lrcdnp.rcdnp)
-                    ? root.lrcdnp.rcdnp
-                    : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
-
-                if (results.length === 0 && root.lrcdnp) {
-                    // Fallback si la estructura es diferente
-                    const possibleList = Array.isArray(root.lrcdnp) ? root.lrcdnp : [root.lrcdnp];
-                    const properties = possibleList.map((item: any) => this.mapJsonToProperty(item));
-                    return { found: properties.length > 0, properties };
-                }
-
-                const properties = results.map((item: any) => this.mapJsonToProperty(item));
-                console.log(`[Catastro] Encontradas ${properties.length} propiedades`);
-                return {
-                    found: properties.length > 0,
-                    properties
-                };
-            }
-
-            // Si hay un solo inmueble (bico)
-            if (root.bico) {
-                const bicoData = root.bico.bi || root.bico;
-                const prop = this.mapJsonToProperty(bicoData);
-                console.log(`[Catastro] Encontrada 1 propiedad (bico)`);
-                return {
-                    found: true,
-                    properties: [prop]
-                };
-            }
-
-            return {
-                found: false,
-                properties: [],
-                error: 'No se encontraron resultados'
-            };
+            // Último recurso: Consulta_DNPLOC (JSON) — funciona para algunos casos especiales
+            console.log(`[Catastro] searchByAddress: todos los intentos por callejero fallaron, probando Consulta_DNPLOC...`);
+            return await this.searchByAddressDNPLOC(prov, mun, tipoVia, nomVia, num);
 
         } catch (error) {
             console.error('[Catastro] Fallo en búsqueda por dirección:', error);
@@ -373,6 +251,70 @@ export class CatastroClient {
                 properties: [],
                 error: error instanceof Error ? error.message : 'Error desconocido'
             };
+        }
+    }
+
+    /**
+     * Fallback: Consulta_DNPLOC (JSON) — menos fiable pero cubre casos especiales
+     */
+    private async searchByAddressDNPLOC(
+        prov: string, mun: string, tipoVia: string, nomVia: string, num: string
+    ): Promise<CatastroSearchResult> {
+        try {
+            const params = new URLSearchParams({
+                Provincia: prov, Municipio: mun, TipoVia: tipoVia, NomVia: nomVia, Numero: num
+            });
+            const url = `${this.callejeroUrl}/Consulta_DNPLOC?${params}`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                if (response.status === 503) {
+                    return { found: false, properties: [], error: 'El servicio del Catastro no está disponible temporalmente.' };
+                }
+                throw new Error(`Catastro API error: ${response.status}`);
+            }
+
+            const text = await response.text();
+            if (text.includes('Sistema no disponible')) {
+                return { found: false, properties: [], error: 'El servicio del Catastro no está disponible temporalmente.' };
+            }
+
+            let data;
+            try { data = JSON.parse(text); } catch {
+                return { found: false, properties: [], error: 'Error al procesar la respuesta del Catastro' };
+            }
+
+            const root = data.consulta_dnplocResult || data.consulta_dnp || data;
+
+            if (root.lerr) {
+                const err = root.lerr[0] || root.lerr?.err?.[0];
+                if (err) {
+                    console.warn(`[Catastro] DNPLOC error: ${err.cod} - ${err.des}`);
+                    return {
+                        found: false,
+                        properties: [],
+                        error: err.cod === '43'
+                            ? 'No se encontró esa dirección en el Catastro. Prueba con la referencia catastral.'
+                            : `Catastro: ${err.des || 'Error desconocido'}`
+                    };
+                }
+            }
+
+            if (root.lrcdnp) {
+                const results = Array.isArray(root.lrcdnp.rcdnp)
+                    ? root.lrcdnp.rcdnp : (root.lrcdnp.rcdnp ? [root.lrcdnp.rcdnp] : []);
+                const properties = results.map((item: any) => this.mapJsonToProperty(item));
+                return { found: properties.length > 0, properties };
+            }
+
+            if (root.bico) {
+                const prop = this.mapJsonToProperty(root.bico.bi || root.bico);
+                return { found: true, properties: [prop] };
+            }
+
+            return { found: false, properties: [], error: 'No se encontró esa dirección. Prueba con la referencia catastral.' };
+        } catch (error) {
+            return { found: false, properties: [], error: error instanceof Error ? error.message : 'Error desconocido' };
         }
     }
 
