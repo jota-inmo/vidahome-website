@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Crear registro en Supabase
     const leadData = {
-      operation_type: operationType || 'sell',
+      operation_type: operationType || 'venta',
       property_type: propertyType || 'piso',
       property_type_other: propertyTypeOther,
       provincia: provincia || '',
