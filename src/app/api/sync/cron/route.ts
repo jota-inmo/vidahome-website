@@ -10,11 +10,11 @@ export const maxDuration = 60;
  * Runs delta sync: detects new, removed, and reactivated properties in Inmovilla.
  */
 export async function GET(request: NextRequest) {
-    // Verify Vercel cron secret (if configured)
+    // Verify Vercel cron secret (mandatory)
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
