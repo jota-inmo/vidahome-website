@@ -1,6 +1,5 @@
 'use server';
 
-import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { BlogPost, BlogListParams, BlogCategory } from '@/types/blog';
 
@@ -20,7 +19,7 @@ export async function getBlogPostsAction(
     try {
         const offset = (page - 1) * limit;
 
-        const { data, count, error } = await supabase
+        const { data, count, error } = await supabaseAdmin
             .from('blog_posts')
             .select('*', { count: 'exact' })
             .eq('locale', locale)
@@ -55,7 +54,7 @@ export async function getBlogPostBySlugAction(
     error?: string;
 }> {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('blog_posts')
             .select('*')
             .eq('locale', locale)
@@ -88,7 +87,7 @@ export async function getBlogCategoriesAction(
     error?: string;
 }> {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('blog_categories')
             .select('*')
             .eq('locale', locale)
@@ -141,7 +140,7 @@ export async function getBlogPostsByCategoryAction(
         }
 
         // Then get posts for that category
-        const { data, count, error } = await supabase
+        const { data, count, error } = await supabaseAdmin
             .from('blog_posts')
             .select('*', { count: 'exact' })
             .eq('locale', locale)
@@ -182,7 +181,7 @@ export async function searchBlogPostsAction(
     try {
         const offset = (page - 1) * limit;
 
-        const { data, count, error } = await supabase
+        const { data, count, error } = await supabaseAdmin
             .from('blog_posts')
             .select('*', { count: 'exact' })
             .eq('locale', locale)
@@ -221,7 +220,7 @@ export async function getAdminBlogPostsAction(
     error?: string;
 }> {
     try {
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await supabaseAdminAdmin
             .from('blog_posts')
             .select('*')
             .eq('locale', locale)
@@ -264,7 +263,7 @@ export async function createBlogPostAction(post: {
     category_id?: string | null;
 }): Promise<{ success: boolean; data?: BlogPost; error?: string }> {
     try {
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await supabaseAdminAdmin
             .from('blog_posts')
             .insert({
                 ...post,
