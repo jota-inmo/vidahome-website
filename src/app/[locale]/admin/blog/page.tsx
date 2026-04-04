@@ -283,9 +283,19 @@ export default function BlogAdminPage() {
                         ← Volver
                     </button>
 
-                    <h1 className="text-5xl font-serif mb-12">
-                        {editingPost.id ? 'Editar Artículo' : 'Nuevo Artículo'}
-                    </h1>
+                    <div className="flex items-center justify-between mb-12">
+                        <h1 className="text-5xl font-serif">
+                            {editingPost.id ? 'Editar Artículo' : 'Nuevo Artículo'}
+                        </h1>
+                        <a
+                            href="https://claude.site/public/artifacts/c7207ed3-9bd0-4718-84ee-71afa54c7fe0"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-6 py-3 bg-gradient-to-r from-orange-400 to-amber-500 text-white font-bold text-sm uppercase tracking-wider rounded hover:from-orange-500 hover:to-amber-600 transition-all shadow-md"
+                        >
+                            Generar con IA
+                        </a>
+                    </div>
 
                     <div className="space-y-8">
                         {/* Title */}
