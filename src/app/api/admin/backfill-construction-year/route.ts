@@ -19,7 +19,15 @@ export const maxDuration = 300; // 5 min — Vercel Pro
  * Processes 5 properties per call with 10s delays.
  * Call repeatedly until remaining = 0.
  */
+// GET for Vercel Cron, POST for manual calls
+export async function GET(request: NextRequest) {
+    return handleBackfill(request);
+}
 export async function POST(request: NextRequest) {
+    return handleBackfill(request);
+}
+
+async function handleBackfill(request: NextRequest) {
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
     const adminPassword = process.env.ADMIN_PASSWORD;
