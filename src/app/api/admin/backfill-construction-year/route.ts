@@ -41,12 +41,31 @@ async function handleBackfill(request: NextRequest) {
     const DELAY_MS = 10000; // 10s between Catastro calls
 
     try {
-        // Find properties without ano_construccion (0 = already tried, skip those too)
+        // Find active properties without ano_construccion
+        // Join: property_features (no ano_construccion) + property_metadata (not nodisponible)
+        const { data: metadataActive, error: metaError } = await supabaseAdmin
+            .from('property_metadata')
+            .select('cod_ofer')
+            .eq('nodisponible', false);
+
+        if (metaError) throw metaError;
+
+        const activeCodOfers = (metadataActive || []).map((r: any) => r.cod_ofer);
+
+        if (activeCodOfers.length === 0) {
+            return NextResponse.json({
+                success: true,
+                message: 'No hay propiedades activas.',
+                processed: 0,
+                remaining: 0,
+            });
+        }
+
         const { data: properties, error: fetchError } = await supabaseAdmin
             .from('property_features')
             .select('cod_ofer')
             .is('ano_construccion', null)
-            .eq('nodisponible', false)
+            .in('cod_ofer', activeCodOfers)
             .limit(BATCH_SIZE);
 
         if (fetchError) throw fetchError;
@@ -65,7 +84,7 @@ async function handleBackfill(request: NextRequest) {
             .from('property_features')
             .select('cod_ofer', { count: 'exact', head: true })
             .is('ano_construccion', null)
-            .eq('nodisponible', false);
+            .in('cod_ofer', activeCodOfers);
 
         // Get full_data for these properties
         const codOfers = properties.map((p: any) => p.cod_ofer);
