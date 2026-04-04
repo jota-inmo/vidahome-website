@@ -1,6 +1,7 @@
 'use server';
 
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { BlogPost, BlogListParams, BlogCategory } from '@/types/blog';
 
 /**
@@ -201,6 +202,176 @@ export async function searchBlogPostsAction(
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Error searching blog posts',
+        };
+    }
+}
+
+// ============================================================================
+// ADMIN CRUD OPERATIONS (use supabaseAdmin to bypass RLS)
+// ============================================================================
+
+/**
+ * Fetch ALL blog posts for admin (including drafts)
+ */
+export async function getAdminBlogPostsAction(
+    locale: string
+): Promise<{
+    success: boolean;
+    data?: BlogPost[];
+    error?: string;
+}> {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('blog_posts')
+            .select('*, category:blog_categories(*)')
+            .eq('locale', locale)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return { success: true, data: (data || []) as BlogPost[] };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Error fetching posts',
+        };
+    }
+}
+
+/**
+ * Create a new blog post
+ */
+export async function createBlogPostAction(post: {
+    title: string;
+    slug: string;
+    content: string;
+    excerpt: string;
+    locale: string;
+    author: string;
+    meta_description: string;
+    meta_keywords: string;
+    featured_image_url: string;
+    featured_image_alt: string;
+    is_published: boolean;
+    category_id?: string | null;
+}): Promise<{ success: boolean; data?: BlogPost; error?: string }> {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('blog_posts')
+            .insert({
+                ...post,
+                published_at: post.is_published ? new Date().toISOString() : null,
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return { success: true, data: data as BlogPost };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Error creating post',
+        };
+    }
+}
+
+/**
+ * Update an existing blog post
+ */
+export async function updateBlogPostAction(
+    id: string,
+    updates: {
+        title: string;
+        slug: string;
+        content: string;
+        excerpt: string;
+        meta_description: string;
+        meta_keywords: string;
+        featured_image_url: string;
+        featured_image_alt: string;
+        is_published: boolean;
+        category_id?: string | null;
+        published_at?: string | null;
+    }
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const { error } = await supabaseAdmin
+            .from('blog_posts')
+            .update({
+                ...updates,
+                published_at: updates.is_published
+                    ? (updates.published_at || new Date().toISOString())
+                    : null,
+            })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Error updating post',
+        };
+    }
+}
+
+/**
+ * Delete a blog post
+ */
+export async function deleteBlogPostAction(
+    id: string
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const { error } = await supabaseAdmin
+            .from('blog_posts')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Error deleting post',
+        };
+    }
+}
+
+/**
+ * Upload blog image to Supabase Storage via supabaseAdmin
+ */
+export async function uploadBlogImageAction(
+    formData: FormData
+): Promise<{ success: boolean; url?: string; error?: string }> {
+    try {
+        const file = formData.get('file') as File;
+        if (!file) throw new Error('No file provided');
+
+        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const { error: uploadError } = await supabaseAdmin.storage
+            .from('blog-images')
+            .upload(fileName, buffer, {
+                contentType: file.type,
+                upsert: false,
+            });
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabaseAdmin.storage
+            .from('blog-images')
+            .getPublicUrl(fileName);
+
+        return { success: true, url: data.publicUrl };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Error uploading image',
         };
     }
 }

@@ -1,10 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { Upload, X, Loader, AlertCircle, CheckCircle, Globe } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import {
+    getAdminBlogPostsAction,
+    createBlogPostAction,
+    updateBlogPostAction,
+    deleteBlogPostAction,
+    uploadBlogImageAction,
+    getBlogCategoriesAction,
+} from '@/app/actions/blog';
 
 const LOCALES = [
     { id: 'es', label: 'Español' },
@@ -39,25 +46,13 @@ export default function BlogAdminPage() {
         try {
             setLoading(true);
 
-            // Fetch posts
-            const { data: postsData, error: postsError } = await supabase
-                .from('blog_posts')
-                .select('*, category:blog_categories(*)')
-                .eq('locale', selectedLocale)
-                .order('created_at', { ascending: false });
+            const [postsResult, catResult] = await Promise.all([
+                getAdminBlogPostsAction(selectedLocale),
+                getBlogCategoriesAction(selectedLocale),
+            ]);
 
-            if (postsError) throw postsError;
-
-            // Fetch categories
-            const { data: catData, error: catError } = await supabase
-                .from('blog_categories')
-                .select('*')
-                .eq('locale', selectedLocale);
-
-            if (catError) throw catError;
-
-            setPosts(postsData || []);
-            setCategories(catData || []);
+            if (postsResult.success) setPosts(postsResult.data || []);
+            if (catResult.success) setCategories(catResult.data || []);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -105,44 +100,39 @@ export default function BlogAdminPage() {
 
             if (editingPost.id) {
                 // Update
-                const { error } = await supabase
-                    .from('blog_posts')
-                    .update({
-                        title: editingPost.title,
-                        slug: slugValue,
-                        content: editingPost.content,
-                        excerpt: editingPost.excerpt,
-                        meta_description: editingPost.meta_description,
-                        meta_keywords: editingPost.meta_keywords,
-                        featured_image_url: editingPost.featured_image_url,
-                        featured_image_alt: editingPost.featured_image_alt,
-                        is_published: editingPost.is_published,
-                        category_id: editingPost.category_id,
-                        published_at: editingPost.is_published ? (editingPost.published_at || new Date().toISOString()) : null,
-                    })
-                    .eq('id', editingPost.id);
+                const result = await updateBlogPostAction(editingPost.id, {
+                    title: editingPost.title,
+                    slug: slugValue,
+                    content: editingPost.content,
+                    excerpt: editingPost.excerpt,
+                    meta_description: editingPost.meta_description,
+                    meta_keywords: editingPost.meta_keywords,
+                    featured_image_url: editingPost.featured_image_url || '',
+                    featured_image_alt: editingPost.featured_image_alt || '',
+                    is_published: editingPost.is_published,
+                    category_id: editingPost.category_id,
+                    published_at: editingPost.published_at,
+                });
 
-                if (error) throw error;
+                if (!result.success) throw new Error(result.error);
             } else {
                 // Create
-                const { error } = await supabase
-                    .from('blog_posts')
-                    .insert({
-                        title: editingPost.title,
-                        slug: slugValue,
-                        content: editingPost.content,
-                        excerpt: editingPost.excerpt,
-                        locale: selectedLocale,
-                        author: editingPost.author,
-                        meta_description: editingPost.meta_description,
-                        meta_keywords: editingPost.meta_keywords,
-                        featured_image_url: editingPost.featured_image_url,
-                        featured_image_alt: editingPost.featured_image_alt,
-                        is_published: false,
-                        category_id: editingPost.category_id,
-                    });
+                const result = await createBlogPostAction({
+                    title: editingPost.title,
+                    slug: slugValue,
+                    content: editingPost.content,
+                    excerpt: editingPost.excerpt,
+                    locale: selectedLocale,
+                    author: editingPost.author || 'Vidahome',
+                    meta_description: editingPost.meta_description,
+                    meta_keywords: editingPost.meta_keywords,
+                    featured_image_url: editingPost.featured_image_url || '',
+                    featured_image_alt: editingPost.featured_image_alt || '',
+                    is_published: false,
+                    category_id: editingPost.category_id,
+                });
 
-                if (error) throw error;
+                if (!result.success) throw new Error(result.error);
             }
 
             setIsEditing(false);
@@ -150,7 +140,7 @@ export default function BlogAdminPage() {
             await fetchData();
         } catch (error) {
             console.error('Error saving post:', error);
-            setTranslationError('Error guardando artículo');
+            setTranslationError(error instanceof Error ? error.message : 'Error guardando artículo');
         }
     };
 
@@ -158,12 +148,8 @@ export default function BlogAdminPage() {
         if (!confirm('¿Eliminar este artículo?')) return;
 
         try {
-            const { error } = await supabase
-                .from('blog_posts')
-                .delete()
-                .eq('id', id);
-
-            if (error) throw error;
+            const result = await deleteBlogPostAction(id);
+            if (!result.success) throw new Error(result.error);
             await fetchData();
         } catch (error) {
             console.error('Error deleting post:', error);
@@ -208,26 +194,23 @@ export default function BlogAdminPage() {
         if (!file) return;
 
         try {
-            const fileName = `${Date.now()}-${file.name}`;
-            const { error } = await supabase.storage
-                .from('blog-images')
-                .upload(fileName, file);
+            const formData = new FormData();
+            formData.append('file', file);
 
-            if (error) throw error;
+            const result = await uploadBlogImageAction(formData);
 
-            const { data } = supabase.storage
-                .from('blog-images')
-                .getPublicUrl(fileName);
+            if (!result.success) throw new Error(result.error);
 
-            if (editingPost) {
+            if (editingPost && result.url) {
                 setEditingPost({
                     ...editingPost,
-                    featured_image_url: data.publicUrl,
+                    featured_image_url: result.url,
                     featured_image_alt: file.name.split('.')[0]
                 });
             }
         } catch (error) {
             console.error('Error uploading image:', error);
+            setTranslationError(error instanceof Error ? error.message : 'Error subiendo imagen');
         }
     };
 
