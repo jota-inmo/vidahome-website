@@ -93,6 +93,20 @@ async function handleBackfill(request: NextRequest) {
             .select('cod_ofer, ref, full_data, poblacion')
             .in('cod_ofer', codOfers);
 
+        // Also check encargos for ref_catastral (CRM may have it)
+        const refs = (metadataRows || []).map((r: any) => r.ref).filter(Boolean);
+        const { data: encargosRows } = refs.length > 0
+            ? await supabaseAdmin
+                .from('encargos')
+                .select('ref_propiedad, ref_catastral')
+                .in('ref_propiedad', refs)
+                .not('ref_catastral', 'is', null)
+            : { data: [] };
+        const encargosRcMap: Record<string, string> = {};
+        for (const e of encargosRows || []) {
+            if (e.ref_catastral) encargosRcMap[e.ref_propiedad] = e.ref_catastral;
+        }
+
         const catastro = createCatastroClient();
         let updated = 0;
         let skipped = 0;
@@ -103,15 +117,33 @@ async function handleBackfill(request: NextRequest) {
             const fd = meta.full_data || {};
             const ref = meta.ref || meta.cod_ofer;
 
-            // Try to find referencia catastral in full_data
-            // Inmovilla may store it as: refcatastral, ref_catastral, catastro, referencia_catastral
-            const rc = fd.refcatastral || fd.ref_catastral || fd.catastro ||
-                fd.referencia_catastral || fd.refCatastral || fd.num_catastro || '';
+            // Log all full_data keys for first property to discover field names
+            if (meta === (metadataRows || [])[0]) {
+                const keys = Object.keys(fd).sort().join(', ');
+                console.log(`[Backfill] full_data keys for ${ref}: ${keys}`);
+                // Log any field that might contain catastro reference
+                const catastroFields = Object.entries(fd)
+                    .filter(([k, v]) => typeof v === 'string' && (
+                        k.toLowerCase().includes('catast') ||
+                        k.toLowerCase().includes('ref') ||
+                        (typeof v === 'string' && /^[0-9]{7}[A-Z]{2}[0-9]{4}/.test(v as string))
+                    ));
+                console.log(`[Backfill] Possible RC fields:`, JSON.stringify(catastroFields));
+            }
+
+            // Try to find referencia catastral: full_data first, then encargos
+            // Inmovilla uses 'refcat' field
+            const rc = fd.refcat || fd.refcatastral || fd.ref_catastral || fd.catastro ||
+                fd.referencia_catastral || fd.refCatastral || fd.num_catastro ||
+                fd.ref_cat || fd.registro || encargosRcMap[ref] || '';
 
             if (!rc || rc.length < 14) {
-                // No RC available — try by address as fallback
+                // No RC available — try by address with correct provincia
                 const calle = fd.calle || fd.direccion || '';
                 const poblacion = meta.poblacion || fd.poblacion || '';
+                // Inmovilla stores poblacion (municipality), not provincia
+                // Map to correct provincia for Catastro API
+                const provincia = fd.provincia || fd.prov || 'VALENCIA';
 
                 if (!calle && !poblacion) {
                     details.push(`${ref}: sin RC ni dirección, saltado`);
@@ -126,7 +158,7 @@ async function handleBackfill(request: NextRequest) {
                 // Try Catastro by address
                 try {
                     const result = await catastro.searchByAddress({
-                        provincia: fd.provincia || poblacion,
+                        provincia: provincia,
                         municipio: poblacion,
                         via: calle,
                         numero: fd.numero || fd.num || '1',
