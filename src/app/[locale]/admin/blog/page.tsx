@@ -56,7 +56,12 @@ export default function BlogAdminPage() {
                 getBlogCategoriesAction(selectedLocale),
             ]);
 
-            if (postsResult.success) setPosts(postsResult.data || []);
+            if (postsResult.success) {
+                setPosts(postsResult.data || []);
+            } else {
+                console.error('Error fetching posts:', postsResult.error);
+                setSaveError(`Error cargando artículos: ${postsResult.error}`);
+            }
             if (catResult.success) setCategories(catResult.data || []);
         } catch (error) {
             console.error('Error fetching data:', error);

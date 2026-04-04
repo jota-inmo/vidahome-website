@@ -223,17 +223,25 @@ export async function getAdminBlogPostsAction(
     try {
         const { data, error } = await supabaseAdmin
             .from('blog_posts')
-            .select('*, category:blog_categories(*)')
+            .select('*')
             .eq('locale', locale)
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            console.error('[getAdminBlogPosts] Supabase error:', JSON.stringify(error));
+            return {
+                success: false,
+                error: `${error.message}${error.details ? ` — ${error.details}` : ''}`,
+            };
+        }
 
+        console.log(`[getAdminBlogPosts] Found ${data?.length || 0} posts for locale=${locale}`);
         return { success: true, data: (data || []) as BlogPost[] };
-    } catch (error) {
+    } catch (error: any) {
+        console.error('[getAdminBlogPosts] Error:', error);
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Error fetching posts',
+            error: error?.message || String(error) || 'Error fetching posts',
         };
     }
 }
