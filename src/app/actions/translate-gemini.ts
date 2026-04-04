@@ -221,8 +221,8 @@ export async function translatePropertiesGeminiAction(
           console.warn(`[Gemini] ${(prop as any).cod_ofer} → ${lang} failed: ${msg}`);
         }
 
-        // Small delay between languages (Gemini free: 15 RPM)
-        await new Promise(r => setTimeout(r, 2000));
+        // Delay between languages (Gemini free: 10 RPM)
+        await new Promise(r => setTimeout(r, 7000));
       }
 
       totalTokens += propTokens;
