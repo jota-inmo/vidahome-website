@@ -21,7 +21,7 @@ export const Logo = ({ className = '', variant = 'full', showSlogan = true, plai
                 alt="Vidahome Logo"
                 width={320}
                 height={96}
-                className="h-20 w-auto object-contain"
+                className="h-12 md:h-20 w-auto object-contain"
                 priority
             />
         </div>
