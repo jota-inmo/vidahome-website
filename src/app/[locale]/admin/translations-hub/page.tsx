@@ -114,7 +114,7 @@ export default function TranslationsHub() {
           <div>
             <TranslationPanel
               title="Traducir Descripciones de Propiedades"
-              description="Traduce automáticamente las descripciones de propiedades del catálogo a 5 idiomas usando Perplexity AI. Las traducciones se guardan en la tabla property_metadata."
+              description="Traduce automáticamente las descripciones de propiedades del catálogo a 5 idiomas con IA. Las traducciones se guardan en la tabla property_metadata."
               onTranslate={async () => {
                 const response = await fetch('/api/admin/translations/run', {
                   method: 'POST',
@@ -194,7 +194,7 @@ export default function TranslationsHub() {
 
       {/* Footer */}
       <footer className="border-t border-slate-700/50 mt-12 py-6 text-center text-sm text-gray-400">
-        <p>Centro de Traducciones • Powered by Perplexity AI</p>
+        <p>Centro de Traducciones • Traducción automática con IA</p>
       </footer>
     </div>
   );

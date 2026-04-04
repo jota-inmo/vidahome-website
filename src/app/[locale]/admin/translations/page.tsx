@@ -113,7 +113,7 @@ export default function TranslationsAdmin() {
                             className={`flex items-center gap-3 px-6 py-4 rounded-sm text-[10px] uppercase tracking-widest font-bold transition-all shadow-xl group ${translating ? 'bg-slate-100 text-slate-400' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:scale-105 active:scale-95 shadow-blue-500/20'}`}
                         >
                             {translating ? (
-                                <><Loader2 size={16} className="animate-spin" /> Procesando con Perplexity...</>
+                                <><Loader2 size={16} className="animate-spin" /> Traduciendo con IA...</>
                             ) : (
                                 <><Sparkles size={16} className="text-blue-200 group-hover:animate-pulse" /> Traducir anuncios pendientes</>
                             )}
@@ -219,7 +219,7 @@ export default function TranslationsAdmin() {
                                     </button>
                                     <div className="flex-1 lg:flex-none">
                                         <h3 className="text-2xl font-serif text-slate-900 dark:text-white">Editando <span className="italic text-slate-400">{selectedProp.ref}</span></h3>
-                                        <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Perplexity AI Engine Ready</p>
+                                        <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Motor de traducción IA activo</p>
                                     </div>
                                     <button
                                         onClick={handleSave}
