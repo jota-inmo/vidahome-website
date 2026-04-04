@@ -197,37 +197,48 @@ export async function syncAllPropertiesAction() {
         console.log(`[Sync] ✅ Synced ${successCount} properties to property_metadata`);
 
         // Also upsert to property_features for fast querying
-        const featuresBatch = allProperties.map((p: any) => ({
-            cod_ofer: p.cod_ofer,
-            precio: p.precioinmo || 0,
-            precioalq: p.precioalq || 0,
-            outlet: p.outlet || 0,
-            keyacci: p.keyacci || 1,
-            habitaciones: p.habitaciones || 0,
-            habitaciones_simples: p.habitaciones_simples || 0,
-            habitaciones_dobles: p.habitaciones_dobles || 0,
-            banos: p.banyos || 0,
-            aseos: p.aseos || 0,
-            superficie: p.m_cons || 0,
-            m_utiles: p.m_utiles || 0,
-            m_terraza: p.m_terraza || 0,
-            m_parcela: p.m_parcela || 0,
-            plantas: 0,
-            ascensor: p.ascensor || false,
-            parking: (p.parking_tipo || 0) > 0,
-            parking_tipo: p.parking_tipo || 0,
-            terraza: (p.m_terraza || 0) > 0,
-            piscina_com: p.piscina_com || false,
-            piscina_prop: p.piscina_prop || false,
-            aire_con: p.aire_con || false,
-            calefaccion: p.calefaccion || false,
-            diafano: p.diafano || false,
-            todoext: p.todoext || false,
-            zona: p.zona || null,
-            tipo: p.tipo_nombre || null,
-            distmar: p.distmar || 0,
-            synced_at: new Date().toISOString()
-        }));
+        const featuresBatch = allProperties.map((p: any) => {
+            // Extract construction year: try ano_construccion, then calculate from antiguedad
+            let ano_construccion: number | null = null;
+            if (p.ano_construccion && parseInt(p.ano_construccion) > 1800) {
+                ano_construccion = parseInt(p.ano_construccion);
+            } else if (p.antiguedad && parseInt(p.antiguedad) > 0) {
+                ano_construccion = new Date().getFullYear() - parseInt(p.antiguedad);
+            }
+
+            return {
+                cod_ofer: p.cod_ofer,
+                precio: p.precioinmo || 0,
+                precioalq: p.precioalq || 0,
+                outlet: p.outlet || 0,
+                keyacci: p.keyacci || 1,
+                habitaciones: p.habitaciones || 0,
+                habitaciones_simples: p.habitaciones_simples || 0,
+                habitaciones_dobles: p.habitaciones_dobles || 0,
+                banos: p.banyos || 0,
+                aseos: p.aseos || 0,
+                superficie: p.m_cons || 0,
+                m_utiles: p.m_utiles || 0,
+                m_terraza: p.m_terraza || 0,
+                m_parcela: p.m_parcela || 0,
+                plantas: 0,
+                ascensor: p.ascensor || false,
+                parking: (p.parking_tipo || 0) > 0,
+                parking_tipo: p.parking_tipo || 0,
+                terraza: (p.m_terraza || 0) > 0,
+                piscina_com: p.piscina_com || false,
+                piscina_prop: p.piscina_prop || false,
+                aire_con: p.aire_con || false,
+                calefaccion: p.calefaccion || false,
+                diafano: p.diafano || false,
+                todoext: p.todoext || false,
+                zona: p.zona || null,
+                tipo: p.tipo_nombre || null,
+                distmar: p.distmar || 0,
+                ...(ano_construccion ? { ano_construccion } : {}),
+                synced_at: new Date().toISOString()
+            };
+        });
 
         for (let i = 0; i < featuresBatch.length; i += batchSize) {
             const batch = featuresBatch.slice(i, i + batchSize);
@@ -407,6 +418,12 @@ export async function syncDeltaAction(): Promise<{
             // Also write to property_features
             const newFeatures = newIds.map(id => {
                 const p = inmovMap.get(id)!;
+                let ano_construccion: number | null = null;
+                if (p.ano_construccion && parseInt(p.ano_construccion) > 1800) {
+                    ano_construccion = parseInt(p.ano_construccion);
+                } else if (p.antiguedad && parseInt(p.antiguedad) > 0) {
+                    ano_construccion = new Date().getFullYear() - parseInt(p.antiguedad);
+                }
                 return {
                     cod_ofer: id,
                     precio: p.precioinmo || 0,
@@ -436,6 +453,7 @@ export async function syncDeltaAction(): Promise<{
                     zona: p.zona || null,
                     tipo: p.tipo_nombre || null,
                     distmar: p.distmar || 0,
+                    ...(ano_construccion ? { ano_construccion } : {}),
                     nodisponible: false,
                     synced_at: now,
                 };
