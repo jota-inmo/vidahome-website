@@ -35,8 +35,13 @@ export default function BlogAdminPage() {
     const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
     const [translationStatus, setTranslationStatus] = useState<TranslationStatus>('idle');
     const [translationError, setTranslationError] = useState<string>('');
+    const [saveError, setSaveError] = useState<string>('');
+    const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState<'posts' | 'categories'>('posts');
     const [selectedLocale, setSelectedLocale] = useState(locale);
+
+    const MAX_IMAGE_SIZE_MB = 5;
+    const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
     useEffect(() => {
         fetchData();
@@ -92,11 +97,29 @@ export default function BlogAdminPage() {
         setIsEditing(true);
     };
 
-    const handleSave = async () => {
+    const handleSave = async (publish: boolean = false) => {
         if (!editingPost) return;
+
+        // Validation
+        if (!editingPost.title.trim()) {
+            setSaveError('El título es obligatorio');
+            return;
+        }
+        if (!editingPost.content.trim()) {
+            setSaveError('El contenido es obligatorio');
+            return;
+        }
+        if (!editingPost.excerpt.trim()) {
+            setSaveError('El extracto es obligatorio');
+            return;
+        }
+
+        setSaving(true);
+        setSaveError('');
 
         try {
             const slugValue = editingPost.slug || generateSlug(editingPost.title);
+            const shouldPublish = publish || editingPost.is_published;
 
             if (editingPost.id) {
                 // Update
@@ -105,12 +128,12 @@ export default function BlogAdminPage() {
                     slug: slugValue,
                     content: editingPost.content,
                     excerpt: editingPost.excerpt,
-                    meta_description: editingPost.meta_description,
-                    meta_keywords: editingPost.meta_keywords,
+                    meta_description: editingPost.meta_description || '',
+                    meta_keywords: editingPost.meta_keywords || '',
                     featured_image_url: editingPost.featured_image_url || '',
                     featured_image_alt: editingPost.featured_image_alt || '',
-                    is_published: editingPost.is_published,
-                    category_id: editingPost.category_id,
+                    is_published: shouldPublish,
+                    category_id: editingPost.category_id || null,
                     published_at: editingPost.published_at,
                 });
 
@@ -124,12 +147,12 @@ export default function BlogAdminPage() {
                     excerpt: editingPost.excerpt,
                     locale: selectedLocale,
                     author: editingPost.author || 'Vidahome',
-                    meta_description: editingPost.meta_description,
-                    meta_keywords: editingPost.meta_keywords,
+                    meta_description: editingPost.meta_description || '',
+                    meta_keywords: editingPost.meta_keywords || '',
                     featured_image_url: editingPost.featured_image_url || '',
                     featured_image_alt: editingPost.featured_image_alt || '',
-                    is_published: false,
-                    category_id: editingPost.category_id,
+                    is_published: shouldPublish,
+                    category_id: editingPost.category_id || null,
                 });
 
                 if (!result.success) throw new Error(result.error);
@@ -137,10 +160,13 @@ export default function BlogAdminPage() {
 
             setIsEditing(false);
             setEditingPost(null);
+            setSaveError('');
             await fetchData();
         } catch (error) {
             console.error('Error saving post:', error);
-            setTranslationError(error instanceof Error ? error.message : 'Error guardando artículo');
+            setSaveError(error instanceof Error ? error.message : 'Error guardando artículo');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -193,6 +219,21 @@ export default function BlogAdminPage() {
     const handleImageUpload = async (file: File) => {
         if (!file) return;
 
+        // Validate file size
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+            const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+            setSaveError(`La imagen es demasiado grande (${sizeMB} MB). El máximo permitido es ${MAX_IMAGE_SIZE_MB} MB.`);
+            return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setSaveError('Solo se permiten archivos de imagen (JPG, PNG, WebP).');
+            return;
+        }
+
+        setSaveError('');
+
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -210,7 +251,7 @@ export default function BlogAdminPage() {
             }
         } catch (error) {
             console.error('Error uploading image:', error);
-            setTranslationError(error instanceof Error ? error.message : 'Error subiendo imagen');
+            setSaveError(error instanceof Error ? error.message : 'Error subiendo imagen');
         }
     };
 
@@ -402,27 +443,27 @@ export default function BlogAdminPage() {
                             </div>
                         )}
 
-                        {/* Publish Status */}
+                        {/* Publish Status indicator */}
                         <div className="flex items-center gap-4 p-6 bg-slate-50 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-800">
-                            <input
-                                type="checkbox"
-                                id="publish"
-                                checked={editingPost.is_published}
-                                onChange={(e) =>
-                                    setEditingPost({
-                                        ...editingPost,
-                                        is_published: e.target.checked
-                                    })
-                                }
-                                className="rounded"
-                            />
-                            <label htmlFor="publish" className="text-sm font-medium cursor-pointer">
-                                Publicado
-                            </label>
-                            <span className="text-xs text-slate-500 ml-auto">
-                                {editingPost.is_published ? 'Visible públicamente' : 'Borrador privado'}
+                            <div className={`w-3 h-3 rounded-full ${editingPost.is_published ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                            <span className="text-sm font-medium">
+                                {editingPost.is_published ? 'Publicado — visible en la web' : 'Borrador — solo visible aquí'}
                             </span>
                         </div>
+
+                        {/* Save Error */}
+                        {saveError && (
+                            <div className="p-4 rounded flex items-center gap-3 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-300">
+                                <AlertCircle size={16} />
+                                <span className="text-sm">{saveError}</span>
+                                <button
+                                    onClick={() => setSaveError('')}
+                                    className="ml-auto text-red-400 hover:text-red-600"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                        )}
 
                         {/* Translation Status */}
                         {translationStatus !== 'idle' && (
@@ -447,12 +488,29 @@ export default function BlogAdminPage() {
                         )}
 
                         {/* Buttons */}
-                        <div className="flex gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
+                        <div className="flex flex-wrap gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
                             <button
-                                onClick={handleSave}
-                                className="px-8 py-4 bg-lime-400 text-slate-900 font-bold text-sm uppercase tracking-wider rounded hover:bg-lime-500 transition"
+                                onClick={() => handleSave(false)}
+                                disabled={saving}
+                                className="px-8 py-4 bg-lime-400 text-slate-900 font-bold text-sm uppercase tracking-wider rounded hover:bg-lime-500 transition disabled:opacity-50"
                             >
-                                Guardar Borrador
+                                {saving ? (
+                                    <><Loader size={16} className="inline animate-spin mr-2" />Guardando...</>
+                                ) : (
+                                    'Guardar Borrador'
+                                )}
+                            </button>
+
+                            <button
+                                onClick={() => handleSave(true)}
+                                disabled={saving}
+                                className="px-8 py-4 bg-green-500 text-white font-bold text-sm uppercase tracking-wider rounded hover:bg-green-600 transition disabled:opacity-50"
+                            >
+                                {saving ? (
+                                    <><Loader size={16} className="inline animate-spin mr-2" />Publicando...</>
+                                ) : (
+                                    'Publicar'
+                                )}
                             </button>
 
                             {editingPost.id && (
