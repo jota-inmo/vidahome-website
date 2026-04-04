@@ -125,10 +125,10 @@ export async function savePropertyTranslationAction(property_id: number, descrip
 export async function runAutoTranslationAction(propertyIds?: number[]) {
     try {
         if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
-        // Import the server action
-        const { translatePropertiesAction } = await import('@/app/actions/translate-perplexity');
-        
-        const result = await translatePropertiesAction(
+        // Use Gemini (free tier) instead of Perplexity
+        const { translatePropertiesGeminiAction } = await import('@/app/actions/translate-gemini');
+
+        const result = await translatePropertiesGeminiAction(
             propertyIds?.map(String),
             propertyIds ? undefined : 10
         );

@@ -1,4 +1,5 @@
 import { syncDeltaAction } from '@/app/actions/sync-properties';
+import { translatePropertiesGeminiAction } from '@/app/actions/translate-gemini';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { InmovillaWebApiService } from '@/lib/api/web-service';
 import { NextRequest, NextResponse } from 'next/server';
@@ -94,13 +95,37 @@ export async function GET(request: NextRequest) {
 
         if (photosRefreshed > 0) parts.push(`${photosRefreshed} fotos actualizadas`);
 
+        // ── Step 3: Auto-translate missing descriptions (Gemini) ──
+        let translationsResult = { translated: 0, errors: 0 };
+
+        try {
+            translationsResult = await translatePropertiesGeminiAction(
+                undefined, // all pending
+                2,         // max 2 properties per cron (= ~10 API calls, well within free tier)
+            );
+
+            if (translationsResult.translated > 0) {
+                parts.push(`${translationsResult.translated} traducidas`);
+            }
+            if (translationsResult.errors > 0) {
+                console.warn(`[Cron] Translation errors: ${translationsResult.errors}`);
+            }
+        } catch (e: any) {
+            console.warn('[Cron] Auto-translate failed:', e.message);
+        }
+
         const message = parts.length
             ? `${parts.join(', ')}. Sin cambios: ${result.unchanged}`
             : `Sin cambios (${result.unchanged} propiedades al dia)`;
 
         console.log(`[Cron] ${message}`);
 
-        return NextResponse.json({ ...result, photos_refreshed: photosRefreshed, message });
+        return NextResponse.json({
+            ...result,
+            photos_refreshed: photosRefreshed,
+            translations: translationsResult,
+            message,
+        });
     } catch (error: any) {
         console.error('[Cron] Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
