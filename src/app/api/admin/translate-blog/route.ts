@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { GEMINI_CONFIG, getGeminiApiKey } from '@/config/gemini';
 
+export const maxDuration = 300; // 5 min — Vercel Pro
+
 const LOCALE_NAMES: Record<string, string> = {
     es: 'español',
     en: 'English',

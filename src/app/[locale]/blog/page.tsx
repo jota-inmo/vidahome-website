@@ -4,6 +4,8 @@ import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { getBlogPostsAction } from '@/app/actions/blog';
 
+export const revalidate = 60; // revalidate every 60 seconds
+
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations('Blog');
     return {
