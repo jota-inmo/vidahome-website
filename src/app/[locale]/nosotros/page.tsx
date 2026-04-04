@@ -2,8 +2,25 @@
 
 import Image from 'next/image';
 import { ShieldCheck, Users, Handshake, HeartHandshake, Coffee, Award, Star, ArrowRight, Zap, FileText, BadgeCheck, Link } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function NosotrosPage() {
+    const t = useTranslations('About');
+
+    const cards = [
+        { icon: <ShieldCheck size={28} />, title: t('card1Title'), desc: t('card1Desc') },
+        { icon: <Award size={28} />, title: t('card2Title'), desc: t('card2Desc') },
+        { icon: <Users size={28} />, title: t('card3Title'), desc: t('card3Desc') },
+        { icon: <Handshake size={28} />, title: t('card4Title'), desc: t('card4Desc') },
+    ];
+
+    const services = [
+        { icon: <Zap size={32} />, title: t('service1Title'), desc: t('service1Desc') },
+        { icon: <FileText size={32} />, title: t('service2Title'), desc: t('service2Desc') },
+        { icon: <BadgeCheck size={32} />, title: t('service3Title'), desc: t('service3Desc') },
+        { icon: <Link size={32} />, title: t('service4Title'), desc: t('service4Desc') },
+    ];
+
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-teal-100 selection:text-teal-900">
             {/* Hero Section */}
@@ -14,25 +31,25 @@ export default function NosotrosPage() {
                     <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
                             <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-800 text-teal-600 dark:text-teal-400 text-[10px] font-bold uppercase tracking-[0.2em] animate-fade-in">
-                                Más que una inmobiliaria
+                                {t('badge')}
                             </span>
                             <span className="inline-block py-1 px-3 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] animate-fade-in">
-                                APIVA asociados nº0236
+                                {t('apivaBadge')}
                             </span>
                         </div>
                         <h1 className="text-4xl md:text-7xl font-serif mb-8 leading-[1.1] animate-slide-up">
-                            Construyendo relaciones <br />
-                            <span className="italic font-normal text-teal-600 dark:text-teal-400">más allá de la venta.</span>
+                            {t('heroTitle1')} <br />
+                            <span className="italic font-normal text-teal-600 dark:text-teal-400">{t('heroTitle2')}</span>
                         </h1>
                         <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl mx-auto md:mx-0 animate-slide-up delay-100">
-                            En Vidahome, no vendemos metros cuadrados. Gestionamos la tranquilidad de las personas a través de la confianza y el compromiso.
+                            {t('heroDesc')}
                         </p>
                     </div>
                     <div className="flex-1 w-full max-w-md animate-fade-in delay-200">
                         <div className="relative aspect-[4/5] rounded-sm overflow-hidden shadow-2xl md:rotate-2 hover:rotate-0 transition-transform duration-700">
                             <Image
                                 src="https://yheqvroinbcrrpppzdzx.supabase.co/storage/v1/object/public/media/nosotros/hero-portrait.jpg"
-                                alt="Mediterranean Architecture"
+                                alt={t('heroImgAlt')}
                                 fill
                                 className="object-cover"
                                 priority
@@ -48,18 +65,14 @@ export default function NosotrosPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 items-center">
                         <div className="space-y-8 order-2 lg:order-1">
                             <h2 className="text-3xl md:text-4xl font-serif leading-snug">
-                                El concepto de <br />
-                                <span className="text-teal-600 dark:text-teal-400 text-4xl md:text-5xl">Ecosistema Virtuoso</span>
+                                {t('ecoTitle1')} <br />
+                                <span className="text-teal-600 dark:text-teal-400 text-4xl md:text-5xl">{t('ecoTitle2')}</span>
                             </h2>
                             <div className="space-y-6 text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-light">
-                                <p>
-                                    Sabemos que comprar o vender una vivienda es solo el principio de una serie de necesidades: reformas, trámites legales, gestiones técnicas...
-                                </p>
-                                <p>
-                                    En Vidahome no solo "pasamos un contacto". Hemos construido un equipo de profesionales externos (abogados, técnicos, arquitectos) seleccionados bajo un criterio inamovible: nuestra propia experiencia trabajando con ellos.
-                                </p>
+                                <p>{t('ecoP1')}</p>
+                                <p>{t('ecoP2')}</p>
                                 <p className="font-medium text-slate-800 dark:text-slate-200 italic border-l-2 border-teal-500 pl-6 py-2">
-                                    "Nuestra labor consiste en conectar a buena gente con buenos profesionales, eliminando toda fricción y preocupación para el cliente."
+                                    &ldquo;{t('ecoQuote')}&rdquo;
                                 </p>
                             </div>
                         </div>
@@ -68,34 +81,13 @@ export default function NosotrosPage() {
                             <div className="relative aspect-video rounded-sm overflow-hidden shadow-lg">
                                 <Image
                                     src="https://yheqvroinbcrrpppzdzx.supabase.co/storage/v1/object/public/media/nosotros/professional-meeting.jpg"
-                                    alt="Professional meeting"
+                                    alt={t('ecoMeetingAlt')}
                                     fill
                                     className="object-cover"
                                 />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {[
-                                    {
-                                        icon: <ShieldCheck size={28} />,
-                                        title: "Legalidad blindada",
-                                        desc: "Abogados que no solo revisan papeles, cuidan tus intereses."
-                                    },
-                                    {
-                                        icon: <Award size={28} />,
-                                        title: "Arquitectura real",
-                                        desc: "Técnicos que dan soluciones, no problemas administrativos."
-                                    },
-                                    {
-                                        icon: <Users size={28} />,
-                                        title: "Gente de palabra",
-                                        desc: "Profesionales de reformas que cumplen plazos y presupuestos."
-                                    },
-                                    {
-                                        icon: <Handshake size={28} />,
-                                        title: "Cercanía total",
-                                        desc: "Siempre a un café de distancia para resolver cualquier duda."
-                                    }
-                                ].map((item, i) => (
+                                {cards.map((item, i) => (
                                     <div key={i} className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-sm shadow-sm hover:shadow-md transition-all group">
                                         <div className="text-teal-500 mb-6 group-hover:scale-110 transition-transform origin-left">{item.icon}</div>
                                         <h3 className="text-lg font-serif mb-3 italic">{item.title}</h3>
@@ -113,23 +105,23 @@ export default function NosotrosPage() {
                 <div className="max-w-4xl mx-auto text-center space-y-16">
                     <div className="space-y-6">
                         <HeartHandshake size={48} className="mx-auto text-teal-600 dark:text-teal-400 mb-8 opacity-50" />
-                        <h2 className="text-4xl font-serif italic">Nuestra medida de éxito</h2>
+                        <h2 className="text-4xl font-serif italic">{t('valuesTitle')}</h2>
                         <p className="text-xl text-slate-600 dark:text-slate-400 font-light leading-relaxed">
-                            No medimos nuestro éxito por el número de firmas ante notario, sino por la recurrencia de nuestros clientes. Para nosotros, una venta cerrada es el inicio de una relación de por vida.
+                            {t('valuesDesc')}
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
                         <div className="space-y-4">
-                            <h4 className="text-xs uppercase tracking-widest text-teal-600 font-bold">Un compromiso real</h4>
+                            <h4 className="text-xs uppercase tracking-widest text-teal-600 font-bold">{t('commitTitle')}</h4>
                             <p className="text-slate-600 dark:text-slate-400 font-light leading-relaxed">
-                                Somos una empresa que cree en el valor de la palabra dada. En un sector a menudo deshumanizado, nosotros priorizamos la ética y la transparencia sobre la comisión inmediata.
+                                {t('commitDesc')}
                             </p>
                         </div>
                         <div className="space-y-4">
-                            <h4 className="text-xs uppercase tracking-widest text-teal-600 font-bold">Post-venta diferencial</h4>
+                            <h4 className="text-xs uppercase tracking-widest text-teal-600 font-bold">{t('postSaleTitle')}</h4>
                             <p className="text-slate-600 dark:text-slate-400 font-light leading-relaxed">
-                                Pregúntale a cualquiera de nuestros clientes qué pasa seis meses después de la compra. Seguimos ahí para lo que necesites: desde el cambio de suministros hasta la búsqueda del mejor técnico para una pequeña mejora.
+                                {t('postSaleDesc')}
                             </p>
                         </div>
                     </div>
@@ -140,35 +132,14 @@ export default function NosotrosPage() {
             <section className="py-24 px-6 bg-slate-50 dark:bg-slate-900/30">
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-serif mb-4 italic">Más allá de la venta</h2>
+                        <h2 className="text-4xl font-serif mb-4 italic">{t('beyondTitle')}</h2>
                         <p className="text-slate-500 dark:text-slate-400 font-light max-w-2xl mx-auto">
-                            Un servicio diseñado para que tu única preocupación sea disfrutar del cambio.
+                            {t('beyondDesc')}
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {[
-                            {
-                                icon: <Zap size={32} />,
-                                title: "Gremios verificados",
-                                desc: "Conexión directa con profesionales de confianza que nosotros mismos hemos puesto a prueba."
-                            },
-                            {
-                                icon: <FileText size={32} />,
-                                title: "Asesoramiento continuo",
-                                desc: "Nuestro acompañamiento no termina en la notaría; resolvemos cualquier trámite o duda posterior."
-                            },
-                            {
-                                icon: <BadgeCheck size={32} />,
-                                title: "Confianza comprobada",
-                                desc: "Gestión basada en resultados que hemos verificado personalmente en nuestras propias viviendas."
-                            },
-                            {
-                                icon: <Link size={32} />,
-                                title: "Red donde todos ganan",
-                                desc: "Un ecosistema que aporta seguridad total al cliente y tranquilidad al profesional serio."
-                            }
-                        ].map((item, i) => (
+                        {services.map((item, i) => (
                             <div key={i} className="flex flex-col items-center text-center p-6 transition-all hover:-translate-y-1">
                                 <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-teal-500 shadow-sm mb-6">
                                     {item.icon}
@@ -188,7 +159,7 @@ export default function NosotrosPage() {
                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                     <Image
                         src="https://yheqvroinbcrrpppzdzx.supabase.co/storage/v1/object/public/media/nosotros/handshake-cta.jpg"
-                        alt="Handshake"
+                        alt={t('ctaImgAlt')}
                         fill
                         className="object-cover grayscale"
                     />
@@ -196,15 +167,15 @@ export default function NosotrosPage() {
                 </div>
 
                 <div className="max-w-3xl mx-auto text-center relative z-10">
-                    <h2 className="text-3xl font-serif italic mb-8">¿Quieres conocernos de verdad? <br /> El café corre de nuestra cuenta.</h2>
+                    <h2 className="text-3xl font-serif italic mb-8">{t('ctaTitle')}</h2>
                     <p className="text-slate-400 font-light text-lg mb-12">
-                        Si buscas una gestión honesta en Gandía o alrededores, hablemos. Sin presiones, solo compartiendo visión.
+                        {t('ctaDesc')}
                     </p>
                     <a
                         href="/contacto"
                         className="inline-flex items-center gap-3 px-8 py-4 bg-white text-slate-900 font-bold text-sm uppercase tracking-widest hover:bg-teal-50 transition-colors rounded-sm"
                     >
-                        Contactar ahora
+                        {t('ctaButton')}
                         <ArrowRight size={18} className="text-teal-600" />
                     </a>
                 </div>
@@ -213,7 +184,7 @@ export default function NosotrosPage() {
             {/* Small Footer Detail */}
             <footer className="py-12 px-6 border-t border-slate-100 dark:border-slate-800 text-center">
                 <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">
-                    Vidahome · Compromiso ético en Gandía
+                    {t('footer')}
                 </p>
             </footer>
 
