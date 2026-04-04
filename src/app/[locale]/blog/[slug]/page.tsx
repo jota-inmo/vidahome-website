@@ -7,9 +7,10 @@ import { Link } from '@/i18n/routing';
 export async function generateMetadata({
     params,
 }: {
-    params: { locale: string; slug: string };
+    params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-    const result = await getBlogPostBySlugAction(params.locale, params.slug);
+    const { locale, slug } = await params;
+    const result = await getBlogPostBySlugAction(locale, slug);
 
     if (!result.success || !result.data) {
         return {
@@ -29,9 +30,10 @@ export async function generateMetadata({
 export default async function BlogPostPage({
     params,
 }: {
-    params: { locale: string; slug: string };
+    params: Promise<{ locale: string; slug: string }>;
 }) {
-    const result = await getBlogPostBySlugAction(params.locale, params.slug);
+    const { locale, slug } = await params;
+    const result = await getBlogPostBySlugAction(locale, slug);
 
     if (!result.success || !result.data) {
         return (
@@ -89,7 +91,7 @@ export default async function BlogPostPage({
                         {post.published_at && (
                             <time dateTime={post.published_at}>
                                 {new Date(post.published_at).toLocaleDateString(
-                                    params.locale === 'es' ? 'es-ES' : 'en-US',
+                                    locale === 'es' ? 'es-ES' : 'en-US',
                                     {
                                         year: 'numeric',
                                         month: 'long',

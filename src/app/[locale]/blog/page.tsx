@@ -14,9 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function BlogPage({ params }: { params: { locale: string } }) {
+export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
     const t = await getTranslations('Blog');
-    const result = await getBlogPostsAction(params.locale, 1, 10);
+    const result = await getBlogPostsAction(locale, 1, 10);
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
@@ -63,7 +64,7 @@ export default async function BlogPage({ params }: { params: { locale: string } 
                                     <div className="text-xs text-slate-400 mb-2">
                                         {post.published_at
                                             ? new Date(post.published_at).toLocaleDateString(
-                                                  params.locale === 'es' ? 'es-ES' : 'en-US',
+                                                  locale === 'es' ? 'es-ES' : 'en-US',
                                                   {
                                                       year: 'numeric',
                                                       month: 'long',
@@ -82,7 +83,7 @@ export default async function BlogPage({ params }: { params: { locale: string } 
                                     </p>
 
                                     <a
-                                        href={`/${params.locale}/blog/${post.slug}`}
+                                        href={`/${locale}/blog/${post.slug}`}
                                         className="text-sm font-medium text-slate-900 dark:text-white inline-flex items-center gap-2 group/link hover:gap-3 transition-all"
                                     >
                                         {t('readMore') || 'Leer más'}
