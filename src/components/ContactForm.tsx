@@ -13,6 +13,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [gdprAccepted, setGdprAccepted] = useState(false);
     const t = useTranslations('Contact');
     const { trackConversion } = useAnalytics();
 
@@ -123,6 +124,24 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
 
                 {error && <p className="text-red-500 text-xs">{error}</p>}
 
+                {/* GDPR Consent */}
+                <div className="flex items-start gap-3">
+                    <input
+                        type="checkbox"
+                        id="gdpr-contact"
+                        checked={gdprAccepted}
+                        onChange={(e) => setGdprAccepted(e.target.checked)}
+                        className="mt-1 rounded border-slate-300"
+                        required
+                    />
+                    <label htmlFor="gdpr-contact" className="text-xs text-slate-500 leading-relaxed cursor-pointer">
+                        {t('gdprCheckbox')}{' '}
+                        <a href="/legal/privacidad" target="_blank" className="text-slate-900 dark:text-white underline">
+                            {t('gdprLink')}
+                        </a>.
+                    </label>
+                </div>
+
                 {/* Anti-spam honeypot */}
                 <div className="hidden" aria-hidden="true">
                     <input type="text" name="fax" tabIndex={-1} autoComplete="off" />
@@ -130,7 +149,7 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
 
                 <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !gdprAccepted}
                     className="w-full py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 uppercase text-[11px] tracking-[0.3em] font-bold hover:opacity-90 transition-all disabled:opacity-50"
                 >
                     {loading ? t('submitting') : t('submit')}

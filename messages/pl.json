@@ -111,7 +111,10 @@
         "successTitle": "Zapytanie otrzymane!",
         "successText": "Otrzymaliśmy Twoją wiadomość i skontaktujemy się z Tobą w ciągu najbliższych godzin. Dziękujemy za zaufanie do Vida Home!",
         "errorGeneric": "Nastąpił nieoczekiwany błąd",
-        "errorSubmit": "Błąd podczas wysyłania formularza"
+        "errorSubmit": "B\u0142\u0105d podczas wysy\u0142ania formularza",
+        "gdprCheckbox": "Przeczyta\u0142em/am i akceptuj\u0119",
+        "gdprLink": "polityk\u0119 prywatno\u015bci",
+        "gdprRequired": "Musisz zaakceptowa\u0107 polityk\u0119 prywatno\u015bci, aby kontynuowa\u0107"
     },
     "ContactPage": {
         "subheading": "Jesteśmy do Twojej dyspozycji",

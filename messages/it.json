@@ -111,7 +111,10 @@
         "successTitle": "Richiesta ricevuta!",
         "successText": "Abbiamo ricevuto il tuo messaggio e ti contatteremo nelle prossime ore. Grazie per aver scelto Vida Home!",
         "errorGeneric": "Si è verificato un errore imprevisto",
-        "errorSubmit": "Errore nell'invio del modulo"
+        "errorSubmit": "Errore nell'invio del modulo",
+        "gdprCheckbox": "Ho letto e accetto la",
+        "gdprLink": "informativa sulla privacy",
+        "gdprRequired": "Devi accettare l'informativa sulla privacy per continuare"
     },
     "ContactPage": {
         "subheading": "Siamo a tua disposizione",

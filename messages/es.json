@@ -111,7 +111,10 @@
         "successTitle": "¡Solicitud recibida!",
         "successText": "Hemos recibido tu mensaje y nos pondremos en contacto contigo en las próximas horas. ¡Gracias por confiar en Vida Home!",
         "errorGeneric": "Ocurrió un error inesperado",
-        "errorSubmit": "Error al enviar el formulario"
+        "errorSubmit": "Error al enviar el formulario",
+        "gdprCheckbox": "He leído y acepto la",
+        "gdprLink": "política de privacidad",
+        "gdprRequired": "Debes aceptar la política de privacidad para continuar"
     },
     "ContactPage": {
         "subheading": "Estamos a tu disposición",

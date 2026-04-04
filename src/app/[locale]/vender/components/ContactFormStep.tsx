@@ -36,6 +36,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
   const phone = usePhoneValidation(initialCountry);
   const [emailError, setEmailError] = useState('');
   const [initialized, setInitialized] = useState(false);
+  const [gdprAccepted, setGdprAccepted] = useState(false);
 
   // Inicializar teléfono si ya existe en formState (al volver atrás)
   useEffect(() => {
@@ -252,6 +253,24 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
         {/* Honeypot para anti-spam */}
         <input type="hidden" name="website" value="" />
 
+        {/* GDPR Consent */}
+        <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg">
+          <input
+            type="checkbox"
+            id="gdpr-valuation"
+            checked={gdprAccepted}
+            onChange={(e) => setGdprAccepted(e.target.checked)}
+            className="mt-1 rounded border-slate-300"
+            required
+          />
+          <label htmlFor="gdpr-valuation" className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed cursor-pointer">
+            {t('contactPrivacy')}{' '}
+            <a href="/legal/privacidad" target="_blank" className="text-lime-600 dark:text-lime-400 underline">
+              {t('contactPrivacyLink')}
+            </a>.
+          </label>
+        </div>
+
         {/* Botones de acción */}
         <div className="flex gap-4 justify-center pt-4">
           <button
@@ -266,10 +285,10 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
           </button>
           <button
             type="submit"
-            disabled={loading || !!phone.error || !formState.nombre}
+            disabled={loading || !!phone.error || !formState.nombre || !gdprAccepted}
             className={`
               px-8 py-3 rounded-sm font-medium uppercase tracking-[0.1em] text-sm transition-all
-              ${loading || !!phone.error || !formState.nombre
+              ${loading || !!phone.error || !formState.nombre || !gdprAccepted
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
                 : 'bg-lime-400 text-slate-900 hover:bg-lime-500 shadow-lg hover:shadow-xl hover:-translate-y-0.5'
               }
@@ -279,13 +298,6 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
           </button>
         </div>
       </form>
-
-      {/* Disclaimer */}
-      <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg text-center">
-        <p className="text-xs text-slate-600 dark:text-slate-400">
-          {t('contactPrivacy')} <a href="#" className="text-lime-600 dark:text-lime-400 underline">{t('contactPrivacyLink')}</a>.
-        </p>
-      </div>
     </section>
   );
 };
