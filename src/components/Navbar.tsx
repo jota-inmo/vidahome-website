@@ -23,7 +23,7 @@ export const Navbar = () => {
     ];
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-[100] bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 transition-all">
+        <nav className="fixed top-0 left-0 right-0 z-[100] bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 transition-all">
             <div className="max-w-[1600px] mx-auto px-4 md:px-6 h-16 md:h-28 flex items-center justify-between">
                 {/* Logo Vidahome */}
                 <Link href="/" className="group" onClick={() => setIsOpen(false)}>
