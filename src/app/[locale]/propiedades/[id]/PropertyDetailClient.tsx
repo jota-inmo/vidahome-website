@@ -176,7 +176,7 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
                 : undefined
         },
         { icon: <Bath size={20} />, label: t('bathrooms'), value: property.banyos },
-        { icon: <Calendar size={20} />, label: t('construction'), value: property.fecha ? new Date(property.fecha).getFullYear() : 'N/A' },
+        { icon: <Calendar size={20} />, label: t('construction'), value: features?.ano_construccion || 'N/A' },
     ];
 
     const technical = [
