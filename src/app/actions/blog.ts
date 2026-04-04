@@ -125,7 +125,7 @@ export async function getBlogPostsByCategoryAction(
         const offset = (page - 1) * limit;
 
         // First get the category
-        const { data: categoryData } = await supabase
+        const { data: categoryData } = await supabaseAdmin
             .from('blog_categories')
             .select('id')
             .eq('locale', locale)
@@ -220,7 +220,7 @@ export async function getAdminBlogPostsAction(
     error?: string;
 }> {
     try {
-        const { data, error } = await supabaseAdminAdmin
+        const { data, error } = await supabaseAdmin
             .from('blog_posts')
             .select('*')
             .eq('locale', locale)
@@ -263,7 +263,7 @@ export async function createBlogPostAction(post: {
     category_id?: string | null;
 }): Promise<{ success: boolean; data?: BlogPost; error?: string }> {
     try {
-        const { data, error } = await supabaseAdminAdmin
+        const { data, error } = await supabaseAdmin
             .from('blog_posts')
             .insert({
                 ...post,
