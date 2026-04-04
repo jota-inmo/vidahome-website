@@ -265,13 +265,20 @@ export async function createBlogPostAction(post: {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('[createBlogPost] Supabase error:', JSON.stringify(error));
+            return {
+                success: false,
+                error: `${error.message}${error.details ? ` — ${error.details}` : ''}${error.hint ? ` (${error.hint})` : ''}`,
+            };
+        }
 
         return { success: true, data: data as BlogPost };
-    } catch (error) {
+    } catch (error: any) {
+        console.error('[createBlogPost] Error:', error);
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Error creating post',
+            error: error?.message || String(error) || 'Error creating post',
         };
     }
 }
@@ -306,13 +313,20 @@ export async function updateBlogPostAction(
             })
             .eq('id', id);
 
-        if (error) throw error;
+        if (error) {
+            console.error('[updateBlogPost] Supabase error:', JSON.stringify(error));
+            return {
+                success: false,
+                error: `${error.message}${error.details ? ` — ${error.details}` : ''}${error.hint ? ` (${error.hint})` : ''}`,
+            };
+        }
 
         return { success: true };
-    } catch (error) {
+    } catch (error: any) {
+        console.error('[updateBlogPost] Error:', error);
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Error updating post',
+            error: error?.message || String(error) || 'Error updating post',
         };
     }
 }
