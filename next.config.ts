@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin(
   './src/i18n/request.ts'
@@ -97,7 +98,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://wa.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://fotos15.inmovilla.com https://crm.inmovilla.com https://*.supabase.co wss://*.supabase.co https://api.ipify.org https://res.cloudinary.com; media-src 'self' https://*.supabase.co; frame-src 'self' https://www.google.com https://maps.google.com; frame-ancestors 'none';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://wa.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://fotos15.inmovilla.com https://crm.inmovilla.com https://*.supabase.co wss://*.supabase.co https://api.ipify.org https://res.cloudinary.com https://*.ingest.de.sentry.io; media-src 'self' https://*.supabase.co; frame-src 'self' https://www.google.com https://maps.google.com; frame-ancestors 'none';",
           },
           {
             key: 'X-Frame-Options',
@@ -133,4 +134,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  org: "vidahome",
+  project: "vidahome-website",
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+});

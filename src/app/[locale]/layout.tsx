@@ -27,10 +27,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const t = await getTranslations({ locale });
 
   return {
-    title: "Vidahome | Experiencia Inmobiliaria de Lujo en Gandia",
+    title: "Vidahome | Inmobiliaria en Gandía — Alcance Global, Trato Cercano",
     description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores. Tu confianza, nuestra prioridad.",
     openGraph: {
-      title: "Vidahome | Experiencia Inmobiliaria de Lujo en Gandia",
+      title: "Vidahome | Inmobiliaria en Gandía — Alcance Global, Trato Cercano",
       description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores.",
       url: "https://vidahome.es",
       siteName: "Vidahome",
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     },
     twitter: {
       card: "summary_large_image",
-      title: "Vidahome | Experiencia Inmobiliaria de Lujo en Gandia",
+      title: "Vidahome | Inmobiliaria en Gandía — Alcance Global, Trato Cercano",
       description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores.",
       images: ["/MARCA OK.png"],
     },
