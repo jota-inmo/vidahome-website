@@ -40,7 +40,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const result = await fetchPropertiesAction();
         if (result.success && result.data) {
             for (const prop of result.data) {
-                const path = `/propiedades/${prop.cod_ofer}`;
+                // Prefer ref (CRM-friendly URL) over cod_ofer (legacy)
+                const slug = prop.ref || prop.cod_ofer;
+                const path = `/propiedades/${slug}`;
                 for (const locale of locales) {
                     sitemapEntries.push({
                         url: `${baseUrl}/${locale}${path}`,

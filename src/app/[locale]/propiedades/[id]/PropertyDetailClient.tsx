@@ -109,17 +109,22 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
     // State to hold property data that updates with locale
     const [property, setProperty] = useState<PropertyDetails>(initialProperty);
 
-    // Refetch property data when locale changes
+    // Refetch property data when locale changes. Prefer ref (CRM-friendly)
+    // and fall back to cod_ofer for legacy Inmovilla-only properties.
+    // Either may be null in edge cases (page rendered with bad data),
+    // in which case we skip the refetch.
+    const propertyKey: string | number | null = initialProperty.ref || initialProperty.cod_ofer;
     useEffect(() => {
+        if (propertyKey == null) return;
         async function fetchPropertyWithLocale() {
-            const result = await getPropertyDetailAction(initialProperty.cod_ofer, locale);
+            const result = await getPropertyDetailAction(propertyKey as string | number, locale);
             if (result.success && result.data) {
                 setProperty(result.data);
             }
         }
-        
+
         fetchPropertyWithLocale();
-    }, [locale, initialProperty.cod_ofer]);
+    }, [locale, propertyKey]);
 
     // Track property view on component mount
     useEffect(() => {

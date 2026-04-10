@@ -38,6 +38,7 @@ async function debug() {
         });
 
         // Get details for first property
+        if (firstProp.cod_ofer == null) { console.log('No cod_ofer'); return; }
         console.log(`\n🔍 Fetching details for property ${firstProp.cod_ofer}...`);
         const details = await api.getPropertyDetails(firstProp.cod_ofer);
         

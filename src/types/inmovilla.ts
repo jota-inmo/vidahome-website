@@ -4,7 +4,8 @@
  */
 
 export interface PropertyListEntry {
-    cod_ofer: number;
+    // Nullable since CRM-published rows may not have an Inmovilla cod_ofer yet.
+    cod_ofer: number | null;
     ref: string;
     nodisponible: boolean | number;
     prospecto?: boolean; // Optional: from Inmovilla API only
@@ -49,7 +50,8 @@ export interface PropertyListEntry {
 }
 
 export interface PropertyDetails {
-    cod_ofer: number;
+    // Nullable since CRM-published rows may not have an Inmovilla cod_ofer yet.
+    cod_ofer: number | null;
     keyacci: number;
     banyos: number;
     keycli: number;

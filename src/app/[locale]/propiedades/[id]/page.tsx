@@ -11,12 +11,18 @@ interface Props {
     params: Promise<{ id: string, locale: string }>;
 }
 
+// Resolve route param to either numeric cod_ofer (legacy) or string ref (CRM).
+function resolveIdParam(id: string): number | string {
+    return /^\d+$/.test(id) ? parseInt(id, 10) : id;
+}
+
 export async function generateMetadata(
     { params }: Props,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
     const { id, locale } = await params;
-    const result = await getPropertyDetailAction(parseInt(id), locale);
+    const lookup = resolveIdParam(id);
+    const result = await getPropertyDetailAction(lookup, locale);
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
 
     if (!result.success || !result.data) {
@@ -58,8 +64,13 @@ export async function generateMetadata(
 
 export default async function PropertyDetailPage({ params }: Props) {
     const { id, locale } = await params;
-    const result = await getPropertyDetailAction(parseInt(id), locale);
-    const properties_features = await getPropertyFeatures(parseInt(id));
+    const lookup = resolveIdParam(id);
+    const result = await getPropertyDetailAction(lookup, locale);
+    // property_features is keyed by cod_ofer; for CRM-only refs there are no
+    // features yet — just pass null/empty in that case.
+    const properties_features = typeof lookup === 'number'
+        ? await getPropertyFeatures(lookup)
+        : null;
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
     const tIndex = await getTranslations({ locale: locale as string, namespace: 'Index' });
 

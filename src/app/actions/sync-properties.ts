@@ -313,11 +313,15 @@ export async function syncDeltaAction(): Promise<{
         const inmovIds = new Set(inmovMap.keys());
 
         // ── 2. Fetch Supabase state ───────────────────────────────────────────
+        // Exclude CRM-owned rows from delta sync entirely. They are managed
+        // by the CRM's publish_to_web flow and Inmovilla is a downstream
+        // mirror for them, not the source of truth.
         const { data: sbRows } = await supabaseAdmin
             .from('property_metadata')
-            .select('cod_ofer, nodisponible, descriptions');
+            .select('cod_ofer, nodisponible, descriptions, source')
+            .or('source.is.null,source.neq.crm');
 
-        const sbMap = new Map((sbRows || []).map((r: any) => [r.cod_ofer, r]));
+        const sbMap = new Map((sbRows || []).filter((r: any) => r.cod_ofer != null).map((r: any) => [r.cod_ofer, r]));
         const sbIds = new Set(sbMap.keys());
 
         // ── 3. Compute diff ───────────────────────────────────────────────────

@@ -46,7 +46,7 @@ const detectTrafficSource = (referrer: string): string => {
 };
 
 interface TrackEventOptions {
-    codOfer?: number;
+    codOfer?: number | null;
     source?: string;
     conversionType?: string;
 }
@@ -82,8 +82,11 @@ export function useAnalytics() {
         trackPageView();
     }, [pathname, locale]);
 
-    // Track property view
-    const trackPropertyView = useCallback(async (codOfer: number) => {
+    // Track property view. cod_ofer may be null for CRM-published rows that
+    // haven't been synced to Inmovilla yet — in that case skip the insert
+    // since analytics_property_views.cod_ofer has a NOT NULL constraint.
+    const trackPropertyView = useCallback(async (codOfer: number | null | undefined) => {
+        if (codOfer == null) return;
         try {
             const utm = getUTMParams();
             const referrer = typeof document !== 'undefined' ? document.referrer : '';
@@ -119,8 +122,11 @@ export function useAnalytics() {
         }
     }, [locale]);
 
-    // Track lead/conversion
+    // Track lead/conversion. Skip when codOfer is missing (CRM-only rows
+    // haven't been synced to Inmovilla yet) since analytics_leads.cod_ofer
+    // has a NOT NULL constraint.
     const trackConversion = useCallback(async (options: TrackEventOptions) => {
+        if (options.codOfer == null) return;
         try {
             const utm = getUTMParams();
             const referrer = typeof document !== 'undefined' ? document.referrer : '';

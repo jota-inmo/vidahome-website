@@ -7,7 +7,8 @@ import { PropertyListEntry } from '@/types/inmovilla';
 import { Link } from '@/i18n/routing';
 
 export default function FeaturedAdmin() {
-    const [properties, setProperties] = useState<PropertyListEntry[]>([]);
+    // Featured admin only handles Inmovilla-synced rows (cod_ofer required).
+    const [properties, setProperties] = useState<(PropertyListEntry & { cod_ofer: number })[]>([]);
     const [featuredIds, setFeaturedIds] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -26,7 +27,10 @@ export default function FeaturedAdmin() {
                 getFeaturedPropertiesAction()
             ]);
             if (allRes.success && allRes.data) {
-                setProperties(allRes.data);
+                // Featured properties require an Inmovilla cod_ofer (the
+                // featured_properties table is keyed by it). CRM-only rows
+                // without cod_ofer can't be featured yet.
+                setProperties(allRes.data.filter((p): p is typeof p & { cod_ofer: number } => p.cod_ofer != null));
             }
             setFeaturedIds(fIds);
             setLoading(false);

@@ -6,7 +6,8 @@ import { useTranslations } from 'next-intl';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 
 interface ContactFormProps {
-    cod_ofer: number;
+    // Nullable: CRM-only properties may not have a cod_ofer assigned yet.
+    cod_ofer: number | null;
 }
 
 export const ContactForm = ({ cod_ofer }: ContactFormProps) => {

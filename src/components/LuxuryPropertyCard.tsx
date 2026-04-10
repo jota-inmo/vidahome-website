@@ -132,8 +132,12 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
         return <div className="group block h-full cursor-default">{cardContent}</div>;
     }
 
+    // Prefer ref (CRM source-of-truth) over cod_ofer (legacy Inmovilla).
+    // Old links that hit /propiedades/{cod_ofer} still resolve via the route
+    // handler's numeric-detection fallback.
+    const slug = property.ref || property.cod_ofer;
     return (
-        <Link href={`/propiedades/${property.cod_ofer}`} className="group block h-full">
+        <Link href={`/propiedades/${slug}`} className="group block h-full">
             {cardContent}
         </Link>
     );

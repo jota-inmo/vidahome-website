@@ -73,7 +73,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
             .eq('visible_web', true)
             .or(`nodisponible.eq.false,and(nodisponible.eq.true,updated_at.gte.${tenDaysAgo})`)
             .order('nodisponible', { ascending: true })
-            .order('cod_ofer', { ascending: false });
+            .order('updated_at', { ascending: false });
 
         if (error) throw error;
 
@@ -140,32 +140,37 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
 
 /**
  * SIMPLIFIED: Get property detail from Supabase (source of truth)
- * All data including photos are pre-synced via admin/sync panel
+ * Accepts either a numeric cod_ofer (legacy Inmovilla-synced URLs)
+ * or a CRM ref (new CRM-published URLs). The route param `id` is a
+ * string so we detect by /^\d+$/.
  */
-export async function getPropertyDetailAction(id: number, locale: string = 'es'): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
+export async function getPropertyDetailAction(idOrRef: number | string, locale: string = 'es'): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
     try {
         const { supabase } = await import('@/lib/supabase');
 
-        // Get property metadata, features and energy data in parallel
-        const [{ data: meta, error }, { data: features }, { data: encargo }] = await Promise.all([
-            supabase
-                .from('property_metadata')
-                .select('cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web')
-                .eq('cod_ofer', id)
-                .single(),
-            supabase
+        // Decide lookup column: numeric → cod_ofer (legacy), string → ref (CRM)
+        const asString = String(idOrRef);
+        const isNumeric = /^\d+$/.test(asString);
+        const lookupCol = isNumeric ? 'cod_ofer' : 'ref';
+        const lookupVal: string | number = isNumeric ? Number(asString) : asString;
+
+        // Step 1: load metadata, then use cod_ofer for the joins below
+        const { data: meta, error } = await supabase
+            .from('property_metadata')
+            .select('cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value')
+            .eq(lookupCol, lookupVal)
+            .single();
+
+        // CRM-published rows may not have cod_ofer, so the join below skips
+        // property_features (it's keyed by cod_ofer). Energy data already
+        // comes inside `meta` from the select above.
+        const features = meta?.cod_ofer
+            ? (await supabase
                 .from('property_features')
                 .select('cod_ofer, habitaciones, banos, superficie')
-                .eq('cod_ofer', id)
-                .maybeSingle(),
-            supabase
-                .from('encargos')
-                .select('edi_clase_energetica, edi_consumo_energia, edi_calificacion_emisiones, edi_emisiones')
-                .eq('cod_ofer', id)
-                .order('updated_at', { ascending: false })
-                .limit(1)
-                .maybeSingle()
-        ]);
+                .eq('cod_ofer', meta.cod_ofer)
+                .maybeSingle()).data
+            : null;
 
         if (error || !meta) {
             return { success: false, error: 'Propiedad no encontrada' };
@@ -225,11 +230,11 @@ export async function getPropertyDetailAction(id: number, locale: string = 'es')
             m_cons: m_cons,
             // Use resolved poblacion from DB column (preferred) over full_data fallback
             poblacion: (meta as any).poblacion || fullData.poblacion || '',
-            // Energy Certificate
-            energy_label: encargo?.edi_clase_energetica || null,
-            energy_consumption: encargo?.edi_consumo_energia || null,
-            emissions_label: encargo?.edi_calificacion_emisiones || null,
-            emissions_value: encargo?.edi_emisiones || null,
+            // Energy Certificate (from property_metadata, selected above)
+            energy_label: (meta as any).energy_label || null,
+            energy_consumption: (meta as any).energy_consumption || null,
+            emissions_label: (meta as any).emissions_label || null,
+            emissions_value: (meta as any).emissions_value || null,
         };
 
         return { success: true, data: propertyWithPhotos as PropertyDetails };
@@ -544,12 +549,13 @@ export async function syncPropertiesFromInmovillaAction(): Promise<{
             return { success: true, synced: 0 };
         }
 
-        // Filter valid properties
-        const validProperties = propertiesData.filter(p =>
+        // Filter valid properties (must have a numeric cod_ofer — Inmovilla rows always do)
+        const validProperties = propertiesData.filter((p): p is typeof p & { cod_ofer: number } =>
+            p.cod_ofer != null &&
             !p.nodisponible &&
             !p.prospecto &&
             !isNaN(p.cod_ofer) &&
-            p.ref &&
+            !!p.ref &&
             p.ref.trim() !== '' &&
             p.ref !== '2494' &&
             p.cod_ofer !== 2494
@@ -751,12 +757,13 @@ export async function syncPropertiesIncrementalAction(batchSize: number = 10): P
             return { success: true, synced: 0, total: 0, isComplete: true };
         }
 
-        // Filter valid properties
-        const validProperties = allProperties.filter(p =>
+        // Filter valid properties (must have a numeric cod_ofer — Inmovilla rows always do)
+        const validProperties = allProperties.filter((p): p is typeof p & { cod_ofer: number } =>
+            p.cod_ofer != null &&
             !p.nodisponible &&
             !p.prospecto &&
             !isNaN(p.cod_ofer) &&
-            p.ref &&
+            !!p.ref &&
             p.ref.trim() !== '' &&
             p.ref !== '2494' &&
             p.cod_ofer !== 2494
@@ -948,7 +955,10 @@ export async function submitLeadAction(formData: {
     email: string;
     telefono: string;
     mensaje: string;
-    cod_ofer: number;
+    // cod_ofer can be null for CRM-only properties not yet synced to Inmovilla.
+    cod_ofer: number | null;
+    // Optional ref so the email subject can still identify the property.
+    ref?: string;
 }) {
     // ─── Rate Limiting ──────────────────────────────────────────────────────────
     const rate = await checkRateLimit({
@@ -965,9 +975,11 @@ export async function submitLeadAction(formData: {
     }
 
     try {
-        // Resolve property reference for the email
-        let propertyRef = 'General';
-        if (formData.cod_ofer > 0) {
+        // Resolve property reference for the email. Prefer the ref the
+        // caller passed in (CRM-friendly path); otherwise look it up by
+        // cod_ofer (legacy Inmovilla path).
+        let propertyRef = formData.ref || 'General';
+        if (propertyRef === 'General' && formData.cod_ofer && formData.cod_ofer > 0) {
             try {
                 const { supabase } = await import('@/lib/supabase');
                 const { data: propData } = await supabase

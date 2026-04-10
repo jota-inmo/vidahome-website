@@ -42,11 +42,15 @@ export async function GET(request: NextRequest) {
         let photosRefreshed = 0;
 
         if (INMOVILLA_NUMAGENCIA && INMOVILLA_PASSWORD) {
+            // Skip CRM-owned rows: those are managed by the CRM's
+            // publish_to_web flow and must not be overwritten by Inmovilla.
             const { data: needsPhotos } = await supabaseAdmin
                 .from('property_metadata')
                 .select('cod_ofer, ref')
                 .is('main_photo', null)
                 .eq('nodisponible', false)
+                .neq('source', 'crm')
+                .not('cod_ofer', 'is', null)
                 .limit(3);
 
             if (needsPhotos && needsPhotos.length > 0) {
