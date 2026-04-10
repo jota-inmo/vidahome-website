@@ -214,6 +214,23 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
                                 {localizedType || t('defaultType')} <br className="hidden md:block" />
                                 <span className="text-slate-400 font-light">{t('in')} {property.poblacion || 'La Safor'}</span>
                             </h1>
+
+                            {/* Precio — visible solo en móvil/tablet. En desktop el precio
+                                se muestra en el sidebar derecho (lg:col-span-1), pero en
+                                pantallas pequeñas el sidebar se apila al final, por lo que
+                                el precio quedaba enterrado tras descripción + certificado
+                                energético + mapa. Lo duplicamos arriba para que sea lo
+                                primero que ve el cliente cuando comparte el enlace por
+                                WhatsApp. */}
+                            <div className="lg:hidden mb-8 pb-8 border-b border-slate-100 dark:border-slate-900">
+                                {(!property.precioinmo || property.precioinmo === 0) && (
+                                    <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">{t('priceUnderRequest')}</span>
+                                )}
+                                <span className="text-4xl font-serif text-slate-900 dark:text-white">
+                                    {property.precioinmo && property.precioinmo > 0 ? `€ ${property.precioinmo.toLocaleString()}` : t('consultPrice')}
+                                </span>
+                            </div>
+
                             <div className="flex flex-wrap gap-8 md:gap-12 text-slate-900 dark:text-white">
                                 {features_data.map((f, i) => (
                                     <div key={i} className="flex flex-col gap-2">
