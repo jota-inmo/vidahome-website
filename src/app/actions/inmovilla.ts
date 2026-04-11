@@ -214,24 +214,41 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         const banyos = feat?.banos || fullData.banyos || 0;
         const m_cons = feat?.superficie || fullData.m_cons || 0;
 
-        // Fotos: usar Cloudinary (fotos_inmuebles ORDER BY orden) si existen,
-        // fallback al CDN de Inmovilla (property_metadata.photos)
+        // Fotos: preferir Cloudinary SOLO si hay al menos el 80% del total
+        // esperado (vs URLs Inmovilla CDN). Evita mostrar 5 fotos cuando
+        // Cloudinary tiene un set parcial y la galería completa vive en
+        // Inmovilla. Si no hay fotos Inmovilla (CRM-only), Cloudinary gana
+        // siempre.
         let fotos_lista: string[] = meta.photos || [];
         let main_photo: string | null = meta.main_photo || null;
+        const inmovillaCount = (meta.photos || []).length;
+        const PHOTO_COVERAGE_THRESHOLD = 0.8;
 
         if (meta.ref) {
             const { data: cloudinaryFotos } = await supabase
                 .from('fotos_inmuebles')
                 .select('url_cloudinary')
                 .eq('ref', meta.ref)
-                .eq('visible', true)
+                .or('visible.is.null,visible.eq.true')
                 .order('orden', { ascending: true });
 
-            if (cloudinaryFotos && cloudinaryFotos.length > 0) {
+            const cloudinaryCount = cloudinaryFotos?.length || 0;
+            const coverageOk = inmovillaCount === 0
+                ? cloudinaryCount > 0
+                : (cloudinaryCount / inmovillaCount) >= PHOTO_COVERAGE_THRESHOLD;
+
+            if (coverageOk && cloudinaryFotos && cloudinaryFotos.length > 0) {
                 fotos_lista = cloudinaryFotos.map((f: any) => f.url_cloudinary);
                 main_photo = fotos_lista[0];
             }
         }
+
+        // tipo_nombre: full_data trae NULL para refs CRM-only o stale, así que
+        // usamos la columna `tipo` (resuelta vía tipos_map) como source of truth.
+        const resolvedTipoNombre = (meta as any).tipo
+            || resolveTipo(fullData)
+            || fullData.tipo_nombre
+            || '';
 
         // Enrich with photos if available
         const propertyWithPhotos = {
@@ -243,6 +260,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             fotos_lista,
             main_photo,
             mainImage: main_photo,
+            tipo_nombre: resolvedTipoNombre,
             habitaciones: habitaciones,
             banyos: banyos,
             m_cons: m_cons,
