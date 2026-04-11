@@ -140,26 +140,44 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
 
 /**
  * SIMPLIFIED: Get property detail from Supabase (source of truth)
- * Accepts either a numeric cod_ofer (legacy Inmovilla-synced URLs)
- * or a CRM ref (new CRM-published URLs). The route param `id` is a
- * string so we detect by /^\d+$/.
+ *
+ * Accepts a path param that may be either:
+ *   - a CRM ref string (e.g. "2975", "T2785", "A2812")
+ *   - a numeric Inmovilla cod_ofer (e.g. 28734500)
+ *
+ * The previous version assumed "all-digit string == cod_ofer" but CRM refs
+ * like "2975" or "2772" are also all-digits, which made every CRM-managed
+ * property return "Propiedad no encontrada". Fixed by ALWAYS trying ref
+ * first, then falling back to cod_ofer for legacy URLs.
  */
 export async function getPropertyDetailAction(idOrRef: number | string, locale: string = 'es'): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
     try {
         const { supabase } = await import('@/lib/supabase');
 
-        // Decide lookup column: numeric → cod_ofer (legacy), string → ref (CRM)
-        const asString = String(idOrRef);
-        const isNumeric = /^\d+$/.test(asString);
-        const lookupCol = isNumeric ? 'cod_ofer' : 'ref';
-        const lookupVal: string | number = isNumeric ? Number(asString) : asString;
+        const asString = String(idOrRef).trim();
+        const SELECT_COLS = 'cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value';
 
-        // Step 1: load metadata, then use cod_ofer for the joins below
-        const { data: meta, error } = await supabase
+        // Try lookup by ref first (CRM source-of-truth, every URL minted by
+        // the new wizard uses ref). maybeSingle so a miss doesn't throw.
+        let { data: meta } = await supabase
             .from('property_metadata')
-            .select('cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value')
-            .eq(lookupCol, lookupVal)
-            .single();
+            .select(SELECT_COLS)
+            .eq('ref', asString)
+            .maybeSingle();
+
+        // Fallback: legacy URLs minted by the old website used the numeric
+        // Inmovilla cod_ofer. Try that only if (a) the param is purely
+        // numeric and (b) the ref lookup didn't find anything.
+        if (!meta && /^\d+$/.test(asString)) {
+            const codOfer = Number(asString);
+            const { data: metaByCod } = await supabase
+                .from('property_metadata')
+                .select(SELECT_COLS)
+                .eq('cod_ofer', codOfer)
+                .maybeSingle();
+            meta = metaByCod;
+        }
+        const error = null;
 
         // CRM-published rows may not have cod_ofer, so the join below skips
         // property_features (it's keyed by cod_ofer). Energy data already

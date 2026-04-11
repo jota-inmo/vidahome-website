@@ -11,18 +11,22 @@ interface Props {
     params: Promise<{ id: string, locale: string }>;
 }
 
-// Resolve route param to either numeric cod_ofer (legacy) or string ref (CRM).
-function resolveIdParam(id: string): number | string {
-    return /^\d+$/.test(id) ? parseInt(id, 10) : id;
-}
+// NOTE: previously this file had a resolveIdParam() helper that decided
+// "if it's all digits, treat as cod_ofer numeric, otherwise as ref string".
+// That broke ALL CRM refs like "2975", "2772", "2968" which are also pure
+// digits but NOT cod_ofer values (those are 8-digit Inmovilla IDs like
+// 28734500). The lookup went to the wrong column and every CRM property
+// returned "Propiedad no encontrada".
+//
+// Fixed 2026-04-11: pass the route param straight through as a string.
+// getPropertyDetailAction now does ref-first / cod_ofer-fallback internally.
 
 export async function generateMetadata(
     { params }: Props,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
     const { id, locale } = await params;
-    const lookup = resolveIdParam(id);
-    const result = await getPropertyDetailAction(lookup, locale);
+    const result = await getPropertyDetailAction(id, locale);
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
 
     if (!result.success || !result.data) {
@@ -64,12 +68,13 @@ export async function generateMetadata(
 
 export default async function PropertyDetailPage({ params }: Props) {
     const { id, locale } = await params;
-    const lookup = resolveIdParam(id);
-    const result = await getPropertyDetailAction(lookup, locale);
-    // property_features is keyed by cod_ofer; for CRM-only refs there are no
-    // features yet — just pass null/empty in that case.
-    const properties_features = typeof lookup === 'number'
-        ? await getPropertyFeatures(lookup)
+    const result = await getPropertyDetailAction(id, locale);
+    // property_features is keyed by cod_ofer. After the lookup we know
+    // whether the resolved property has a numeric cod_ofer (legacy or
+    // CRM-already-pushed-to-Inmovilla) — only fetch features in that case.
+    const cod = result?.data?.cod_ofer;
+    const properties_features = (typeof cod === 'number' && cod > 0)
+        ? await getPropertyFeatures(cod)
         : null;
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
     const tIndex = await getTranslations({ locale: locale as string, namespace: 'Index' });
