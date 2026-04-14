@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { Search } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
@@ -42,8 +42,17 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
         // If we got server data, mark as loaded immediately (no flash)
         !!(initialSlides && initialSlides.length > 0)
     );
+    const [searchQuery, setSearchQuery] = useState('');
     const t = useTranslations('Hero');
     const locale = useLocale();
+    const router = useRouter();
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmed = searchQuery.trim();
+        const href = trimmed ? `/propiedades?q=${encodeURIComponent(trimmed)}` : '/propiedades';
+        router.push(href);
+    };
 
     useEffect(() => {
         // If no initial slides were provided, fetch client-side (fallback)
@@ -164,23 +173,35 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
             {/* Static Search Overlay - Outside Swiper to stay fixed */}
             <div className={`absolute bottom-16 md:bottom-24 left-0 right-0 z-20 transition-all duration-1000 px-6 md:px-8 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 <div className="max-w-4xl mx-auto group">
-                    <div className="bg-black/80 backdrop-blur-xl p-3 md:p-2 rounded-lg border-2 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col md:flex-row items-stretch gap-2 hover:bg-black/90 hover:border-white/30 transition-all duration-500">
+                    <form
+                        onSubmit={handleSearchSubmit}
+                        role="search"
+                        className="bg-black/80 backdrop-blur-xl p-3 md:p-2 rounded-lg border-2 border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col md:flex-row items-stretch gap-2 hover:bg-black/90 hover:border-white/30 transition-all duration-500"
+                    >
                         <div className="flex-grow relative">
+                            <label htmlFor="hero-search" className="sr-only">
+                                {t('searchPlaceholder')}
+                            </label>
                             <input
-                                type="text"
+                                id="hero-search"
+                                type="search"
+                                name="q"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={t('searchPlaceholder')}
                                 className="w-full bg-white/10 border-none text-white placeholder:text-white/60 text-[10px] md:text-xs py-4 md:py-5 px-10 focus:ring-2 focus:ring-teal-400/70 rounded-md transition-all uppercase tracking-[0.2em] font-medium focus:bg-white/15"
+                                autoComplete="off"
                             />
                             <Search className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-white/50" size={16} />
                         </div>
 
-                        <Link
-                            href="/propiedades"
+                        <button
+                            type="submit"
                             className="bg-white text-[#0a192f] px-8 md:px-12 py-4 md:py-5 text-[10px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold hover:bg-teal-400 hover:text-slate-900 transition-all flex items-center justify-center gap-3 rounded-md active:scale-95 shadow-lg"
                         >
                             {t('viewCatalog')}
-                        </Link>
-                    </div>
+                        </button>
+                    </form>
                 </div>
             </div>
 

@@ -7,6 +7,13 @@ import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
 import { translatePropertyType } from '@/lib/utils/property-types';
 
+// ISR: regenerate each detail page every 5 minutes. Before this, every
+// visit did 3 round-trips to Supabase (detail + features + descriptions)
+// on every request. At 5-minute revalidate the typical visitor hits the
+// cached HTML, and the background refresh keeps prices/status fresh
+// within an acceptable window for a real-estate catalog.
+export const revalidate = 300;
+
 interface Props {
     params: Promise<{ id: string, locale: string }>;
 }

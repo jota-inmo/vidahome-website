@@ -8,6 +8,7 @@ import { useAnalytics } from '@/lib/hooks/useAnalytics';
 interface PropertySearchProps {
     onSearch: (filters: SearchFilters) => void;
     populations: string[];
+    initialQuery?: string;
 }
 
 export interface SearchFilters {
@@ -16,9 +17,9 @@ export interface SearchFilters {
     population: string;
 }
 
-export const PropertySearch = ({ onSearch, populations }: PropertySearchProps) => {
+export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: PropertySearchProps) => {
     const [type, setType] = React.useState<'buy' | 'rent' | 'transfer'>('buy');
-    const [query, setQuery] = React.useState('');
+    const [query, setQuery] = React.useState(initialQuery);
     const [population, setPopulation] = React.useState('');
     const t = useTranslations('Search');
     const { trackSearch } = useAnalytics();

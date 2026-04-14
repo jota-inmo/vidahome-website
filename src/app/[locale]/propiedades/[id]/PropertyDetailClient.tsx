@@ -210,7 +210,7 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
 
             <PropertyGallery images={property.fotos_lista || []} />
 
-            <main className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24">
+            <main className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 pb-28 lg:pb-24">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 lg:gap-24">
                     {/* Detalles Principales */}
                     <div className="lg:col-span-2">
@@ -319,7 +319,7 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
                     </div>
 
                     {/* Sidebar de Contacto */}
-                    <div className="lg:col-span-1">
+                    <div className="lg:col-span-1" id="contact-form-anchor">
                         <div className="sticky top-24">
                             <div className="mb-8 flex justify-between items-start">
                                 <div>
@@ -351,6 +351,36 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
                     </div>
                 </div>
             </main>
+
+            {/* Sticky mobile CTA — fixed at the bottom of the viewport on
+                lg-below. The desktop right sidebar covers this case on
+                larger screens. */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+                <div className="flex items-center justify-between gap-4 px-5 py-3 max-w-7xl mx-auto">
+                    <div className="flex flex-col min-w-0">
+                        {(!property.precioinmo || property.precioinmo === 0) ? (
+                            <span className="text-sm font-serif text-slate-900 dark:text-white truncate">
+                                {t('consultPrice')}
+                            </span>
+                        ) : (
+                            <>
+                                <span className="text-[9px] tracking-[0.2em] uppercase text-slate-400 leading-none mb-1">
+                                    {t('reference')} {property.ref}
+                                </span>
+                                <span className="text-lg font-serif text-slate-900 dark:text-white leading-tight">
+                                    € {property.precioinmo.toLocaleString()}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                    <a
+                        href="#contact-form-anchor"
+                        className="shrink-0 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 text-[11px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-teal-500 dark:hover:bg-teal-400 active:scale-95 transition-all shadow-lg"
+                    >
+                        {t('contactCta')}
+                    </a>
+                </div>
+            </div>
         </div>
     );
 }

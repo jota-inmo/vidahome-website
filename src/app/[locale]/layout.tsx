@@ -22,34 +22,69 @@ const inter = Inter({
   variable: "--font-sans",
 });
 
+// Map each next-intl locale to its OG-compliant territory code.
+// Before 2026-04-14 this was `locale === 'en' ? 'en_US' : 'es_ES'` —
+// so fr/de/it/pl all got served as es_ES on Facebook/LinkedIn previews.
+const OG_LOCALE_MAP: Record<string, string> = {
+  es: 'es_ES',
+  en: 'en_US',
+  fr: 'fr_FR',
+  de: 'de_DE',
+  it: 'it_IT',
+  pl: 'pl_PL',
+};
+
+const SITE_URL = 'https://vidahome.es';
+const SUPPORTED_LOCALES = ['es', 'en', 'fr', 'de', 'it', 'pl'] as const;
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale });
+  // Use the Metadata namespace — each locale file has homeTitle / homeDescription
+  // / homeOgDescription so Google.fr / .de / .it / .pl see the right language.
+  const t = await getTranslations({ locale, namespace: 'Metadata' });
+
+  const title = t('homeTitle');
+  const description = t('homeDescription');
+  const ogDescription = t('homeOgDescription');
+  const canonicalPath = locale === 'es' ? '/' : `/${locale}`;
+
+  // hreflang alternates — declares the other locale versions so Google
+  // can pick the right one per user region and stops the locales from
+  // cannibalising each other.
+  const languages: Record<string, string> = {};
+  for (const l of SUPPORTED_LOCALES) {
+    languages[l] = `${SITE_URL}${l === 'es' ? '' : `/${l}`}`;
+  }
+  languages['x-default'] = SITE_URL;
 
   return {
-    title: "Vidahome | Inmobiliaria en Gandía — Alcance Global, Trato Cercano",
-    description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores. Tu confianza, nuestra prioridad.",
+    title,
+    description,
+    alternates: {
+      canonical: `${SITE_URL}${canonicalPath}`,
+      languages,
+    },
     openGraph: {
-      title: "Vidahome | Inmobiliaria en Gandía — Alcance Global, Trato Cercano",
-      description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores.",
-      url: "https://vidahome.es",
-      siteName: "Vidahome",
+      title,
+      description: ogDescription,
+      url: `${SITE_URL}${canonicalPath}`,
+      siteName: 'Vidahome',
       images: [
         {
-          url: "/MARCA OK.png",
+          url: `${SITE_URL}/MARCA OK.png`,
           width: 1200,
           height: 630,
-          alt: "Vidahome Logo",
+          alt: 'Vidahome',
         },
       ],
-      locale: locale === 'en' ? 'en_US' : 'es_ES',
-      type: "website",
+      locale: OG_LOCALE_MAP[locale] || 'es_ES',
+      type: 'website',
     },
     twitter: {
-      card: "summary_large_image",
-      title: "Vidahome | Inmobiliaria en Gandía — Alcance Global, Trato Cercano",
-      description: "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores.",
-      images: ["/MARCA OK.png"],
+      card: 'summary_large_image',
+      title,
+      description: ogDescription,
+      images: [`${SITE_URL}/MARCA OK.png`],
     },
   };
 }

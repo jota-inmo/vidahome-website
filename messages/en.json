@@ -1,4 +1,9 @@
 {
+    "Metadata": {
+        "homeTitle": "Vidahome | Real Estate in Gandía — Global Reach, Personal Service",
+        "homeDescription": "Specialists in exclusive properties in the Gandia area and surroundings. Your trust is our priority.",
+        "homeOgDescription": "Specialists in exclusive properties in the Gandia area and surroundings."
+    },
     "Index": {
         "title": "Property Selection",
         "description": "We don't show you what we have, we find what you are looking for. Where architectural design meets the perfect location.",
@@ -102,7 +107,8 @@
         "inProcess": "In Process",
         "moreEfficient": "More efficient",
         "lessEfficient": "Less efficient",
-        "value": "Value"
+        "value": "Value",
+        "contactCta": "Contact"
     },
     "Contact": {
         "formTitle": "Request Information",

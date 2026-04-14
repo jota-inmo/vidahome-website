@@ -1,4 +1,9 @@
 {
+    "Metadata": {
+        "homeTitle": "Vidahome | Immobilienmakler in Gandía — Globale Reichweite, persönlicher Service",
+        "homeDescription": "Spezialisten für exklusive Immobilien in Gandia und Umgebung. Ihr Vertrauen ist unsere Priorität.",
+        "homeOgDescription": "Spezialisten für exklusive Immobilien in Gandia und Umgebung."
+    },
     "Index": {
         "title": "Auswahl an Immobilien",
         "description": "Wir zeigen dir nicht, was wir haben, wir finden, was du suchst. Wo architektonisches Design auf die perfekte Lage trifft.",
@@ -102,7 +107,8 @@
         "inProcess": "In Bearbeitung",
         "moreEfficient": "Effizienter",
         "lessEfficient": "Weniger effizient",
-        "value": "Wert"
+        "value": "Wert",
+        "contactCta": "Kontakt"
     },
     "Contact": {
         "formTitle": "Informationen anfordern",

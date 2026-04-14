@@ -1,4 +1,9 @@
 {
+    "Metadata": {
+        "homeTitle": "Vidahome | Agence Immobilière à Gandía — Portée Globale, Service Personnalisé",
+        "homeDescription": "Spécialistes dans la gestion de propriétés exclusives à Gandia et ses environs. Votre confiance est notre priorité.",
+        "homeOgDescription": "Spécialistes dans la gestion de propriétés exclusives à Gandia et ses environs."
+    },
     "Index": {
         "title": "Sélection de Propriétés",
         "description": "Nous ne vous montrons pas ce que nous avons, nous trouvons ce que vous cherchez. Où la conception architecturale se rencontre avec l'emplacement parfait.",
@@ -102,7 +107,8 @@
         "inProcess": "En cours",
         "moreEfficient": "Plus efficace",
         "lessEfficient": "Moins efficace",
-        "value": "Valeur"
+        "value": "Valeur",
+        "contactCta": "Contacter"
     },
     "Contact": {
         "formTitle": "Demander des Informations",

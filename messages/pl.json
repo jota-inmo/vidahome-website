@@ -1,4 +1,9 @@
 {
+    "Metadata": {
+        "homeTitle": "Vidahome | Agencja Nieruchomości w Gandía — Zasięg Globalny, Obsługa Osobista",
+        "homeDescription": "Specjaliści od zarządzania ekskluzywnymi nieruchomościami w Gandia i okolicach. Twoje zaufanie jest naszym priorytetem.",
+        "homeOgDescription": "Specjaliści od zarządzania ekskluzywnymi nieruchomościami w Gandia i okolicach."
+    },
     "Index": {
         "title": "Wybór Nieruchomości",
         "description": "Nie pokazujemy Ci co mamy, znajdujemy to czego szukasz. Gdzie projekt architektoniczny spotyka się z doskonałą lokalizacją.",
@@ -102,7 +107,8 @@
         "inProcess": "W trakcie",
         "moreEfficient": "Bardziej wydajny",
         "lessEfficient": "Mniej wydajny",
-        "value": "Wartość"
+        "value": "Wartość",
+        "contactCta": "Kontakt"
     },
     "Contact": {
         "formTitle": "Poproś o informacje",

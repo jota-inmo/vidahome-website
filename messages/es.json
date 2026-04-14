@@ -1,4 +1,9 @@
 {
+    "Metadata": {
+        "homeTitle": "Vidahome | Inmobiliaria en Gandía — Alcance Global, Trato Cercano",
+        "homeDescription": "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores. Tu confianza, nuestra prioridad.",
+        "homeOgDescription": "Especialistas en la gestión de propiedades exclusivas en la zona de Gandia y alrededores."
+    },
     "Index": {
         "title": "Selección de Inmuebles",
         "description": "No te mostramos lo que tenemos, encontramos lo que buscas. Donde el diseño arquitectónico se une con la ubicación perfecta.",
@@ -102,7 +107,8 @@
         "inProcess": "En Trámite",
         "moreEfficient": "Más eficiente",
         "lessEfficient": "Menos eficiente",
-        "value": "Valor"
+        "value": "Valor",
+        "contactCta": "Contactar"
     },
     "Contact": {
         "formTitle": "Solicitar Información",

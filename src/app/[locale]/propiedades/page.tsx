@@ -15,12 +15,19 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function PropiedadesPage() {
+interface PropiedadesPageProps {
+    // searchParams is a Promise in Next 15 async routes
+    searchParams?: Promise<{ q?: string }>;
+}
+
+export default async function PropiedadesPage({ searchParams }: PropiedadesPageProps) {
     const locale = await getLocale();
     const result = await fetchPropertiesAction(locale);
     const properties = result.success ? (result.data || []) : [];
     const populations = result.meta?.populations || [];
     const error = result.success ? null : result.error;
+    const params = await searchParams;
+    const initialQuery = (params?.q || '').trim();
 
     const t = await getTranslations('Index');
     const f = await getTranslations('Footer');
@@ -49,7 +56,11 @@ export default async function PropiedadesPage() {
                 </div>
             )}
 
-            <PropertyCatalogClient initialProperties={properties} populations={populations} />
+            <PropertyCatalogClient
+                initialProperties={properties}
+                populations={populations}
+                initialQuery={initialQuery}
+            />
 
             <footer className="px-8 py-20 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-900">
                 <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">

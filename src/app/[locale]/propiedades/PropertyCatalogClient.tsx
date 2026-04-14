@@ -10,15 +10,31 @@ import { sortProperties, type SortKey } from '@/lib/utils/property-sort';
 interface PropertyCatalogClientProps {
     initialProperties: PropertyListEntry[];
     populations: string[];
+    /** Query string pre-filled from the URL ?q= param (e.g. from the hero search). */
+    initialQuery?: string;
 }
 
-export function PropertyCatalogClient({ initialProperties, populations }: PropertyCatalogClientProps) {
+function applyInitialFilter(
+    all: PropertyListEntry[],
+    initialQuery: string,
+): PropertyListEntry[] {
+    const filteredByType = all.filter(p => {
+        const ref = (p.ref || '').toUpperCase();
+        return !ref.startsWith('T') && (!p.keyacci || p.keyacci === 1);
+    });
+    if (!initialQuery) return filteredByType;
+    const q = initialQuery.toLowerCase();
+    return filteredByType.filter(p =>
+        p.ref.toLowerCase().includes(q) ||
+        (p.descripciones && p.descripciones.toLowerCase().includes(q)) ||
+        (p.poblacion && p.poblacion.toLowerCase().includes(q))
+    );
+}
+
+export function PropertyCatalogClient({ initialProperties, populations, initialQuery = '' }: PropertyCatalogClientProps) {
     const [allProperties] = useState<PropertyListEntry[]>(initialProperties);
     const [filteredProperties, setFilteredProperties] = useState<PropertyListEntry[]>(
-        initialProperties.filter(p => {
-            const ref = (p.ref || '').toUpperCase();
-            return !ref.startsWith('T') && (!p.keyacci || p.keyacci === 1); // default to Buy, exclude traspasos
-        })
+        () => applyInitialFilter(initialProperties, initialQuery)
     );
     const [sortKey, setSortKey] = useState<SortKey>('recent');
     const t = useTranslations('Search');
@@ -61,7 +77,11 @@ export function PropertyCatalogClient({ initialProperties, populations }: Proper
 
     return (
         <>
-            <PropertySearch onSearch={handleSearch} populations={populations} />
+            <PropertySearch
+                onSearch={handleSearch}
+                populations={populations}
+                initialQuery={initialQuery}
+            />
 
             <main className="px-8 max-w-[1600px] mx-auto pb-32">
                 {/* Sort + results count bar */}
