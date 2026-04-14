@@ -7,12 +7,14 @@ import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
 import { translatePropertyType } from '@/lib/utils/property-types';
 
-// ISR: regenerate each detail page every 5 minutes. Before this, every
-// visit did 3 round-trips to Supabase (detail + features + descriptions)
-// on every request. At 5-minute revalidate the typical visitor hits the
-// cached HTML, and the background refresh keeps prices/status fresh
-// within an acceptable window for a real-estate catalog.
-export const revalidate = 300;
+// ISR: regenerate each detail page every 60 seconds. Used to be 300s
+// but that made the "reorder photos in CRM → refresh detail" loop feel
+// broken (user didn't see their change for up to 5 min). The CRM now
+// triggers on-demand revalidation via /api/revalidate right after
+// syncing fotos_inmuebles → property_metadata, so in the happy path
+// the invalidation is immediate and the ISR window is just a safety
+// net for cases where the webhook fetch fails or the env var is unset.
+export const revalidate = 60;
 
 interface Props {
     params: Promise<{ id: string, locale: string }>;
