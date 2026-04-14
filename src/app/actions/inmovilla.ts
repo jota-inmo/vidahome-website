@@ -130,7 +130,10 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 tipo_nombre: fullData.tipo_nombre || row.tipo || '',
                 numagencia: fullData.numagencia,
                 fotoletra: fullData.fotoletra,
-                numfotos: fullData.numfotos
+                numfotos: fullData.numfotos,
+                // Expose updated_at so the catalog can offer a
+                // "most recent first" sort option.
+                updated_at: row.updated_at,
             };
         });
 

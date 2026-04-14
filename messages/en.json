@@ -66,7 +66,12 @@
         "in": "in",
         "propertyIn": "Property in",
         "priceUnderRequest": "Price under request",
-        "explore": "Explore"
+        "explore": "Explore",
+        "sortBy": "Sort by",
+        "sortRecent": "Most recent",
+        "sortPriceAsc": "Price: low to high",
+        "sortPriceDesc": "Price: high to low",
+        "resultsCount": "{count, plural, =0 {No results} =1 {# result} other {# results}}"
     },
     "Property": {
         "surface": "Surface",

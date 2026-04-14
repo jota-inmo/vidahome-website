@@ -47,6 +47,9 @@ export interface PropertyListEntry {
     piscina_prop?: boolean;
     diafano?: boolean;
     todoext?: boolean;
+    // ISO timestamp from property_metadata.updated_at. Used for the
+    // "most recent first" sort option on the catalog page.
+    updated_at?: string;
 }
 
 export interface PropertyDetails {

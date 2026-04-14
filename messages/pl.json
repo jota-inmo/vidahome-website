@@ -66,7 +66,12 @@
         "in": "w",
         "propertyIn": "Nieruchomość w",
         "priceUnderRequest": "Cena na życzenie",
-        "explore": "Odkrywaj"
+        "explore": "Odkrywaj",
+        "sortBy": "Sortuj wg",
+        "sortRecent": "Najnowsze",
+        "sortPriceAsc": "Cena: rosnąco",
+        "sortPriceDesc": "Cena: malejąco",
+        "resultsCount": "{count, plural, =0 {Brak wyników} =1 {# wynik} few {# wyniki} many {# wyników} other {# wyników}}"
     },
     "Property": {
         "surface": "Powierzchnia",

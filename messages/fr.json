@@ -66,7 +66,12 @@
         "in": "à",
         "propertyIn": "Propriété à",
         "priceUnderRequest": "Prix sur demande",
-        "explore": "Explorer"
+        "explore": "Explorer",
+        "sortBy": "Trier par",
+        "sortRecent": "Plus récents",
+        "sortPriceAsc": "Prix : croissant",
+        "sortPriceDesc": "Prix : décroissant",
+        "resultsCount": "{count, plural, =0 {Aucun résultat} =1 {# résultat} other {# résultats}}"
     },
     "Property": {
         "surface": "Surface",
