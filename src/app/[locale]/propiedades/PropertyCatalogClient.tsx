@@ -86,7 +86,12 @@ export function PropertyCatalogClient({ initialProperties, populations }: Proper
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">
                     {sortedProperties.length > 0 ? (
                         sortedProperties.map((prop: PropertyListEntry) => (
-                            <LuxuryPropertyCard key={prop.cod_ofer} property={prop} />
+                            // Use ref as the key — cod_ofer is NULL for every
+                            // CRM-published row, so keying by it causes React
+                            // reconciliation collisions (duplicate cards and
+                            // stale data after sort changes). ref is the PK
+                            // of property_metadata and is guaranteed unique.
+                            <LuxuryPropertyCard key={prop.ref} property={prop} />
                         ))
                     ) : (
                         <div className="col-span-full py-32 text-center">

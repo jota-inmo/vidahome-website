@@ -40,7 +40,11 @@ export async function FeaturedGrid() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">
             {featured.map((prop) => (
-                <div key={prop.cod_ofer} className="animate-fade-up">
+                // Keyed by ref (unique PK of property_metadata) instead of
+                // cod_ofer, which is NULL for CRM-published rows and causes
+                // React reconciliation collisions when multiple such rows
+                // share the featured grid.
+                <div key={prop.ref || prop.cod_ofer || ''} className="animate-fade-up">
                     <LuxuryPropertyCard property={prop} />
                 </div>
             ))}

@@ -74,9 +74,21 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
 
                 <div className="p-8 flex flex-col flex-grow">
                     <h3 className="text-xl font-serif text-slate-900 dark:text-slate-100 leading-tight mb-4">
+                        {/*
+                          Título preferido: "{tipo} en {poblacion}". Si la
+                          propiedad no tiene poblacion en BD (pasa con filas
+                          CRM-only si publish_to_web no pudo derivarla), al
+                          menos añadimos la ref al tipo para que dos pisos
+                          sin ubicación no queden idénticos a ojo y el
+                          usuario pueda distinguirlos.
+                        */}
                         {localizedType
-                            ? (property.poblacion ? `${localizedType} ${t('in')} ${property.poblacion}` : localizedType)
-                            : (property.poblacion ? `${t('propertyIn')} ${property.poblacion}` : `Ref ${property.ref}`)}
+                            ? (property.poblacion
+                                ? `${localizedType} ${t('in')} ${property.poblacion}`
+                                : `${localizedType} · Ref. ${property.ref}`)
+                            : (property.poblacion
+                                ? `${t('propertyIn')} ${property.poblacion}`
+                                : `Ref. ${property.ref}`)}
                     </h3>
 
                     <div className="flex items-center gap-8 mb-6 text-slate-400">
