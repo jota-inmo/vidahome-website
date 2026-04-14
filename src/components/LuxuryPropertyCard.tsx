@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { Bed, Bath, Square } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
+import { totalBathrooms, bathroomsTooltip } from '@/lib/utils/bathrooms';
 import { useTranslations, useLocale } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
@@ -83,9 +84,14 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                             <Bed size={16} strokeWidth={1.5} />
                             <span className="text-sm font-light">{property.habitaciones || '-'}</span>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div
+                            className="flex items-center gap-3"
+                            title={bathroomsTooltip(property.banyos, property.aseos)}
+                        >
                             <Bath size={16} strokeWidth={1.5} />
-                            <span className="text-sm font-light">{property.banyos || '-'}</span>
+                            <span className="text-sm font-light">
+                                {totalBathrooms(property.banyos, property.aseos) || '-'}
+                            </span>
                         </div>
                         <div className="flex items-center gap-3">
                             <Square size={14} strokeWidth={1.5} />

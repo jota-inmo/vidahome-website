@@ -26,6 +26,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { getPropertyDetailAction } from '@/app/actions/inmovilla';
+import { totalBathrooms, bathroomsTooltip } from '@/lib/utils/bathrooms';
 import { Zap, Leaf } from 'lucide-react';
 
 const EnergyRow = ({ letter, label, color, isActive }: { letter: string, label: string, color: string, isActive: boolean }) => (
@@ -180,7 +181,12 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
                 ? `(${features.habitaciones || 0} total)` 
                 : undefined
         },
-        { icon: <Bath size={20} />, label: t('bathrooms'), value: property.banyos },
+        {
+            icon: <Bath size={20} />,
+            label: t('bathrooms'),
+            value: totalBathrooms(property.banyos, property.aseos) || property.banyos,
+            subtitle: bathroomsTooltip(property.banyos, property.aseos),
+        },
         { icon: <Calendar size={20} />, label: t('construction'), value: features?.ano_construccion || 'N/A' },
     ];
 

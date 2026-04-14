@@ -101,6 +101,10 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
             const habitaciones = feat?.habitaciones
                 ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
             const banyos = feat?.banos || fullData.banyos || 0;
+            // aseos lives only in full_data (property_features no lo tiene).
+            // Lo propagamos para que la card pueda mostrar baños+aseos sumados
+            // con tooltip "X baño + Y aseo" en hover.
+            const aseos = Number(fullData.aseos) || 0;
             const m_cons = feat?.superficie || fullData.m_cons || 0;
 
             // Apply locale-specific description, fallback to Spanish
@@ -120,6 +124,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 precioalq: fullData.precioalq,
                 habitaciones: habitaciones,
                 banyos: banyos,
+                aseos: aseos,
                 m_cons: m_cons,
                 descripciones: localizedDesc,
                 tipo_nombre: fullData.tipo_nombre || row.tipo || '',
@@ -212,6 +217,10 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         const habitaciones = feat?.habitaciones
             ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
         const banyos = feat?.banos || fullData.banyos || 0;
+        // aseos is Spanish-real-estate-specific (toilet room without shower);
+        // only full_data carries it. Expose it so the card/detail can show
+        // (baños + aseos) with a tooltip "X baño + Y aseo" on hover.
+        const aseos = Number((fullData as { aseos?: number | string }).aseos) || 0;
         const m_cons = feat?.superficie || fullData.m_cons || 0;
 
         // Fotos: preferir Cloudinary SOLO si hay al menos el 80% del total
@@ -263,6 +272,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             tipo_nombre: resolvedTipoNombre,
             habitaciones: habitaciones,
             banyos: banyos,
+            aseos: aseos,
             m_cons: m_cons,
             // Use resolved poblacion from DB column (preferred) over full_data fallback
             poblacion: (meta as any).poblacion || fullData.poblacion || '',
@@ -357,6 +367,7 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                 const habitaciones = feat?.habitaciones
                     ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
                 const banyos = feat?.banos || fullData.banyos || 0;
+                const aseos = Number((fullData as { aseos?: number | string }).aseos) || 0;
                 const m_cons = feat?.superficie || fullData.m_cons || 0;
 
                 return {
@@ -366,6 +377,7 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                     mainImage: meta.main_photo,
                     habitaciones: habitaciones,
                     banyos: banyos,
+                    aseos: aseos,
                     m_cons: m_cons,
                     descripciones: localizedDesc,
                     fotos_lista: meta.photos || []

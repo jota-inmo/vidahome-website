@@ -54,6 +54,7 @@ export interface PropertyDetails {
     cod_ofer: number | null;
     keyacci: number;
     banyos: number;
+    aseos?: number;
     keycli: number;
     fecha: string;
     keyori: number;
