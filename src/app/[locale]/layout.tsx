@@ -58,6 +58,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   languages['x-default'] = SITE_URL;
 
   return {
+    // metadataBase lets Next.js resolve any relative URL in images /
+    // openGraph / twitter to an absolute one. Without it, relative
+    // paths in OG images fall back to the request host (which includes
+    // Vercel preview URLs and localhost) — WhatsApp, Facebook and
+    // LinkedIn ignore those and show no preview at all.
+    metadataBase: new URL(SITE_URL),
     title,
     description,
     alternates: {

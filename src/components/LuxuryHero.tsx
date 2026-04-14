@@ -127,6 +127,13 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
                                         muted
                                         loop
                                         playsInline
+                                        // preload="metadata" tells the browser to grab only
+                                        // the headers (duration, dimensions, codec) up front
+                                        // and stream frames as playback starts. Without this,
+                                        // Chrome defaults to "auto" and downloads the full
+                                        // MP4 on every hero mount — the dominant LCP killer
+                                        // on 4G mobile.
+                                        preload="metadata"
                                         poster={slide.poster ? getRealUrl(slide.poster) : undefined}
                                         src={getRealUrl(slide.video_path)}
                                         className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[6000ms] ease-linear"

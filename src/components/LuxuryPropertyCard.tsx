@@ -43,6 +43,10 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     src={imageUrl}
                     alt={`Property ${property.ref}`}
                     fill
+                    // The catalog grid is 1 col on mobile, 2 cols on md, 3 on lg.
+                    // Before this `sizes` prop Next.js served a single ~1920px
+                    // image to every breakpoint — heavy LCP on 4G mobile.
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className={`object-cover transition-all duration-[1.5s] ease-out group-hover:scale-105 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-50 scale-110'
                         } ${isUnavailable ? 'grayscale' : ''}`}
                     onLoad={() => setImageLoaded(true)}

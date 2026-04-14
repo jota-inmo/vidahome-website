@@ -97,8 +97,21 @@ export default async function PropertyDetailPage({ params }: Props) {
         );
     }
 
-    // JSON-LD Structured Data for SEO
-    const jsonLd = {
+    // JSON-LD Structured Data for SEO.
+    //
+    // Enriched with numberOfRooms, floorSize, numberOfBathroomsTotal
+    // and yearBuilt so Google's rich snippets engine can surface this
+    // data in the property card it shows on SERPs. These fields are
+    // all available in PropertyFeatures / result.data but were absent
+    // from the previous JSON-LD.
+    const total_rooms = properties_features?.habitaciones
+        || ((Number(result.data.habitaciones) || 0) + (Number((result.data as { habdobles?: number }).habdobles) || 0))
+        || undefined;
+    const total_baths = (Number(result.data.banyos) || 0) + (Number(result.data.aseos) || 0) || undefined;
+    const floor_size_m2 = properties_features?.superficie || result.data.m_cons || undefined;
+    const year_built = properties_features?.ano_construccion || undefined;
+
+    const jsonLd: Record<string, unknown> = {
         '@context': 'https://schema.org',
         '@type': 'RealEstateListing',
         'name': result.data.tipo_nombre,
@@ -116,8 +129,20 @@ export default async function PropertyDetailPage({ params }: Props) {
             'price': result.data.precioinmo,
             'priceCurrency': 'EUR',
             'availability': 'https://schema.org/InStock'
-        }
+        },
     };
+    // Only attach rich-snippet fields when the underlying value is
+    // present. Partial JSON-LD is fine; fake zeros would be worse.
+    if (total_rooms) jsonLd.numberOfRooms = total_rooms;
+    if (total_baths) jsonLd.numberOfBathroomsTotal = total_baths;
+    if (floor_size_m2) {
+        jsonLd.floorSize = {
+            '@type': 'QuantitativeValue',
+            'value': floor_size_m2,
+            'unitCode': 'MTK', // square metres
+        };
+    }
+    if (year_built) jsonLd.yearBuilt = year_built;
 
     return (
         <>

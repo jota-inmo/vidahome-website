@@ -77,10 +77,21 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
 
         if (error) throw error;
 
-        // Also get property features for accurate room/bath counts
-        const { data: features, error: featError } = await supabase
-            .from('property_features')
-            .select('cod_ofer, habitaciones, habitaciones_simples, habitaciones_dobles, banos, superficie');
+        // Also get property features for accurate room/bath counts.
+        // Scoped with .in('cod_ofer', ...) so the query only touches the
+        // rows this page needs. Before: this pulled the entire
+        // property_features table on every catalog visit — O(N) per
+        // load, would not scale past a few hundred rows. We filter out
+        // null cod_ofer values (CRM-only refs never had an Inmovilla id).
+        const propertyCods = (properties || [])
+            .map((p: { cod_ofer: number | null }) => p.cod_ofer)
+            .filter((v): v is number => typeof v === 'number' && v > 0);
+        const { data: features, error: featError } = propertyCods.length > 0
+            ? await supabase
+                .from('property_features')
+                .select('cod_ofer, habitaciones, habitaciones_simples, habitaciones_dobles, banos, superficie')
+                .in('cod_ofer', propertyCods)
+            : { data: [], error: null };
 
         if (featError) {
             console.warn('[Actions] Error fetching features:', featError);

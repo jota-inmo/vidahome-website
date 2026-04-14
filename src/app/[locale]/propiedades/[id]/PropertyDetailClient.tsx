@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PropertyDetails } from '@/types/inmovilla';
 import { PropertyFeatures } from '@/lib/api/property-features';
 import { PropertyGallery } from '@/components/PropertyGallery';
@@ -114,8 +114,18 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
     // and fall back to cod_ofer for legacy Inmovilla-only properties.
     // Either may be null in edge cases (page rendered with bad data),
     // in which case we skip the refetch.
+    //
+    // First-mount skip: the server already rendered with the current
+    // locale, so the initial effect run would re-request the exact same
+    // data (one wasted Supabase round-trip per visit). We only want to
+    // fetch when the locale changes AFTER mount.
     const propertyKey: string | number | null = initialProperty.ref || initialProperty.cod_ofer;
+    const isFirstLocaleRun = useRef(true);
     useEffect(() => {
+        if (isFirstLocaleRun.current) {
+            isFirstLocaleRun.current = false;
+            return; // SSR already delivered this locale — don't refetch.
+        }
         if (propertyKey == null) return;
         async function fetchPropertyWithLocale() {
             const result = await getPropertyDetailAction(propertyKey as string | number, locale);
