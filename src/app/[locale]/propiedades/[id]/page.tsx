@@ -123,7 +123,16 @@ export default async function PropertyDetailPage({ params }: Props) {
         || undefined;
     const total_baths = (Number(result.data.banyos) || 0) + (Number(result.data.aseos) || 0) || undefined;
     const floor_size_m2 = properties_features?.superficie || result.data.m_cons || undefined;
-    const year_built = properties_features?.ano_construccion || undefined;
+    // year_built priority: property_features (legacy, web-owned cron backfill)
+    // → full_data.antiguedad (CRM-owned, written by publish_to_web via
+    //   buildFullData from encargo.edi_ano_construccion after the agent
+    //   pulls Catastro data in the wizard). The `antiguedad` field in
+    //   Inmovilla's schema stores the construction year (e.g. 1964, 2008),
+    //   not an age in years — it's a semantic misnomer we preserve for
+    //   backwards compat.
+    const year_built = properties_features?.ano_construccion
+        || (result.data as { antiguedad?: number | string }).antiguedad
+        || undefined;
 
     const jsonLd: Record<string, unknown> = {
         '@context': 'https://schema.org',
