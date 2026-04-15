@@ -7,14 +7,26 @@ import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
 import { translatePropertyType } from '@/lib/utils/property-types';
 
-// ISR: regenerate each detail page every 60 seconds. Used to be 300s
-// but that made the "reorder photos in CRM → refresh detail" loop feel
-// broken (user didn't see their change for up to 5 min). The CRM now
-// triggers on-demand revalidation via /api/revalidate right after
-// syncing fotos_inmuebles → property_metadata, so in the happy path
-// the invalidation is immediate and the ISR window is just a safety
-// net for cases where the webhook fetch fails or the env var is unset.
-export const revalidate = 60;
+// ISR: regenerate each detail page every 600 seconds (10 min).
+//
+// History:
+//   - Originally 300s.
+//   - Lowered to 60s when we added the photo-reorder sync flow so a
+//     webhook failure would still recover within a minute.
+//   - Raised to 600s on 2026-04-15 after the Supabase Free plan egress
+//     quota hit 123% — the per-minute regeneration was the dominant
+//     cost (1 regeneration per minute × 77 visible refs × full_data
+//     fetches = ~5 GB/month of cached egress just from background ISR).
+//
+// This value is ONLY the fallback. The happy path for updating the
+// detail page is the on-demand webhook (/api/revalidate) fired by the
+// CRM right after it writes to fotos_inmuebles / property_metadata in
+// publish_to_web / sync_photo_order. That path is unchanged and still
+// takes <5s to propagate. The 10 min window only kicks in if the
+// webhook fetch fails or the env var is unset.
+//
+// If the egress budget allows, lowering this back to 300s is safe.
+export const revalidate = 600;
 
 interface Props {
     params: Promise<{ id: string, locale: string }>;
