@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { PropertyDetails } from '@/types/inmovilla';
-import { PropertyFeatures } from '@/lib/api/property-features';
 import { PropertyGallery } from '@/components/PropertyGallery';
 import { ContactForm } from '@/components/ContactForm';
 import { Logo } from '@/components/Logo';
@@ -98,10 +97,9 @@ const EnergyScale = ({ activeLetter, title, value, unit, icon }: { activeLetter:
 
 interface PropertyDetailClientProps {
     property: PropertyDetails;
-    features?: PropertyFeatures | null;
 }
 
-export function PropertyDetailClient({ property: initialProperty, features }: PropertyDetailClientProps) {
+export function PropertyDetailClient({ property: initialProperty }: PropertyDetailClientProps) {
     const router = useRouter();
     const t = useTranslations('Property');
     const locale = useLocale();
@@ -166,30 +164,12 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
         }
     };
 
-    // Format bedroom value - shows distinction if available
-    const formatBedrooms = () => {
-        if (features && (features.habitaciones_simples || features.habitaciones_dobles)) {
-            const parts = [];
-            if (features.habitaciones_simples > 0) {
-                parts.push(`${features.habitaciones_simples}s`);
-            }
-            if (features.habitaciones_dobles > 0) {
-                parts.push(`${features.habitaciones_dobles}d`);
-            }
-            return parts.length > 0 ? parts.join(' + ') : (property.habitaciones || '1+');
-        }
-        return property.habitaciones || '1+';
-    };
-
     const features_data = [
         { icon: <Square size={20} />, label: t('surface'), value: `${property.m_cons} m²` },
-        { 
-            icon: <BedDouble size={20} />, 
-            label: t('bedrooms'), 
-            value: formatBedrooms(),
-            subtitle: features && (features.habitaciones_simples || features.habitaciones_dobles) 
-                ? `(${features.habitaciones || 0} total)` 
-                : undefined
+        {
+            icon: <BedDouble size={20} />,
+            label: t('bedrooms'),
+            value: property.habitaciones || '1+',
         },
         {
             icon: <Bath size={20} />,
@@ -197,7 +177,11 @@ export function PropertyDetailClient({ property: initialProperty, features }: Pr
             value: totalBathrooms(property.banyos, property.aseos) || property.banyos,
             subtitle: bathroomsTooltip(property.banyos, property.aseos),
         },
-        { icon: <Calendar size={20} />, label: t('construction'), value: features?.ano_construccion || 'N/A' },
+        {
+            icon: <Calendar size={20} />,
+            label: t('construction'),
+            value: (property as { antiguedad?: number | string }).antiguedad || 'N/A',
+        },
     ];
 
     const technical = [

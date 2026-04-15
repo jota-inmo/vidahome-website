@@ -128,7 +128,7 @@ export async function translatePropertiesAction(
     // --- Fetch properties ---------------------------------------------------
     let query = supabase
       .from("property_metadata")
-      .select("cod_ofer, ref, tipo, precio, poblacion, descriptions");
+      .select("cod_ofer, ref, tipo, precio, poblacion, descriptions, full_data");
 
     if (propertyIds && propertyIds.length > 0) {
       query = query.in("cod_ofer", propertyIds.map(Number));
@@ -148,18 +148,6 @@ export async function translatePropertiesAction(
       return { translated: 0, errors: 0, cost_estimate: "0€", duration_ms: Date.now() - startTime };
     }
 
-    // --- Fetch features for property data context ---------------------------
-    const codOfers = properties.map((p: any) => p.cod_ofer);
-    const { data: features } = await supabase
-      .from("property_features")
-      .select("cod_ofer, superficie, habitaciones, banos")
-      .in("cod_ofer", codOfers);
-
-    const featuresMap: Record<number, any> = {};
-    for (const f of features || []) {
-      featuresMap[f.cod_ofer] = f;
-    }
-
     // --- Process each property ----------------------------------------------
     let successCount = 0;
     let errorCount = 0;
@@ -175,14 +163,14 @@ export async function translatePropertiesAction(
         continue;
       }
 
-      const feat = featuresMap[prop.cod_ofer] || {};
+      const fd = ((prop as any).full_data || {}) as Record<string, any>;
       const propertyData = {
         ref: prop.ref,
         tipo: prop.tipo,
         precio: prop.precio,
-        superficie: feat.superficie,
-        habitaciones: feat.habitaciones,
-        banos: feat.banos,
+        superficie: Number(fd.m_cons) || undefined,
+        habitaciones: ((Number(fd.habitaciones) || 0) + (Number(fd.habdobles) || 0)) || undefined,
+        banos: Number(fd.banyos) || undefined,
         poblacion: prop.poblacion,
       };
 

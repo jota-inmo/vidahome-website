@@ -77,46 +77,16 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
 
         if (error) throw error;
 
-        // Also get property features for accurate room/bath counts.
-        // Scoped with .in('cod_ofer', ...) so the query only touches the
-        // rows this page needs. Before: this pulled the entire
-        // property_features table on every catalog visit — O(N) per
-        // load, would not scale past a few hundred rows. We filter out
-        // null cod_ofer values (CRM-only refs never had an Inmovilla id).
-        const propertyCods = (properties || [])
-            .map((p: { cod_ofer: number | null }) => p.cod_ofer)
-            .filter((v): v is number => typeof v === 'number' && v > 0);
-        const { data: features, error: featError } = propertyCods.length > 0
-            ? await supabase
-                .from('property_features')
-                .select('cod_ofer, habitaciones, habitaciones_simples, habitaciones_dobles, banos, superficie')
-                .in('cod_ofer', propertyCods)
-            : { data: [], error: null };
-
-        if (featError) {
-            console.warn('[Actions] Error fetching features:', featError);
-        }
-
-        // Create a lookup map for features
-        const featuresMap = new Map((features || []).map((f: any) => [f.cod_ofer, f]));
-
         // Map database records to PropertyListEntry format
         const descKey = getDescriptionKey(locale);
         const formatted: PropertyListEntry[] = (properties || []).map((row: any) => {
             const fullData = row.full_data || {};
-            const feat = featuresMap.get(row.cod_ofer);
             const descriptions = (row.descriptions as Record<string, string>) || {};
 
-            // Use feature data if available, otherwise fall back to full_data
-            // Total habitaciones = simples + dobles
-            const habitaciones = feat?.habitaciones
-                ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
-            const banyos = feat?.banos || fullData.banyos || 0;
-            // aseos lives only in full_data (property_features no lo tiene).
-            // Lo propagamos para que la card pueda mostrar baños+aseos sumados
-            // con tooltip "X baño + Y aseo" en hover.
+            const habitaciones = ((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0;
+            const banyos = Number(fullData.banyos) || 0;
             const aseos = Number(fullData.aseos) || 0;
-            const m_cons = feat?.superficie || fullData.m_cons || 0;
+            const m_cons = Number(fullData.m_cons) || 0;
 
             // Apply locale-specific description, fallback to Spanish
             const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
@@ -133,10 +103,10 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 keyacci: fullData.keyacci,
                 precioinmo: fullData.precioinmo,
                 precioalq: fullData.precioalq,
-                habitaciones: habitaciones,
-                banyos: banyos,
-                aseos: aseos,
-                m_cons: m_cons,
+                habitaciones,
+                banyos,
+                aseos,
+                m_cons,
                 descripciones: localizedDesc,
                 tipo_nombre: fullData.tipo_nombre || row.tipo || '',
                 numagencia: fullData.numagencia,
@@ -198,17 +168,6 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         }
         const error = null;
 
-        // CRM-published rows may not have cod_ofer, so the join below skips
-        // property_features (it's keyed by cod_ofer). Energy data already
-        // comes inside `meta` from the select above.
-        const features = meta?.cod_ofer
-            ? (await supabase
-                .from('property_features')
-                .select('cod_ofer, habitaciones, banos, superficie')
-                .eq('cod_ofer', meta.cod_ofer)
-                .maybeSingle()).data
-            : null;
-
         if (error || !meta) {
             return { success: false, error: 'Propiedad no encontrada' };
         }
@@ -220,22 +179,16 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
 
         // Get full property data from stored full_data
         const fullData = (meta.full_data as PropertyDetails) || {};
-        const feat = features || null;
 
         // Apply correct locale description
         const descKey = getDescriptionKey(locale);
         const descriptions = (meta.descriptions as Record<string, string>) || {};
         const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
 
-        // Total habitaciones = simples + dobles
-        const habitaciones = feat?.habitaciones
-            ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
-        const banyos = feat?.banos || fullData.banyos || 0;
-        // aseos is Spanish-real-estate-specific (toilet room without shower);
-        // only full_data carries it. Expose it so the card/detail can show
-        // (baños + aseos) with a tooltip "X baño + Y aseo" on hover.
+        const habitaciones = ((Number(fullData.habitaciones) || 0) + (Number((fullData as { habdobles?: number | string }).habdobles) || 0)) || 0;
+        const banyos = Number(fullData.banyos) || 0;
         const aseos = Number((fullData as { aseos?: number | string }).aseos) || 0;
-        const m_cons = feat?.superficie || fullData.m_cons || 0;
+        const m_cons = Number(fullData.m_cons) || 0;
 
         // Fotos: preferir Cloudinary SOLO si hay al menos el 80% del total
         // esperado (vs URLs Inmovilla CDN). Evita mostrar 5 fotos cuando
@@ -284,10 +237,10 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             main_photo,
             mainImage: main_photo,
             tipo_nombre: resolvedTipoNombre,
-            habitaciones: habitaciones,
-            banyos: banyos,
-            aseos: aseos,
-            m_cons: m_cons,
+            habitaciones,
+            banyos,
+            aseos,
+            m_cons,
             // Use resolved poblacion from DB column (preferred) over full_data fallback
             poblacion: (meta as any).poblacion || fullData.poblacion || '',
             // Energy Certificate (from property_metadata, selected above)
@@ -342,25 +295,14 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
 
         const featuredIds = featured.map(f => f.cod_ofer);
 
-        // Get metadata and features in parallel (same as fetchPropertiesAction)
-        const [{ data: metadata, error }, { data: features, error: featError2 }] = await Promise.all([
-            supabase
-                .from('property_metadata')
-                .select('cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion, nodisponible, visible_web')
-                .in('cod_ofer', featuredIds)
-                .eq('visible_web', true)
-                .eq('nodisponible', false),
-            supabase
-                .from('property_features')
-                .select('cod_ofer, habitaciones, banos, superficie')
-                .in('cod_ofer', featuredIds)
-        ]);
+        const { data: metadata, error } = await supabase
+            .from('property_metadata')
+            .select('cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion, nodisponible, visible_web')
+            .in('cod_ofer', featuredIds)
+            .eq('visible_web', true)
+            .eq('nodisponible', false);
 
         if (error) throw error;
-        if (featError2) console.warn('[getFeaturedPropertiesWithDetailsAction] Error fetching features:', featError2);
-
-        // Create features lookup map
-        const featuresMap = new Map((features || []).map((f: any) => [f.cod_ofer, f]));
 
         // Preserve order from featured_properties table and format correctly
         const results = featured
@@ -371,28 +313,22 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                 const fullData = meta.full_data as PropertyDetails || {};
                 const descriptions = meta.descriptions as Record<string, string> || {};
                 const descKey = getDescriptionKey(locale);
-                // Try to get the translation for the requested locale, fallback to Spanish
                 const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
 
-                // Get features for this property
-                const feat = featuresMap.get(meta.cod_ofer);
-
-                // Total habitaciones = simples + dobles
-                const habitaciones = feat?.habitaciones
-                    ?? (((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0);
-                const banyos = feat?.banos || fullData.banyos || 0;
+                const habitaciones = ((Number(fullData.habitaciones) || 0) + (Number((fullData as { habdobles?: number | string }).habdobles) || 0)) || 0;
+                const banyos = Number(fullData.banyos) || 0;
                 const aseos = Number((fullData as { aseos?: number | string }).aseos) || 0;
-                const m_cons = feat?.superficie || fullData.m_cons || 0;
+                const m_cons = Number(fullData.m_cons) || 0;
 
                 return {
                     ...fullData,
                     cod_ofer: meta.cod_ofer,
                     ref: meta.ref,
                     mainImage: meta.main_photo,
-                    habitaciones: habitaciones,
-                    banyos: banyos,
-                    aseos: aseos,
-                    m_cons: m_cons,
+                    habitaciones,
+                    banyos,
+                    aseos,
+                    m_cons,
                     descripciones: localizedDesc,
                     fotos_lista: meta.photos || []
                 };

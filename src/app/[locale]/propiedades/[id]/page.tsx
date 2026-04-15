@@ -1,7 +1,6 @@
 import React from 'react';
 import { Metadata, ResolvingMetadata } from 'next';
 import { getPropertyDetailAction } from '@/app/actions';
-import { getPropertyFeatures } from '@/lib/api/property-features';
 import { PropertyDetailClient } from './PropertyDetailClient';
 import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
@@ -90,13 +89,6 @@ export async function generateMetadata(
 export default async function PropertyDetailPage({ params }: Props) {
     const { id, locale } = await params;
     const result = await getPropertyDetailAction(id, locale);
-    // property_features is keyed by cod_ofer. After the lookup we know
-    // whether the resolved property has a numeric cod_ofer (legacy or
-    // CRM-already-pushed-to-Inmovilla) — only fetch features in that case.
-    const cod = result?.data?.cod_ofer;
-    const properties_features = (typeof cod === 'number' && cod > 0)
-        ? await getPropertyFeatures(cod)
-        : null;
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
     const tIndex = await getTranslations({ locale: locale as string, namespace: 'Index' });
 
@@ -111,28 +103,14 @@ export default async function PropertyDetailPage({ params }: Props) {
         );
     }
 
-    // JSON-LD Structured Data for SEO.
-    //
-    // Enriched with numberOfRooms, floorSize, numberOfBathroomsTotal
-    // and yearBuilt so Google's rich snippets engine can surface this
-    // data in the property card it shows on SERPs. These fields are
-    // all available in PropertyFeatures / result.data but were absent
-    // from the previous JSON-LD.
-    const total_rooms = properties_features?.habitaciones
-        || ((Number(result.data.habitaciones) || 0) + (Number((result.data as { habdobles?: number }).habdobles) || 0))
-        || undefined;
+    // JSON-LD Structured Data for SEO. All fields come from result.data,
+    // which getPropertyDetailAction already merges from property_metadata
+    // + full_data (CRM source of truth). `antiguedad` stores construction
+    // year (1964, 2008…), not age — semantic misnomer kept for back-compat.
+    const total_rooms = (Number(result.data.habitaciones) || 0) || undefined;
     const total_baths = (Number(result.data.banyos) || 0) + (Number(result.data.aseos) || 0) || undefined;
-    const floor_size_m2 = properties_features?.superficie || result.data.m_cons || undefined;
-    // year_built priority: property_features (legacy, web-owned cron backfill)
-    // → full_data.antiguedad (CRM-owned, written by publish_to_web via
-    //   buildFullData from encargo.edi_ano_construccion after the agent
-    //   pulls Catastro data in the wizard). The `antiguedad` field in
-    //   Inmovilla's schema stores the construction year (e.g. 1964, 2008),
-    //   not an age in years — it's a semantic misnomer we preserve for
-    //   backwards compat.
-    const year_built = properties_features?.ano_construccion
-        || (result.data as { antiguedad?: number | string }).antiguedad
-        || undefined;
+    const floor_size_m2 = result.data.m_cons || undefined;
+    const year_built = (result.data as { antiguedad?: number | string }).antiguedad || undefined;
 
     const jsonLd: Record<string, unknown> = {
         '@context': 'https://schema.org',
@@ -173,7 +151,7 @@ export default async function PropertyDetailPage({ params }: Props) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <PropertyDetailClient property={result.data} features={properties_features} />
+            <PropertyDetailClient property={result.data} />
         </>
     );
 }

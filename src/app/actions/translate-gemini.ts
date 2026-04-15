@@ -130,7 +130,7 @@ export async function translatePropertiesGeminiAction(
     // --- Fetch properties needing translation --------------------------------
     let query = supabase
       .from("property_metadata")
-      .select("cod_ofer, ref, tipo, precio, poblacion, descriptions")
+      .select("cod_ofer, ref, tipo, precio, poblacion, descriptions, full_data")
       .eq("nodisponible", false)
       .eq("visible_web", true);
 
@@ -163,18 +163,6 @@ export async function translatePropertiesGeminiAction(
       return { translated: 0, errors: 0, cost_estimate: "0€ (Gemini free tier)", duration_ms: Date.now() - startTime };
     }
 
-    // --- Fetch features for context ------------------------------------------
-    const codOfers = needsTranslation.map((p: any) => p.cod_ofer);
-    const { data: features } = await supabase
-      .from("property_features")
-      .select("cod_ofer, superficie, habitaciones, banos")
-      .in("cod_ofer", codOfers);
-
-    const featuresMap: Record<number, any> = {};
-    for (const f of features || []) {
-      featuresMap[f.cod_ofer] = f;
-    }
-
     // --- Translate each property ---------------------------------------------
     let successCount = 0;
     let errorCount = 0;
@@ -191,14 +179,14 @@ export async function translatePropertiesGeminiAction(
         continue;
       }
 
-      const feat = featuresMap[(prop as any).cod_ofer] || {};
+      const fd = ((prop as any).full_data || {}) as Record<string, any>;
       const propertyData = {
         ref: (prop as any).ref,
         tipo: (prop as any).tipo,
         precio: (prop as any).precio,
-        superficie: feat.superficie,
-        habitaciones: feat.habitaciones,
-        banos: feat.banos,
+        superficie: Number(fd.m_cons) || undefined,
+        habitaciones: ((Number(fd.habitaciones) || 0) + (Number(fd.habdobles) || 0)) || undefined,
+        banos: Number(fd.banyos) || undefined,
         poblacion: (prop as any).poblacion,
       };
 
