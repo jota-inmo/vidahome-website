@@ -30,9 +30,17 @@ export default function FeaturedAdmin() {
                 // Featured properties require an Inmovilla cod_ofer (the
                 // featured_properties table is keyed by it). CRM-only rows
                 // without cod_ofer can't be featured yet.
-                setProperties(allRes.data.filter((p): p is typeof p & { cod_ofer: number } => p.cod_ofer != null));
+                const withCodOfer = allRes.data.filter((p): p is typeof p & { cod_ofer: number } => p.cod_ofer != null);
+                setProperties(withCodOfer);
+                // Clean stale featured IDs — properties that were deactivated
+                // (nodisponible=true, visible_web=false) stay in the
+                // featured_properties table but no longer show in the list.
+                // Without this filter they silently eat a slot in the max-6 limit.
+                const validCodOfers = new Set(withCodOfer.map(p => p.cod_ofer));
+                setFeaturedIds(fIds.filter(id => validCodOfers.has(id)));
+            } else {
+                setFeaturedIds(fIds);
             }
-            setFeaturedIds(fIds);
             setLoading(false);
         }
         load();
