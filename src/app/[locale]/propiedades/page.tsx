@@ -5,7 +5,11 @@ import { PropertyCatalogClient } from './PropertyCatalogClient';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 
-export const revalidate = 60;
+// Was 60s — changed to 3600s to reduce Supabase cached egress.
+// The catalog fetches full_data for ~400 properties (~20 MB per rebuild).
+// At 60s that was 1440 rebuilds/day = ~28 GB/month of egress.
+// At 3600s it's 24 rebuilds/day = ~480 MB/month.
+export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
     const t = await getTranslations('Index');

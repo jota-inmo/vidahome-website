@@ -5,6 +5,11 @@ import { FeaturedGrid } from '@/components/FeaturedGrid';
 import { getTranslations } from 'next-intl/server';
 import { getHeroSlidesAction } from '@/app/actions';
 
+// ISR: regenerate at most once per hour. Featured properties and hero
+// slides rarely change, and each uncached hit fetches full_data JSONB
+// (~5 MB) from Supabase. Without this, every visitor generated egress.
+export const revalidate = 3600;
+
 export default async function Home() {
   const [t, heroSlides] = await Promise.all([
     getTranslations('Index'),

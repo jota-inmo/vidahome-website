@@ -24,8 +24,10 @@ import { translatePropertyType } from '@/lib/utils/property-types';
 // takes <5s to propagate. The 10 min window only kicks in if the
 // webhook fetch fails or the env var is unset.
 //
-// If the egress budget allows, lowering this back to 300s is safe.
-export const revalidate = 600;
+// Raised from 600s to 3600s to stay within Supabase Free Plan cached
+// egress quota (5 GB/month). On-demand /api/revalidate still works for
+// immediate updates after CRM publishes.
+export const revalidate = 3600;
 
 interface Props {
     params: Promise<{ id: string, locale: string }>;
