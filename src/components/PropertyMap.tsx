@@ -5,20 +5,20 @@ import React, { useRef, useState, useEffect } from 'react';
 interface PropertyMapProps {
     latitud?: string | number;
     longitud?: string | number;
-    address?: string;
     poblacion?: string;
 }
 
-export function PropertyMap({ latitud, longitud, address, poblacion }: PropertyMapProps) {
+export function PropertyMap({ latitud, longitud, poblacion }: PropertyMapProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(false);
 
-    // Si tenemos coordenadas válidas, las usamos. Si no, usamos la dirección.
+    // PRIVACY: Never use street address in the map query.
+    // Only coordinates (precise pin) or city name (approximate zone).
     const hasCoords = latitud && longitud && String(latitud).trim() !== '' && String(longitud).trim() !== '';
 
     const query = hasCoords
         ? `${latitud},${longitud}`
-        : `${address || ''} ${poblacion || ''}`.trim();
+        : (poblacion || '').trim();
 
     useEffect(() => {
         if (!containerRef.current || !query) return;

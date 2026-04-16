@@ -302,7 +302,6 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                             <PropertyMap
                                 latitud={property.latitud}
                                 longitud={property.longitud}
-                                address={property.calle}
                                 poblacion={property.poblacion}
                             />
                             <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">

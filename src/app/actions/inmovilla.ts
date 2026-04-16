@@ -226,9 +226,13 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             || fullData.tipo_nombre
             || '';
 
+        // PRIVACY: strip street address from public data — never expose
+        // calle/dir to the website. Only poblacion (city) is public.
+        const { calle: _calle, dir: _dir, ...safeFullData } = fullData as any;
+
         // Enrich with photos if available
         const propertyWithPhotos = {
-            ...fullData,
+            ...safeFullData,
             cod_ofer: meta.cod_ofer,
             ref: meta.ref,
             descripciones: localizedDesc,
