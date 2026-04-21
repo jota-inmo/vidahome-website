@@ -13,10 +13,12 @@ interface LogoProps {
 
 export const Logo = ({ className = '', variant = 'full', showSlogan = true, plain = false }: LogoProps) => {
 
-    // Logo monocromo: usamos el PNG oficial (negro sobre transparente).
-    // En modo oscuro aplicamos `brightness(0) invert(1)` para forzar blanco
-    // puro sólido — evita el problema del PNG "dark" con trazos finos
-    // semi-transparentes que queda invisible sobre slate-950.
+    // Dos PNGs separados (pendiente regenerarlos):
+    //   · /MARCA OK.png       — logo para fondos CLAROS (tinta oscura, fondo transparente)
+    //   · /MARCA OK dark.png  — logo para fondos OSCUROS (tinta clara, fondo transparente)
+    //
+    // Ambos archivos deben tener fondo 100% transparente y trazos sólidos
+    // (sin semi-transparencia) para que rendericen nítidos sobre el nav.
     const OfficialLogo = ({ innerClass = '' }: { innerClass?: string }) => (
         <div className={`relative flex items-center ${!plain ? 'bg-white dark:bg-transparent px-5 py-2 rounded-sm shadow-sm dark:shadow-none border border-slate-100 dark:border-transparent' : ''} ${innerClass}`}>
             <Image
@@ -24,7 +26,15 @@ export const Logo = ({ className = '', variant = 'full', showSlogan = true, plai
                 alt="Vidahome Logo"
                 width={320}
                 height={96}
-                className="h-12 md:h-20 w-auto object-contain dark:[filter:brightness(0)_invert(1)]"
+                className="h-12 md:h-20 w-auto object-contain dark:hidden"
+                priority
+            />
+            <Image
+                src="/MARCA OK dark.png"
+                alt="Vidahome Logo"
+                width={320}
+                height={96}
+                className="h-12 md:h-20 w-auto object-contain hidden dark:block"
                 priority
             />
         </div>
