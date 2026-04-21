@@ -21,11 +21,40 @@ function effectivePrice(p: PropertyListEntry): number {
 }
 
 /**
+ * Extrae el número de una ref para ordenación "más reciente".
+ *
+ * Refs del CRM:
+ *   · Venta:     `2976`, `2975`, … (numero puro incremental)
+ *   · Alquiler:  `A2958`, `A2654`, … (prefijo `A`)
+ *   · Traspaso:  `T2630`, `T2785` (prefijo `T`)
+ *   · Oferta:    `OFR005` (no aparece en catálogo web — estas no son propiedades)
+ *   · Cazador:   `CC2887` (tampoco aparecen en catálogo)
+ *
+ * Estrategia: strip de letras iniciales y parseo del número. Las refs
+ * comparten el mismo espacio numérico creciente (el contador del CRM
+ * genera el siguiente número independientemente del tipo), así que
+ * ordenar por ese número refleja el orden real de creación.
+ *
+ * Refs sin dígitos parseables caen al final con -Infinity.
+ */
+function refNumber(ref: string | undefined | null): number {
+  if (!ref) return -Infinity;
+  const match = String(ref).match(/(\d+)/);
+  if (!match) return -Infinity;
+  const n = parseInt(match[1], 10);
+  return Number.isFinite(n) ? n : -Infinity;
+}
+
+/**
  * Ordena un array de propiedades según el criterio elegido. NO muta el
  * input — devuelve un nuevo array.
  *
- * - `recent`: usa `updated_at` ISO en orden descendente. Filas sin
- *   `updated_at` caen al final.
+ * - `recent`: usa el número de la `ref` en orden descendente (última ref
+ *   creada va primero). Cambiado 2026-04-21: antes usaba `updated_at`,
+ *   pero ese campo se toca cada vez que se edita la propiedad (precio,
+ *   fotos…), así que anuncios antiguos editados hoy aparecían antes que
+ *   refs nuevas de la semana pasada. La ref es un contador incremental
+ *   del CRM, así que su orden descendente = orden de creación real.
  * - `price_asc` / `price_desc`: usa `effectivePrice()`. Propiedades sin
  *   precio útil caen al final en ambos casos.
  */
@@ -52,11 +81,7 @@ export function sortProperties(
       return copy;
     case 'recent':
     default:
-      copy.sort((a, b) => {
-        const ta = a.updated_at ? new Date(a.updated_at).getTime() : 0;
-        const tb = b.updated_at ? new Date(b.updated_at).getTime() : 0;
-        return tb - ta;
-      });
+      copy.sort((a, b) => refNumber(b.ref) - refNumber(a.ref));
       return copy;
   }
 }

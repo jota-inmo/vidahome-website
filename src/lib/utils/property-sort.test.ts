@@ -12,19 +12,28 @@ const make = (overrides: Partial<PropertyListEntry>): PropertyListEntry =>
 
 describe('sortProperties', () => {
   describe('recent', () => {
-    it('sorts by updated_at descending', () => {
-      const a = make({ ref: 'a', updated_at: '2026-04-10T00:00:00Z' });
-      const b = make({ ref: 'b', updated_at: '2026-04-14T00:00:00Z' });
-      const c = make({ ref: 'c', updated_at: '2026-04-12T00:00:00Z' });
+    it('sorts by ref number descending (más reciente = ref más alta)', () => {
+      const a = make({ ref: '2976' });
+      const b = make({ ref: '2980' });
+      const c = make({ ref: '2970' });
       const sorted = sortProperties([a, b, c], 'recent');
-      expect(sorted.map(p => p.ref)).toEqual(['b', 'c', 'a']);
+      expect(sorted.map(p => p.ref)).toEqual(['2980', '2976', '2970']);
     });
 
-    it('places entries without updated_at at the end', () => {
-      const a = make({ ref: 'a', updated_at: '2026-04-10T00:00:00Z' });
-      const b = make({ ref: 'b' });
+    it('trata refs con prefijo (A2958, T2630) extrayendo su número', () => {
+      const rVenta = make({ ref: '2967' });
+      const rAlquiler = make({ ref: 'A2958' });
+      const rTraspaso = make({ ref: 'T2630' });
+      // Orden esperado por número: 2967 > 2958 > 2630
+      const sorted = sortProperties([rTraspaso, rAlquiler, rVenta], 'recent');
+      expect(sorted.map(p => p.ref)).toEqual(['2967', 'A2958', 'T2630']);
+    });
+
+    it('refs sin número parseable caen al final', () => {
+      const a = make({ ref: '2976' });
+      const b = make({ ref: 'foo' });
       const sorted = sortProperties([b, a], 'recent');
-      expect(sorted.map(p => p.ref)).toEqual(['a', 'b']);
+      expect(sorted.map(p => p.ref)).toEqual(['2976', 'foo']);
     });
   });
 
