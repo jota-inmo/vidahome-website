@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       siteName: 'Vidahome',
       images: [
         {
-          url: `${SITE_URL}/MARCA OK.png`,
+          url: `${SITE_URL}/vidahome-logo.png`,
           width: 1200,
           height: 630,
           alt: 'Vidahome',
@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       card: 'summary_large_image',
       title,
       description: ogDescription,
-      images: [`${SITE_URL}/MARCA OK.png`],
+      images: [`${SITE_URL}/vidahome-logo.png`],
     },
   };
 }

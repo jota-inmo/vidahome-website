@@ -13,16 +13,18 @@ interface LogoProps {
 
 export const Logo = ({ className = '', variant = 'full', showSlogan = true, plain = false }: LogoProps) => {
 
-    // Dos PNGs separados (pendiente regenerarlos):
-    //   · /MARCA OK.png       — logo para fondos CLAROS (tinta oscura, fondo transparente)
-    //   · /MARCA OK dark.png  — logo para fondos OSCUROS (tinta clara, fondo transparente)
+    // Dos PNGs separados — URL nueva (post 2026-04-21) para bustear la caché
+    // del CDN de Vercel y del image optimizer de Next (el path viejo
+    // "/MARCA OK.png" y su optimización quedaron cacheados tras un swap de
+    // archivo que no cambiaba de URL).
+    //   · /vidahome-logo.png       — logo para fondos CLAROS
+    //   · /vidahome-logo-dark.png  — logo para fondos OSCUROS
     //
-    // Ambos archivos deben tener fondo 100% transparente y trazos sólidos
-    // (sin semi-transparencia) para que rendericen nítidos sobre el nav.
+    // Ambos archivos deben tener fondo 100% transparente y trazos sólidos.
     const OfficialLogo = ({ innerClass = '' }: { innerClass?: string }) => (
         <div className={`relative flex items-center ${!plain ? 'bg-white dark:bg-transparent px-5 py-2 rounded-sm shadow-sm dark:shadow-none border border-slate-100 dark:border-transparent' : ''} ${innerClass}`}>
             <Image
-                src="/MARCA OK.png"
+                src="/vidahome-logo.png"
                 alt="Vidahome Logo"
                 width={320}
                 height={96}
@@ -30,7 +32,7 @@ export const Logo = ({ className = '', variant = 'full', showSlogan = true, plai
                 priority
             />
             <Image
-                src="/MARCA OK dark.png"
+                src="/vidahome-logo-dark.png"
                 alt="Vidahome Logo"
                 width={320}
                 height={96}
