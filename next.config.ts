@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'fotos15.apinmo.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'fotos16.apinmo.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'crm.inmovilla.com',
       },
       {
