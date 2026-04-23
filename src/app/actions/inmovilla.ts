@@ -26,6 +26,100 @@ function resolvePoblacion(details: any): string {
 }
 
 /**
+ * Encargo columns needed from the CRM to fill in the fields the website
+ * reads from `full_data`. Kept minimal — solo los campos que la UI
+ * consume. Si añades un nuevo campo en PropertyDetailClient que lea de
+ * full_data, añádelo también aquí.
+ */
+const ENCARGO_COLUMNS_FOR_WEB =
+    'precio, num_hab_dobles, num_hab_simples, num_banos, num_aseos, ' +
+    'loc_m2_const, loc_m2_util, tipo_vivienda, poblacion, res_ori, ' +
+    'res_asc, res_gar, res_tras, edi_ano_construccion, ' +
+    'edi_clase_energetica, edi_consumo_energia, edi_calificacion_emisiones, ' +
+    'edi_emisiones, edi_estado_conservacion, res_t1, res_t2, res_t3, ' +
+    'res_patio, com_mes, ibi_anual, "contractType", calefaccion, ' +
+    'aire_acondicionado, armarios_empotrados, balcon, cocina_independiente, ' +
+    'adaptado_movilidad, jardin_propio, piscina_comunitaria, ' +
+    'piscina_privada, amueblado';
+
+function numOrUndef(v: unknown): number | undefined {
+    if (v === null || v === undefined || v === '') return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+}
+
+function parseSiNo(v: unknown): boolean | undefined {
+    if (v === null || v === undefined || v === '') return undefined;
+    if (typeof v === 'boolean') return v;
+    const s = String(v).toLowerCase().trim();
+    if (s === 'sí' || s === 'si' || s === 'true' || s === '1') return true;
+    if (s === 'no' || s === 'false' || s === '0') return false;
+    return undefined;
+}
+
+function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(obj)) {
+        if (obj[k] !== undefined) out[k] = obj[k];
+    }
+    return out as Partial<T>;
+}
+
+/**
+ * Mapea una fila de `encargos` (+ pub_overrides) a la forma que usa
+ * `property_metadata.full_data` (campos Inmovilla). Pensado para refs
+ * CRM-only donde `full_data` está vacío, o para refs Inmovilla cuyos
+ * datos CRM son más recientes que el último pull.
+ *
+ * Prioridad segun CLAUDE.md: pub_overrides > encargo > full_data. Este
+ * helper devuelve el merge de (encargo + overrides). El caller mergeá
+ * después sobre full_data.
+ *
+ * Inmovilla divide "habitaciones" en sencillas vs dobles:
+ *   - full_data.habitaciones = num_hab_simples
+ *   - full_data.habdobles   = num_hab_dobles
+ * La UI suma ambos para mostrar el total.
+ */
+function encargoToFullDataShape(
+    enc: Record<string, unknown> | null,
+    overrides: Record<string, unknown> | null = null,
+): Record<string, unknown> {
+    if (!enc && !overrides) return {};
+    const merged = { ...(enc || {}), ...(overrides || {}) };
+    return stripUndefined({
+        precio: numOrUndef(merged.precio),
+        precioinmo: numOrUndef(merged.precio),
+        habitaciones: numOrUndef(merged.num_hab_simples),
+        habdobles: numOrUndef(merged.num_hab_dobles),
+        banyos: numOrUndef(merged.num_banos),
+        aseos: numOrUndef(merged.num_aseos),
+        m_cons: numOrUndef(merged.loc_m2_const),
+        m_util: numOrUndef(merged.loc_m2_util),
+        ano_cons: numOrUndef(merged.edi_ano_construccion),
+        tipo_nombre: (merged.tipo_vivienda as string) || undefined,
+        poblacion: (merged.poblacion as string) || undefined,
+        orientacion: (merged.res_ori as string) || undefined,
+        ascensor: parseSiNo(merged.res_asc),
+        garaje: parseSiNo(merged.res_gar),
+        trastero: parseSiNo(merged.res_tras),
+        terraza: parseSiNo(merged.res_t1) || parseSiNo(merged.res_t2) || parseSiNo(merged.res_t3) || undefined,
+        patio: parseSiNo(merged.res_patio),
+        jardin: parseSiNo(merged.jardin_propio),
+        piscina: parseSiNo(merged.piscina_comunitaria) || parseSiNo(merged.piscina_privada) || undefined,
+        amueblado: (merged.amueblado as string) || undefined,
+        calefaccion: (merged.calefaccion as string) || undefined,
+        aire_acondicionado: (merged.aire_acondicionado as string) || undefined,
+        armarios: parseSiNo(merged.armarios_empotrados),
+        balcon: parseSiNo(merged.balcon),
+        cocina_independiente: parseSiNo(merged.cocina_independiente),
+        adaptado_movilidad: parseSiNo(merged.adaptado_movilidad),
+        com_mes: numOrUndef(merged.com_mes),
+        ibi_anual: numOrUndef(merged.ibi_anual),
+        estado_conservacion: (merged.edi_estado_conservacion as string) || undefined,
+    });
+}
+
+/**
  * Helper to map next-intl locale to description key
  */
 function getDescriptionKey(locale: string): string {
@@ -68,7 +162,9 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 main_photo,
                 full_data,
                 descriptions,
-                updated_at
+                updated_at,
+                pub_overrides,
+                source
             `)
             .eq('visible_web', true)
             .or(`nodisponible.eq.false,and(nodisponible.eq.true,updated_at.gte.${tenDaysAgo})`)
@@ -77,11 +173,34 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
 
         if (error) throw error;
 
+        // Batch-fetch encargos para refs visibles. Rellena los campos que
+        // viven en el CRM (precio, habs, m²…) cuando full_data está vacío.
+        // Ref es el PK del encargo, así que usamos .in('ref', refs).
+        const refs = (properties || []).map((p: any) => p.ref).filter(Boolean);
+        const encargosByRef = new Map<string, Record<string, unknown>>();
+        if (refs.length > 0) {
+            const { data: encs } = await supabase
+                .from('encargos')
+                .select(`ref, ${ENCARGO_COLUMNS_FOR_WEB}`)
+                .in('ref', refs);
+            for (const e of (encs || [])) {
+                if ((e as any).ref) encargosByRef.set(String((e as any).ref), e as Record<string, unknown>);
+            }
+        }
+
         // Map database records to PropertyListEntry format
         const descKey = getDescriptionKey(locale);
         const formatted: PropertyListEntry[] = (properties || []).map((row: any) => {
-            const fullData = row.full_data || {};
+            const rawFullData = row.full_data || {};
             const descriptions = (row.descriptions as Record<string, string>) || {};
+
+            // Merge CRM encargo + pub_overrides on top of full_data para que
+            // refs CRM-only muestren datos. Mismo helper que el detalle.
+            const encFull = encargoToFullDataShape(
+                encargosByRef.get(row.ref) || null,
+                row.pub_overrides || null,
+            );
+            const fullData: Record<string, any> = { ...rawFullData, ...encFull };
 
             const habitaciones = ((Number(fullData.habitaciones) || 0) + (Number(fullData.habdobles) || 0)) || 0;
             const banyos = Number(fullData.banyos) || 0;
@@ -144,7 +263,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         const { supabase } = await import('@/lib/supabase');
 
         const asString = String(idOrRef).trim();
-        const SELECT_COLS = 'cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value';
+        const SELECT_COLS = 'cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value, pub_overrides, tipo, precio, source';
 
         // Try lookup by ref first (CRM source-of-truth, every URL minted by
         // the new wizard uses ref). maybeSingle so a miss doesn't throw.
@@ -178,7 +297,27 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         }
 
         // Get full property data from stored full_data
-        const fullData = (meta.full_data as PropertyDetails) || {};
+        const rawFullData = (meta.full_data as PropertyDetails) || {};
+
+        // Fill gaps from the CRM encargo + pub_overrides. Crítico para refs
+        // CRM-only (source='crm') donde full_data está vacío — antes del fix
+        // la ficha web salía sin precio, habitaciones ni m² aunque el agente
+        // hubiera metido todo en el CRM. Priority segun CLAUDE.md:
+        // pub_overrides > encargo > full_data. Orden del merge refleja eso.
+        let encargoRow: Record<string, unknown> | null = null;
+        if (meta.ref) {
+            const { data: enc } = await supabase
+                .from('encargos')
+                .select(ENCARGO_COLUMNS_FOR_WEB)
+                .ilike('ref', meta.ref)
+                .maybeSingle();
+            encargoRow = enc as Record<string, unknown> | null;
+        }
+        const encargoAsFullData = encargoToFullDataShape(
+            encargoRow,
+            (meta as { pub_overrides?: Record<string, unknown> | null }).pub_overrides || null,
+        );
+        const fullData = { ...rawFullData, ...encargoAsFullData } as PropertyDetails;
 
         // Apply correct locale description
         const descKey = getDescriptionKey(locale);
