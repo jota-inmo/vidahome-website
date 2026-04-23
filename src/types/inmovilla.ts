@@ -1,6 +1,12 @@
 /**
  * Inmovilla API Types
  * Based on API v1 Documentation: https://procesos.apinmo.com/api/v1/apidoc/
+ *
+ * PRIVACY: street-address fields (calle, dir, numero, planta) are intentionally
+ * absent from these types. `getPropertyDetailAction` strips them at runtime
+ * before returning to the client. Only `poblacion` (city) and `zona` (area) are
+ * public. If you need address data for an internal use case, fetch it directly
+ * from the CRM, never via these public types.
  */
 
 export interface PropertyListEntry {
@@ -17,7 +23,6 @@ export interface PropertyListEntry {
     mainImage?: string;
     precioinmo?: number;
     precioalq?: number;
-    calle?: string;
     descripciones?: string;
     poblacion?: string;
     keyacci?: number;
@@ -69,9 +74,6 @@ export interface PropertyDetails {
     key_loca: number;
     key_zona: number;
     key_tipo: number;
-    calle: string;
-    planta: number;
-    numero: string | number; // Changed to match real API (returned as string "6")
     m_cons?: number;
     m_utiles?: number;
     terraza?: number | boolean;

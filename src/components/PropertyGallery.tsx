@@ -15,9 +15,10 @@ import 'swiper/css/zoom';
 
 interface PropertyGalleryProps {
     images: string[];
+    propertyLabel?: string;
 }
 
-export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
+export const PropertyGallery = ({ images, propertyLabel }: PropertyGalleryProps) => {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
 
@@ -57,7 +58,7 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
                                 {shouldLoadSlide(index) ? (
                                     <Image
                                         src={img}
-                                        alt={`Imagen ${index + 1}`}
+                                        alt={propertyLabel ? `${propertyLabel} — foto ${index + 1}` : `Imagen ${index + 1}`}
                                         fill
                                         className="object-contain"
                                         priority={index === 0}
@@ -118,7 +119,7 @@ export const PropertyGallery = ({ images }: PropertyGalleryProps) => {
                                 <div className="relative w-[90vw] h-[90vh]">
                                     <Image
                                         src={img}
-                                        alt={`Full screen ${index}`}
+                                        alt={propertyLabel ? `${propertyLabel} — foto ${index + 1}` : `Foto ${index + 1}`}
                                         fill
                                         className="object-contain shadow-2xl"
                                         sizes="90vw"

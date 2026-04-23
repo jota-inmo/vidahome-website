@@ -202,7 +202,10 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                 <ArrowLeft size={18} className="text-slate-900 dark:text-white" />
             </button>
 
-            <PropertyGallery images={property.fotos_lista || []} />
+            <PropertyGallery
+                images={property.fotos_lista || []}
+                propertyLabel={`${localizedType || t('defaultType')} en ${property.poblacion || 'La Safor'} — Ref. ${property.ref}`}
+            />
 
             <main className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 pb-28 lg:pb-24">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 lg:gap-24">

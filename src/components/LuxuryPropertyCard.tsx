@@ -41,7 +41,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
             <div className="relative aspect-[16/11] overflow-hidden bg-slate-50 dark:bg-slate-900">
                 <Image
                     src={imageUrl}
-                    alt={`Property ${property.ref}`}
+                    alt={`${localizedType} en ${property.poblacion || 'La Safor'} — Ref. ${property.ref}`}
                     fill
                     // The catalog grid is 1 col on mobile, 2 cols on md, 3 on lg.
                     // Before this `sizes` prop Next.js served a single ~1920px
