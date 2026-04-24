@@ -212,7 +212,17 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                     {/* Detalles Principales */}
                     <div className="lg:col-span-2">
                         <header className="mb-12 md:mb-16">
-                            <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">{t('reference')}: {property.ref}</span>
+                            <div className="flex items-center gap-3 mb-6">
+                                <span className="text-[20px] tracking-[0.4em] uppercase text-slate-400">{t('reference')}: {property.ref}</span>
+                                <button
+                                    onClick={handleShare}
+                                    className="p-2 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-400 hover:text-[#2dd4bf] hover:bg-slate-100 transition-all"
+                                    title={t('share')}
+                                    aria-label={t('share')}
+                                >
+                                    <Share2 size={16} />
+                                </button>
+                            </div>
                             <h1 className="text-3xl md:text-7xl font-serif text-slate-900 dark:text-white mb-8 leading-tight">
                                 {localizedType || t('defaultType')} <br className="hidden md:block" />
                                 <span className="text-slate-400 font-light">{t('in')} {property.poblacion || 'La Safor'}</span>
@@ -317,22 +327,13 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                     {/* Sidebar de Contacto */}
                     <div className="lg:col-span-1" id="contact-form-anchor">
                         <div className="sticky top-24">
-                            <div className="mb-8 flex justify-between items-start">
-                                <div>
-                                    {(!property.precioinmo || property.precioinmo === 0) && (
-                                        <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">{t('priceUnderRequest')}</span>
-                                    )}
-                                    <span className="text-4xl font-serif text-slate-900 dark:text-white">
-                                        {property.precioinmo && property.precioinmo > 0 ? `€ ${property.precioinmo.toLocaleString()}` : t('consultPrice')}
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={handleShare}
-                                    className="p-3 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-400 hover:text-[#2dd4bf] hover:bg-slate-100 transition-all shadow-sm"
-                                    title={t('share')}
-                                >
-                                    <Share2 size={18} />
-                                </button>
+                            <div className="mb-8">
+                                {(!property.precioinmo || property.precioinmo === 0) && (
+                                    <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">{t('priceUnderRequest')}</span>
+                                )}
+                                <span className="text-4xl font-serif text-slate-900 dark:text-white">
+                                    {property.precioinmo && property.precioinmo > 0 ? `€ ${property.precioinmo.toLocaleString()}` : t('consultPrice')}
+                                </span>
                             </div>
 
                             <ContactForm cod_ofer={property.cod_ofer} />
