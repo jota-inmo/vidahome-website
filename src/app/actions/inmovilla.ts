@@ -86,7 +86,14 @@ function encargoToFullDataShape(
 ): Record<string, unknown> {
     if (!enc && !overrides) return {};
     const merged = { ...(enc || {}), ...(overrides || {}) };
+    // contractType → keyacci de Inmovilla (1 = venta/traspaso, 2 = alquiler).
+    // Sin esto el filtro Comprar/Alquilar del catálogo trata el keyacci
+    // undefined como "pasa en ambos" y el inmueble aparece en las dos
+    // pestañas (regresión vista en 2980 tras la fusión).
+    const ct = (merged.contractType as string) || '';
+    const keyacci = ct.startsWith('alquiler') ? 2 : (ct ? 1 : undefined);
     return stripUndefined({
+        keyacci,
         precio: numOrUndef(merged.precio),
         precioinmo: numOrUndef(merged.precio),
         habitaciones: numOrUndef(merged.num_hab_simples),
@@ -97,7 +104,9 @@ function encargoToFullDataShape(
         m_util: numOrUndef(merged.loc_m2_util),
         ano_cons: numOrUndef(merged.edi_ano_construccion),
         tipo_nombre: (merged.tipo_vivienda as string) || undefined,
-        poblacion: (merged.poblacion as string) || undefined,
+        // `ciudad` es el campo legacy del formulario, `poblacion` es el
+        // split nuevo. Muchos encargos solo tienen `ciudad` — fallback.
+        poblacion: (merged.poblacion as string) || (merged.ciudad as string) || undefined,
         orientacion: (merged.res_ori as string) || undefined,
         ascensor: parseSiNo(merged.res_asc),
         garaje: parseSiNo(merged.res_gar),
