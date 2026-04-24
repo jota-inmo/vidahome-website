@@ -44,6 +44,25 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '4mb',
     },
   },
+  /**
+   * Rewrites hacia el CRM (SaaS app) — el cliente ve vidahome.es en la
+   * barra pero el HTML + API vienen del CRM. Patrón SaaS-ready: cada
+   * tenant añade estas mismas 2 líneas a SU next.config con su propio
+   * CRM_BASE_URL y queda onboarded sin duplicar código.
+   */
+  async rewrites() {
+    const crmBase = process.env.CRM_BASE_URL || 'https://vidahome-encargo.vercel.app';
+    return [
+      {
+        source: '/confirmar-visita/:token*',
+        destination: `${crmBase}/confirmar-visita/:token*`,
+      },
+      {
+        source: '/api/visita-confirm',
+        destination: `${crmBase}/api/visita-confirm`,
+      },
+    ];
+  },
   async redirects() {
     return [
       // ═══════════════════════════════════════════════════════════════
