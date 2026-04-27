@@ -95,7 +95,18 @@ function encargoToFullDataShape(
     return stripUndefined({
         keyacci,
         precio: numOrUndef(merged.precio),
+        // Inmovilla guarda el precio en `precioinmo` (ventas) o `precioalq`
+        // (alquileres). Refs CRM-only que nunca pasaron por el pull de
+        // Inmovilla no tienen ninguno de los dos en full_data. Rellenamos
+        // ambos desde encargos.precio:
+        //  - precioinmo siempre, porque PropertyDetailClient lo usa como
+        //    fuente única sin distinguir keyacci.
+        //  - precioalq solo cuando keyacci===2, porque
+        //    LuxuryPropertyCard (listado) y effectivePrice (sort) leen
+        //    de un campo u otro según keyacci. Sin esto, los alquileres
+        //    CRM-only muestran "Precio bajo consulta" en el listado.
         precioinmo: numOrUndef(merged.precio),
+        precioalq: keyacci === 2 ? numOrUndef(merged.precio) : undefined,
         habitaciones: numOrUndef(merged.num_hab_simples),
         habdobles: numOrUndef(merged.num_hab_dobles),
         banyos: numOrUndef(merged.num_banos),
