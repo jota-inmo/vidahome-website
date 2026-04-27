@@ -71,6 +71,7 @@
         "in": "à",
         "propertyIn": "Propriété à",
         "priceUnderRequest": "Prix sur demande",
+        "perMonth": "/mois",
         "explore": "Explorer",
         "sortBy": "Trier par",
         "sortRecent": "Plus récents",
@@ -79,6 +80,13 @@
         "resultsCount": "{count, plural, =0 {Aucun résultat} =1 {# résultat} other {# résultats}}"
     },
     "Property": {
+        "summary": "Résumé de l'annonce",
+        "floor": "Étage",
+        "groundFloor": "Rez-de-chaussée",
+        "floorN": "{n}ᵉ étage",
+        "terrace": "Terrasse",
+        "heating": "Chauffage",
+        "withoutElevator": "sans ascenseur",
         "surface": "Surface",
         "bedrooms": "Chambres",
         "bathrooms": "Salles de bains",

@@ -16,7 +16,11 @@ import {
     ArrowLeft,
     Calendar,
     Compass,
-    Share2
+    Share2,
+    Building2,
+    Sun,
+    Flame,
+    ArrowUp,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -184,12 +188,49 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
         },
     ];
 
-    const technical = [
-        { icon: <Waves size={18} />, label: t('pool'), show: !!property.piscina_com },
-        { icon: <Wind size={18} />, label: t('ac'), show: !!property.aire_con },
-        { icon: <Car size={18} />, label: t('parking'), show: !!property.garaje },
-        { icon: <Compass size={18} />, label: t('elevator'), show: !!property.ascensor },
-    ].filter(f => f.show);
+    // Floor label — Inmovilla devuelve `0` para planta baja, números positivos
+    // para plantas superiores. Solo lo mostramos cuando el tipo lo hace
+    // relevante (Piso, Apartamento, Ático, etc.); para chalets/casas/locales
+    // la planta no aporta. Si el encargo no rellenó planta dejamos null.
+    const plantaRaw = (property as { planta?: number | string | null }).planta;
+    const plantaNum = plantaRaw != null && plantaRaw !== '' ? Number(plantaRaw) : null;
+    const tipoForFloor = (property.tipo_nombre || '').toLowerCase();
+    const floorRelevant = /piso|apartamento|atico|ático|duplex|dúplex|estudio|loft|planta baja|bajo/.test(tipoForFloor);
+    const floorLabel = (() => {
+        if (!floorRelevant || plantaNum === null || Number.isNaN(plantaNum)) return null;
+        if (plantaNum === 0) return t('groundFloor');
+        if (plantaNum < 0) return null; // sótano u otros — no exponer
+        return t('floorN', { n: plantaNum });
+    })();
+
+    // Resumen del anuncio — chip-list con todo lo relevante para que el
+    // visitante decida en 2s si pide visita. Ej: "3 dormitorios · 2 baños ·
+    // 4ª planta · Ascensor · Garaje · Piscina · Terraza · A/A · Calefacción".
+    // Cuando es piso sin ascensor, lo etiquetamos explícitamente porque un
+    // 5º sin ascensor no es lo mismo que un 1º.
+    const habitaciones = property.habitaciones || property.habdobles;
+    const banyosTotal = totalBathrooms(property.banyos, property.aseos) || property.banyos;
+    const summary: { icon: React.ReactNode; label: string; key: string }[] = [];
+    if (habitaciones) {
+        summary.push({ key: 'beds', icon: <BedDouble size={18} />, label: `${habitaciones} ${t('bedrooms').toLowerCase()}` });
+    }
+    if (banyosTotal) {
+        summary.push({ key: 'baths', icon: <Bath size={18} />, label: `${banyosTotal} ${t('bathrooms').toLowerCase()}` });
+    }
+    if (floorLabel) {
+        // Marca "sin ascensor" cuando es piso de planta >0 sin ascensor — es
+        // info crítica que el cliente debe ver antes de pedir visita.
+        const noElevatorBadge = plantaNum && plantaNum > 0 && !property.ascensor
+            ? ` · ${t('withoutElevator')}`
+            : '';
+        summary.push({ key: 'floor', icon: <Building2 size={18} />, label: `${floorLabel}${noElevatorBadge}` });
+    }
+    if (property.ascensor) summary.push({ key: 'elev', icon: <ArrowUp size={18} />, label: t('elevator') });
+    if (property.garaje) summary.push({ key: 'gar', icon: <Car size={18} />, label: t('parking') });
+    if (property.piscina_com) summary.push({ key: 'pool', icon: <Waves size={18} />, label: t('pool') });
+    if (property.terraza) summary.push({ key: 'terr', icon: <Sun size={18} />, label: t('terrace') });
+    if (property.aire_con) summary.push({ key: 'ac', icon: <Wind size={18} />, label: t('ac') });
+    if (property.calefaccion) summary.push({ key: 'heat', icon: <Flame size={18} />, label: t('heating') });
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950">
@@ -270,15 +311,29 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                             </p>
                         </div>
 
-                        {/* Características Técnicas */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
-                            {technical.map((t_item, i) => (
-                                <div key={i} className="flex items-center gap-4 p-6 border border-slate-50 dark:border-slate-900 rounded-sm">
-                                    <span className="text-slate-400">{t_item.icon}</span>
-                                    <span className="text-[10px] tracking-widest uppercase font-semibold">{t_item.label}</span>
+                        {/* Resumen del anuncio — chip-list con todo lo relevante:
+                            dormitorios, baños, planta (con flag "sin ascensor"
+                            cuando aplica), garaje, piscina, terraza, A/A,
+                            calefacción. */}
+                        {summary.length > 0 && (
+                            <section className="mb-20">
+                                <div className="flex items-center gap-4 mb-8">
+                                    <h2 className="text-2xl font-serif text-slate-900 dark:text-white">{t('summary')}</h2>
+                                    <div className="h-px flex-grow bg-slate-100 dark:bg-slate-900" />
                                 </div>
-                            ))}
-                        </div>
+                                <ul className="flex flex-wrap gap-3">
+                                    {summary.map(item => (
+                                        <li
+                                            key={item.key}
+                                            className="flex items-center gap-2 px-4 py-2.5 border border-slate-100 dark:border-slate-900 rounded-full text-sm font-light text-slate-700 dark:text-slate-300"
+                                        >
+                                            <span className="text-slate-400">{item.icon}</span>
+                                            <span>{item.label}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        )}
 
                         {/* Certificado Energético */}
                         <section className="mb-20">

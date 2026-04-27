@@ -2,11 +2,15 @@
  * Inmovilla API Types
  * Based on API v1 Documentation: https://procesos.apinmo.com/api/v1/apidoc/
  *
- * PRIVACY: street-address fields (calle, dir, numero, planta) are intentionally
+ * PRIVACY: street-address fields (calle, dir, numero) are intentionally
  * absent from these types. `getPropertyDetailAction` strips them at runtime
- * before returning to the client. Only `poblacion` (city) and `zona` (area) are
- * public. If you need address data for an internal use case, fetch it directly
- * from the CRM, never via these public types.
+ * before returning to the client. Only `poblacion` (city) and `zona` (area)
+ * are public. If you need address data for an internal use case, fetch it
+ * directly from the CRM, never via these public types.
+ *
+ * NOTE on `planta` (2026-04-27): se considera dato relevante de la oferta
+ * (un 5º sin ascensor no es lo mismo que un 1º), no localizador. Se expone
+ * en el resumen público de la ficha sin revelar calle ni número.
  */
 
 export interface PropertyListEntry {
@@ -102,6 +106,9 @@ export interface PropertyDetails {
     energy_consumption?: number | string | null;
     emissions_label?: string | null;
     emissions_value?: number | string | null;
+    /** Floor number. Inmovilla devuelve `0` para planta baja, números positivos
+     *  para plantas superiores. No-localizador: indica nivel sin revelar calle. */
+    planta?: number | string | null;
     // Additional fields can be added here as needed
 }
 

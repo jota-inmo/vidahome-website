@@ -118,7 +118,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     <div className="mb-6">
                         <span className="text-xl font-serif text-slate-700 dark:text-slate-300 italic">
                             {property.keyacci === 2
-                                ? (property.precioalq ? `€ ${property.precioalq.toLocaleString()} /mo` : t('priceUnderRequest'))
+                                ? (property.precioalq ? `€ ${property.precioalq.toLocaleString()} ${t('perMonth')}` : t('priceUnderRequest'))
                                 : (property.precioinmo ? `€ ${property.precioinmo.toLocaleString()}` : t('priceUnderRequest'))
                             }
                         </span>
