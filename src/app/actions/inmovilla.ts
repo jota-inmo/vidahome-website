@@ -40,7 +40,7 @@ const ENCARGO_COLUMNS_FOR_WEB =
     'res_patio, com_mes, ibi_anual, "contractType", calefaccion, ' +
     'aire_acondicionado, armarios_empotrados, balcon, cocina_independiente, ' +
     'adaptado_movilidad, jardin_propio, piscina_comunitaria, ' +
-    'piscina_privada, amueblado';
+    'piscina_privada, amueblado, planta';
 
 function numOrUndef(v: unknown): number | undefined {
     if (v === null || v === undefined || v === '') return undefined;
@@ -136,6 +136,7 @@ function encargoToFullDataShape(
         com_mes: numOrUndef(merged.com_mes),
         ibi_anual: numOrUndef(merged.ibi_anual),
         estado_conservacion: (merged.edi_estado_conservacion as string) || undefined,
+        planta: numOrUndef(merged.planta) ?? ((merged.planta as string) || undefined),
     });
 }
 

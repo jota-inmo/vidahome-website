@@ -220,7 +220,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
     if (floorLabel) {
         // Marca "sin ascensor" cuando es piso de planta >0 sin ascensor — es
         // info crítica que el cliente debe ver antes de pedir visita.
-        const noElevatorBadge = plantaNum && plantaNum > 0 && !property.ascensor
+        const noElevatorBadge = plantaNum && plantaNum > 0 && property.ascensor === false
             ? ` · ${t('withoutElevator')}`
             : '';
         summary.push({ key: 'floor', icon: <Building2 size={18} />, label: `${floorLabel}${noElevatorBadge}` });
