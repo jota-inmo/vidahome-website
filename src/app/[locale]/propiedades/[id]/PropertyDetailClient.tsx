@@ -391,7 +391,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                                 </span>
                             </div>
 
-                            <ContactForm cod_ofer={property.cod_ofer} />
+                            <ContactForm cod_ofer={property.cod_ofer} propertyRef={property.ref} />
 
                             <div className="mt-12 p-10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-100 dark:border-slate-800/60 flex items-center justify-center rounded-2xl transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/5 dark:hover:shadow-none group relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />

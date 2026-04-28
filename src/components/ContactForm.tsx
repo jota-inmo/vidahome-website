@@ -8,9 +8,13 @@ import { useAnalytics } from '@/lib/hooks/useAnalytics';
 interface ContactFormProps {
     // Nullable: CRM-only properties may not have a cod_ofer assigned yet.
     cod_ofer: number | null;
+    // CRM ref. Always present for property pages. Sent to the action so the
+    // notification email subject identifies the property even cuando cod_ofer
+    // es null (venta/alquiler/traspaso aún no sincronizados con Inmovilla).
+    propertyRef?: string;
 }
 
-export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
+export const ContactForm = ({ cod_ofer, propertyRef }: ContactFormProps) => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -38,7 +42,8 @@ export const ContactForm = ({ cod_ofer }: ContactFormProps) => {
             email: formData.get('email') as string,
             telefono: formData.get('telefono') as string,
             mensaje: formData.get('mensaje') as string,
-            cod_ofer: cod_ofer
+            cod_ofer: cod_ofer,
+            ref: propertyRef
         };
 
         try {
