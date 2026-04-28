@@ -6,6 +6,7 @@ import localidadesMap from '@/lib/api/localidades_map.json';
 import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { parseSpanishNumber } from '@/lib/utils/parse-spanish-number';
 
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
@@ -42,10 +43,12 @@ const ENCARGO_COLUMNS_FOR_WEB =
     'adaptado_movilidad, jardin_propio, piscina_comunitaria, ' +
     'piscina_privada, amueblado, planta';
 
+// `encargos.precio` (y otras cols numéricas tipo `text`) acepta formato ES
+// con punto como separador de miles ("320.000" = 320 mil). `Number()` raw lo
+// parsea como decimal US y devuelve 320 — bug que se materializaba en la web
+// como "€ 320" en lugar de "€ 320.000". Delegamos en `parseSpanishNumber`.
 function numOrUndef(v: unknown): number | undefined {
-    if (v === null || v === undefined || v === '') return undefined;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : undefined;
+    return parseSpanishNumber(v);
 }
 
 function parseSiNo(v: unknown): boolean | undefined {
@@ -231,18 +234,29 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
             // Apply locale-specific description, fallback to Spanish
             const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
 
+            // `property_metadata.precio` es numeric limpio (escrito por
+            // publish_to_web). `fullData.precioinmo` viene de encargos.precio
+            // (text), que aunque ya pasamos por parseSpanishNumber puede estar
+            // desincronizado con el último cambio de precio. Preferimos pm.precio
+            // como source-of-truth para el display web.
+            const cleanPrecio = parseSpanishNumber(row.precio);
+            const precioinmoFinal = cleanPrecio ?? fullData.precioinmo;
+            const precioalqFinal = fullData.keyacci === 2
+                ? (cleanPrecio ?? fullData.precioalq)
+                : fullData.precioalq;
+
             return {
                 cod_ofer: row.cod_ofer,
                 ref: row.ref,
                 tipo: row.tipo,
-                precio: row.precio || fullData.precioinmo || 0,
+                precio: cleanPrecio ?? fullData.precioinmo ?? 0,
                 poblacion: row.poblacion || fullData.poblacion || '',
                 nodisponible: !!row.nodisponible,
                 mainImage: row.main_photo,
                 // Use accurate data from property_features or full_data fallback
                 keyacci: fullData.keyacci,
-                precioinmo: fullData.precioinmo,
-                precioalq: fullData.precioalq,
+                precioinmo: precioinmoFinal,
+                precioalq: precioalqFinal,
                 habitaciones,
                 banyos,
                 aseos,
@@ -390,6 +404,17 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         // calle/dir to the website. Only poblacion (city) is public.
         const { calle: _calle, dir: _dir, ...safeFullData } = fullData as any;
 
+        // Mismo patrón que `fetchPropertiesAction`: pm.precio es numeric limpio
+        // (escrito por publish_to_web) y por tanto la fuente preferida sobre
+        // fullData.precioinmo (que viene de encargos.precio text). Sin esto,
+        // refs cuyo encargo.precio quedó stale o con formato roto muestran
+        // precio mal en la ficha.
+        const cleanPrecioDetail = parseSpanishNumber((meta as { precio?: unknown }).precio);
+        const precioinmoFinal = cleanPrecioDetail ?? (fullData as { precioinmo?: number }).precioinmo;
+        const precioalqFinal = (fullData as { keyacci?: number }).keyacci === 2
+            ? (cleanPrecioDetail ?? (fullData as { precioalq?: number }).precioalq)
+            : (fullData as { precioalq?: number }).precioalq;
+
         // Enrich with photos if available
         const propertyWithPhotos = {
             ...safeFullData,
@@ -405,6 +430,8 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             banyos,
             aseos,
             m_cons,
+            precioinmo: precioinmoFinal,
+            precioalq: precioalqFinal,
             // Use resolved poblacion from DB column (preferred) over full_data fallback
             poblacion: (meta as any).poblacion || fullData.poblacion || '',
             // Energy Certificate (from property_metadata, selected above)
