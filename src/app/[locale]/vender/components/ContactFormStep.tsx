@@ -5,6 +5,7 @@ import { SellFormState, COUNTRY_CODES, CountryCode } from '@/types/sell-form';
 import { usePhoneValidation } from '@/lib/hooks/usePhoneValidation';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 interface ContactFormStepProps {
   formState: SellFormState;
@@ -78,18 +79,18 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
     e.preventDefault();
 
     if (!formState.nombre?.trim()) {
-      alert(t('contactAlertName'));
+      toast.error(t('contactAlertName'));
       return;
     }
 
     const phoneValidation = phone.validate();
     if (!phoneValidation.isValid) {
-      alert(phoneValidation.error || t('contactAlertPhone'));
+      toast.error(phoneValidation.error || t('contactAlertPhone'));
       return;
     }
 
     if (formState.email && !validateEmail(formState.email)) {
-      alert(t('contactAlertEmail'));
+      toast.error(t('contactAlertEmail'));
       return;
     }
 
