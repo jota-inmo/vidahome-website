@@ -102,9 +102,11 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                             onChange={(e) => setPopulation(e.target.value)}
                             className="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white text-sm py-4 cursor-pointer appearance-none"
                         >
-                            <option value="">{t('locationDefault')}</option>
+                            <option value="" className="bg-white text-slate-900 dark:bg-slate-900 dark:text-white">
+                                {t('locationDefault')}
+                            </option>
                             {populations.map((pop) => (
-                                <option key={pop} value={pop}>
+                                <option key={pop} value={pop} className="bg-white text-slate-900 dark:bg-slate-900 dark:text-white">
                                     {pop}
                                 </option>
                             ))}
