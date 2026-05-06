@@ -375,9 +375,15 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         const PHOTO_COVERAGE_THRESHOLD = 0.8;
 
         if (meta.ref) {
+            // url_storage añadida 2026-05-06 (migración 20260505180000): bucket
+            // Supabase Storage `property-photos` con path `tenants/{slug}/{ref}/{id}.jpg`.
+            // Preferimos Storage cuando existe (control total, no depende del CDN
+            // externo de Inmovilla); fallback a url_cloudinary (legacy: apinmo CDN
+            // o Cloudinary). Mismo resolver que el CRM (`resolvePhotoUrl` en
+            // src/services/photoService.ts).
             const { data: cloudinaryFotos } = await supabase
                 .from('fotos_inmuebles')
-                .select('url_cloudinary')
+                .select('url_cloudinary, url_storage')
                 .eq('ref', meta.ref)
                 .or('visible.is.null,visible.eq.true')
                 .order('orden', { ascending: true });
@@ -388,8 +394,17 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
                 : (cloudinaryCount / inmovillaCount) >= PHOTO_COVERAGE_THRESHOLD;
 
             if (coverageOk && cloudinaryFotos && cloudinaryFotos.length > 0) {
-                fotos_lista = cloudinaryFotos.map((f: any) => f.url_cloudinary);
-                main_photo = fotos_lista[0];
+                const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+                const resolvePhotoUrl = (row: { url_storage?: string | null; url_cloudinary?: string | null }): string => {
+                    if (row.url_storage && supabaseUrl) {
+                        return `${supabaseUrl}/storage/v1/object/public/property-photos/${row.url_storage}`;
+                    }
+                    return row.url_cloudinary ?? '';
+                };
+                fotos_lista = cloudinaryFotos
+                    .map((f: any) => resolvePhotoUrl(f))
+                    .filter((url: string) => url.length > 0);
+                main_photo = fotos_lista[0] ?? null;
             }
         }
 
