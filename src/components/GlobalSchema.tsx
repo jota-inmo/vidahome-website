@@ -4,9 +4,9 @@ export function GlobalSchema() {
     const agentSchema = {
         "@context": "https://schema.org",
         "@type": "RealEstateAgent",
-        "@id": "https://vidahome.es/#agencia",
+        "@id": "https://www.vidahome.es/#agencia",
         "name": "VidaHome Inmobiliaria",
-        "url": "https://vidahome.es",
+        "url": "https://www.vidahome.es",
         "telephone": "+34 659 02 75 12",
         "address": {
             "@type": "PostalAddress",

@@ -34,7 +34,7 @@ const OG_LOCALE_MAP: Record<string, string> = {
   pl: 'pl_PL',
 };
 
-const SITE_URL = 'https://vidahome.es';
+const SITE_URL = 'https://www.vidahome.es';
 const SUPPORTED_LOCALES = ['es', 'en', 'fr', 'de', 'it', 'pl'] as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {

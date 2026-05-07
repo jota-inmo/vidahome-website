@@ -3,7 +3,7 @@ import { fetchPropertiesAction } from '@/app/actions';
 import { routing } from '@/i18n/routing';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = 'https://vidahome.es';
+    const baseUrl = 'https://www.vidahome.es';
     const locales = routing.locales;
 
     // Páginas estáticas base

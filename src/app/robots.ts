@@ -13,7 +13,7 @@ export default function robots(): MetadataRoute.Robots {
                 allow: '/',
             }
         ],
-        sitemap: 'https://vidahome.es/sitemap.xml',
+        sitemap: 'https://www.vidahome.es/sitemap.xml',
     };
 }
 

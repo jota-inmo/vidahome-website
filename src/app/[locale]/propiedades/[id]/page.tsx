@@ -119,7 +119,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         '@type': 'RealEstateListing',
         'name': result.data.tipo_nombre,
         'description': require('@/lib/utils/text-cleaner').cleanDescription(result.data.descripciones),
-        'url': `https://vidahome.es/propiedades/${id}`,
+        'url': `https://www.vidahome.es/propiedades/${id}`,
         'image': result.data.fotos_lista?.[0],
         'address': {
             '@type': 'PostalAddress',

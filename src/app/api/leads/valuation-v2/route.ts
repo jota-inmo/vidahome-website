@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
               <p style="margin-top: 32px;">Un saludo,<br><strong>El equipo de VidaHome Gandía</strong></p>
             </div>
             <div style="background: #f0f0f0; padding: 16px; text-align: center; font-size: 12px; color: #666;">
-              VidaHome Gandía S.L. · Gandía, Valencia · <a href="https://vidahome.es" style="color: #666;">vidahome.es</a>
+              VidaHome Gandía S.L. · Gandía, Valencia · <a href="https://www.vidahome.es" style="color: #666;">vidahome.es</a>
             </div>
           </div>
           `

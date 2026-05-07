@@ -22,7 +22,7 @@
 ## Contact
 
 - **Phone:** +34 659 02 75 12
-- **Website:** https://vidahome.es
-- **Properties:** https://vidahome.es/propiedades
-- **Sell your property:** https://vidahome.es/vender
-- **Contact form:** https://vidahome.es/contacto
+- **Website:** https://www.vidahome.es
+- **Properties:** https://www.vidahome.es/propiedades
+- **Sell your property:** https://www.vidahome.es/vender
+- **Contact form:** https://www.vidahome.es/contacto
