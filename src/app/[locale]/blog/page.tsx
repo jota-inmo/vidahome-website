@@ -6,11 +6,41 @@ import { getBlogPostsAction } from '@/app/actions/blog';
 
 export const revalidate = 60; // revalidate every 60 seconds
 
-export async function generateMetadata(): Promise<Metadata> {
-    const t = await getTranslations('Blog');
+const SITE_URL = 'https://www.vidahome.es';
+const SUPPORTED_LOCALES = ['es', 'en', 'fr', 'de', 'it', 'pl'] as const;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'Metadata' });
+    const title = t('blogTitle');
+    const description = t('blogDescription');
+    const path = locale === 'es' ? '/blog' : `/${locale}/blog`;
+
+    const languages: Record<string, string> = {};
+    for (const l of SUPPORTED_LOCALES) {
+        languages[l] = `${SITE_URL}${l === 'es' ? '/blog' : `/${l}/blog`}`;
+    }
+    languages['x-default'] = `${SITE_URL}/blog`;
+
     return {
-        title: `${t('title')} | Vidahome`,
-        description: t('description'),
+        title,
+        description,
+        alternates: {
+            canonical: `${SITE_URL}${path}`,
+            languages,
+        },
+        openGraph: {
+            title,
+            description,
+            url: `${SITE_URL}${path}`,
+            siteName: 'Vidahome',
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+        },
     };
 }
 

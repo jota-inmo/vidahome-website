@@ -2,7 +2,17 @@
     "Metadata": {
         "homeTitle": "Immobilienmakler in Gandía | VidaHome — Kauf, Verkauf, Miete",
         "homeDescription": "Immobilienmakler in Gandía, spezialisiert auf Grau und die Costa Valenciana. 116+ aktive Objekte, kostenlose Bewertung in 24h, Abschluss in 15-30 Tagen.",
-        "homeOgDescription": "Immobilienmakler in Gandía. Lokaler Marktführer mit 116+ aktiven Objekten in Grau, Playa und der Costa Valenciana."
+        "homeOgDescription": "Immobilienmakler in Gandía. Lokaler Marktführer mit 116+ aktiven Objekten in Grau, Playa und der Costa Valenciana.",
+        "propertiesTitle": "Häuser zum Kauf in Gandía & Costa Valenciana | VidaHome",
+        "propertiesDescription": "Katalog von Häusern, Wohnungen und Villen zum Kauf und zur Miete in Gandía, Grau, Playa und an der Costa Valenciana. 116+ aktive Objekte.",
+        "contactTitle": "Kontakt | Immobilienmakler in Gandía — VidaHome",
+        "contactDescription": "Kontaktieren Sie VidaHome, Ihren Immobilienmakler in Gandía. Büro im Grau, Service auf Spanisch, Englisch, Französisch und Deutsch.",
+        "aboutTitle": "Über Uns | Immobilienmakler in Gandía — VidaHome",
+        "aboutDescription": "Über 25 Jahre Erfahrung mit Immobilien in Gandía und an der Costa Valenciana. APIVA-Team mit ethischem Engagement und Netzwerk geprüfter Profis.",
+        "sellTitle": "Verkaufen in Gandía | Kostenlose 24h-Bewertung — VidaHome",
+        "sellDescription": "Verkaufen Sie Ihre Immobilie in Gandía mit VidaHome. Kostenlose professionelle Bewertung in 24h mit Katasterdaten und Verkauf in 15-30 Tagen.",
+        "blogTitle": "Immobilien-Blog Gandía | VidaHome",
+        "blogDescription": "Artikel über den Immobilienmarkt in Gandía, La Safor und an der Costa Valenciana. Tipps zum Kauf, Verkauf und zur Vermietung Ihrer Immobilie."
     },
     "Index": {
         "title": "Auswahl an Immobilien",
@@ -147,7 +157,7 @@
     },
     "Blog": {
         "title": "Immobilien-Blog",
-        "description": "Artikel über Immobilien, Immobilienmarkt und Tipps für Käufer an der Goldenen Küste.",
+        "description": "Artikel über Immobilien, den Immobilienmarkt und Tipps für Käufer in Gandía, La Safor und an der Costa Valenciana.",
         "readMore": "Mehr lesen",
         "noPosts": "Noch keine Artikel verfügbar",
         "noPostsDesc": "Interessanter Inhalt kommt bald..."

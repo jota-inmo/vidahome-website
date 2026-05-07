@@ -11,11 +11,41 @@ import { Link } from '@/i18n/routing';
 // At 3600s it's 24 rebuilds/day = ~480 MB/month.
 export const revalidate = 3600;
 
-export async function generateMetadata(): Promise<Metadata> {
-    const t = await getTranslations('Index');
+const SITE_URL = 'https://www.vidahome.es';
+const SUPPORTED_LOCALES = ['es', 'en', 'fr', 'de', 'it', 'pl'] as const;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'Metadata' });
+    const title = t('propertiesTitle');
+    const description = t('propertiesDescription');
+    const path = locale === 'es' ? '/propiedades' : `/${locale}/propiedades`;
+
+    const languages: Record<string, string> = {};
+    for (const l of SUPPORTED_LOCALES) {
+        languages[l] = `${SITE_URL}${l === 'es' ? '/propiedades' : `/${l}/propiedades`}`;
+    }
+    languages['x-default'] = `${SITE_URL}/propiedades`;
+
     return {
-        title: `${t('portfolio')} | Vidahome`,
-        description: t('description'),
+        title,
+        description,
+        alternates: {
+            canonical: `${SITE_URL}${path}`,
+            languages,
+        },
+        openGraph: {
+            title,
+            description,
+            url: `${SITE_URL}${path}`,
+            siteName: 'Vidahome',
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+        },
     };
 }
 

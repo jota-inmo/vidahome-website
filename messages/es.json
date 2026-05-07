@@ -2,7 +2,17 @@
     "Metadata": {
         "homeTitle": "Inmobiliaria en Gandía | VidaHome — Compra, Venta y Alquiler",
         "homeDescription": "Inmobiliaria en Gandía especializada en Grau, Playa y Costa Valenciana. +116 propiedades activas, valoración gratuita en 24h y cierres medios en 15-30 días.",
-        "homeOgDescription": "Inmobiliaria en Gandía. Líder local con +116 propiedades activas en Grau, Playa y Costa Valenciana."
+        "homeOgDescription": "Inmobiliaria en Gandía. Líder local con +116 propiedades activas en Grau, Playa y Costa Valenciana.",
+        "propertiesTitle": "Casas en venta en Gandía y Costa Valenciana | VidaHome",
+        "propertiesDescription": "Catálogo de casas, pisos y chalets en venta y alquiler en Gandía, Grau, Playa y Costa Valenciana. +116 propiedades activas con valoración profesional.",
+        "contactTitle": "Contacto | Inmobiliaria en Gandía — VidaHome",
+        "contactDescription": "Contacta con VidaHome, inmobiliaria en Gandía. Oficina en el Grau, atención en español, inglés, francés y alemán. Horario de lunes a sábado.",
+        "aboutTitle": "Sobre Nosotros | Inmobiliaria en Gandía — VidaHome",
+        "aboutDescription": "Más de 25 años gestionando propiedades en Gandía y Costa Valenciana. Equipo APIVA con compromiso ético y red de profesionales verificados.",
+        "sellTitle": "Vende tu Propiedad en Gandía | Valoración 24h — VidaHome",
+        "sellDescription": "Vende tu casa, piso o local en Gandía con VidaHome. Valoración profesional gratuita en 24h con datos del Catastro y cierres en 15-30 días.",
+        "blogTitle": "Blog Inmobiliario en Gandía | VidaHome",
+        "blogDescription": "Artículos sobre el mercado inmobiliario en Gandía, La Safor y Costa Valenciana. Consejos para comprar, vender o alquilar tu propiedad."
     },
     "Index": {
         "title": "Selección de Inmuebles",
@@ -147,7 +157,7 @@
     },
     "Blog": {
         "title": "Blog de Inmuebles",
-        "description": "Artículos sobre propiedades, mercado inmobiliario y consejos para compradores en la Costa Dorada.",
+        "description": "Artículos sobre propiedades, mercado inmobiliario y consejos para compradores en Gandía, La Safor y Costa Valenciana.",
         "readMore": "Leer más",
         "noPosts": "No hay posts disponibles aún",
         "noPostsDesc": "Pronto habrá contenido interesante..."

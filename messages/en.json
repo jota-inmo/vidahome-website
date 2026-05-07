@@ -2,7 +2,17 @@
     "Metadata": {
         "homeTitle": "Real Estate Agency in Gandía | VidaHome — Buy, Sell & Rent",
         "homeDescription": "Real estate agency in Gandía specialised in Grau, Playa and the Costa Valenciana. 116+ active listings, free 24h valuation and 15-30 day average closings.",
-        "homeOgDescription": "Real estate agency in Gandía. Local leader with 116+ active listings in Grau, Playa and the Costa Valenciana."
+        "homeOgDescription": "Real estate agency in Gandía. Local leader with 116+ active listings in Grau, Playa and the Costa Valenciana.",
+        "propertiesTitle": "Houses for Sale in Gandía & Costa Valenciana | VidaHome",
+        "propertiesDescription": "Catalogue of houses, flats and villas for sale and rent in Gandía, Grau, Playa and the Costa Valenciana. 116+ active listings with professional valuation.",
+        "contactTitle": "Contact | Real Estate Agency in Gandía — VidaHome",
+        "contactDescription": "Contact VidaHome, real estate agency in Gandía. Office at the Grau, service in Spanish, English, French and German. Open Monday to Saturday.",
+        "aboutTitle": "About Us | Real Estate Agency in Gandía — VidaHome",
+        "aboutDescription": "Over 25 years managing properties in Gandía and the Costa Valenciana. APIVA-certified team with ethical commitment and a network of vetted professionals.",
+        "sellTitle": "Sell Your Property in Gandía | Free 24h Valuation — VidaHome",
+        "sellDescription": "Sell your house, flat or commercial unit in Gandía with VidaHome. Free professional valuation in 24h with Catastro data and 15-30 day average closings.",
+        "blogTitle": "Property Blog in Gandía | VidaHome",
+        "blogDescription": "Articles on the real estate market in Gandía, La Safor and the Costa Valenciana. Tips for buying, selling or renting your property."
     },
     "Index": {
         "title": "Property Selection",
@@ -147,7 +157,7 @@
     },
     "Blog": {
         "title": "Property Blog",
-        "description": "Articles about properties, real estate market and advice for buyers on the Golden Coast.",
+        "description": "Articles about properties, the real estate market and advice for buyers in Gandía, La Safor and the Costa Valenciana.",
         "readMore": "Read more",
         "noPosts": "No posts available yet",
         "noPostsDesc": "Interesting content coming soon..."

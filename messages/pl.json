@@ -2,7 +2,17 @@
     "Metadata": {
         "homeTitle": "Agencja Nieruchomości Gandía | VidaHome — Kupno i Wynajem",
         "homeDescription": "Agencja nieruchomości w Gandii specjalizująca się w Grau, Playa i Costa Valenciana. +116 aktywnych ofert, bezpłatna wycena w 24h i sprzedaże w 15-30 dni.",
-        "homeOgDescription": "Agencja nieruchomości w Gandii. Lokalny lider z +116 aktywnymi ofertami w Grau, Playa i Costa Valenciana."
+        "homeOgDescription": "Agencja nieruchomości w Gandii. Lokalny lider z +116 aktywnymi ofertami w Grau, Playa i Costa Valenciana.",
+        "propertiesTitle": "Domy na Sprzedaż w Gandía i Costa Valenciana | VidaHome",
+        "propertiesDescription": "Katalog domów, mieszkań i willi na sprzedaż i wynajem w Gandía, Grau, Playa i Costa Valenciana. +116 aktywnych ofert z profesjonalną wyceną.",
+        "contactTitle": "Kontakt | Agencja Nieruchomości Gandía — VidaHome",
+        "contactDescription": "Skontaktuj się z VidaHome, agencja nieruchomości w Gandii. Biuro w Grau, obsługa po hiszpańsku, angielsku, francusku i niemiecku.",
+        "aboutTitle": "O Nas | Agencja Nieruchomości w Gandii — VidaHome",
+        "aboutDescription": "Ponad 25 lat doświadczenia w nieruchomościach w Gandía i Costa Valenciana. Zespół APIVA z etycznym zaangażowaniem i siecią sprawdzonych specjalistów.",
+        "sellTitle": "Sprzedaj w Gandii | Bezpłatna Wycena 24h — VidaHome",
+        "sellDescription": "Sprzedaj swój dom, mieszkanie lub lokal w Gandii z VidaHome. Bezpłatna profesjonalna wycena w 24h z danymi Katastru i finalizacja w 15-30 dni.",
+        "blogTitle": "Blog Nieruchomości w Gandii | VidaHome",
+        "blogDescription": "Artykuły o rynku nieruchomości w Gandía, La Safor i Costa Valenciana. Porady jak kupić, sprzedać lub wynająć swoją nieruchomość."
     },
     "Index": {
         "title": "Wybór Nieruchomości",
@@ -147,7 +157,7 @@
     },
     "Blog": {
         "title": "Blog Nieruchomości",
-        "description": "Artykuły o nieruchomościach, rynku nieruchomości i wskazówki dla kupujących na Złotym Wybrzeżu.",
+        "description": "Artykuły o nieruchomościach, rynku nieruchomości i wskazówki dla kupujących w Gandía, La Safor i na Costa Valenciana.",
         "readMore": "Czytaj więcej",
         "noPosts": "Brak dostępnych artykułów",
         "noPostsDesc": "Interesująca zawartość wkrótce..."
