@@ -39,40 +39,16 @@ export default function GandiaPlayaPage() {
         ]
     };
 
-    const agentSchema = {
-        "@context": "https://schema.org",
-        "@type": "RealEstateAgent",
-        "@id": "https://www.vidahome.es/#agencia",
-        "name": "VidaHome Inmobiliaria",
-        "url": "https://www.vidahome.es",
-        "telephone": "+34 659 02 75 12",
-        "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "Grau i Platja, Gandia",
-            "addressLocality": "Gandia",
-            "addressRegion": "Valencia",
-            "postalCode": "46730",
-            "addressCountry": "ES"
-        },
-        "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": 38.9967,
-            "longitude": -0.1847
-        },
-        "priceRange": "€120K-€1M",
-        "openingHours": "Mo-Fr 09:00-20:00",
-        "sameAs": ["https://www.instagram.com/vidahome/"]
-    };
+    // Nota: el schema RealEstateAgent se inyecta una vez a nivel sitio
+    // desde <GlobalSchema /> en [locale]/layout.tsx. Aqui solo añadimos
+    // el FAQPage especifico de esta landing — duplicar el agente con
+    // datos divergentes confunde a Google.
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-            />
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(agentSchema) }}
             />
 
             <header className="py-24 px-8 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
