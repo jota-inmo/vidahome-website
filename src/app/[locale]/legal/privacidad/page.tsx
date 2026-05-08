@@ -6,6 +6,11 @@ export const metadata = {
     description: 'Información sobre el tratamiento de datos personales de acuerdo con el RGPD.',
 };
 
+// El contenido vive en `legal_pages` (Supabase) y se edita desde
+// /[locale]/admin/legal. Cache de 60s garantiza que ediciones (vía UI o
+// SQL directo) se reflejen en producción sin necesidad de redeploy.
+export const revalidate = 60;
+
 export default async function PrivacidadPage({ params }: { params: { locale: string } }) {
     const locale = params.locale;
     const page = await getLegalPageAction('privacy');

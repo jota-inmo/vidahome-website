@@ -6,6 +6,11 @@ export const metadata = {
     description: 'Información sobre el uso de cookies en la web de Vidahome.',
 };
 
+// El contenido vive en `legal_pages` (Supabase) y se edita desde
+// /[locale]/admin/legal. Cache de 60s garantiza que ediciones (vía UI o
+// SQL directo) se reflejen en producción sin necesidad de redeploy.
+export const revalidate = 60;
+
 export default async function CookiesPage({ params }: { params: { locale: string } }) {
     const locale = params.locale;
     const page = await getLegalPageAction('cookies');

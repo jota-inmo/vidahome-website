@@ -7,6 +7,11 @@ export const metadata = {
     description: 'Información legal y términos de uso de la web oficial de Vidahome.',
 };
 
+// El contenido vive en `legal_pages` (Supabase) y se edita desde
+// /[locale]/admin/legal. Cache de 60s garantiza que ediciones (vía UI o
+// SQL directo) se reflejen en producción sin necesidad de redeploy.
+export const revalidate = 60;
+
 export default async function AvisoLegalPage({ params }: { params: { locale: string } }) {
     const locale = params.locale;
     const page = await getLegalPageAction('legal');
