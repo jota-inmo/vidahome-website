@@ -59,6 +59,10 @@ export interface PropertyListEntry {
     // ISO timestamp from property_metadata.updated_at. Used for the
     // "most recent first" sort option on the catalog page.
     updated_at?: string;
+    // Cierre con motivo dentro del grace period (default 7d). Cuando es
+    // 'vendido' / 'alquilado' / 'traspasado' el UI aplica grayscale + sello.
+    deactivation_reason?: string | null;
+    deactivated_at?: string | null;
 }
 
 export interface PropertyDetails {
@@ -109,6 +113,10 @@ export interface PropertyDetails {
     /** Floor number. Inmovilla devuelve `0` para planta baja, números positivos
      *  para plantas superiores. No-localizador: indica nivel sin revelar calle. */
     planta?: number | string | null;
+    // Cierre con motivo dentro del grace period (default 7d). El UI aplica
+    // grayscale + sello "VENDIDO/ALQUILADO/TRASPASADO" cuando viene poblado.
+    deactivation_reason?: string | null;
+    deactivated_at?: string | null;
     // Additional fields can be added here as needed
 }
 

@@ -232,8 +232,21 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
     if (property.aire_con) summary.push({ key: 'ac', icon: <Wind size={18} />, label: t('ac') });
     if (property.calefaccion) summary.push({ key: 'heat', icon: <Flame size={18} />, label: t('heating') });
 
+    // Cierre con motivo dentro del grace: el contenedor entero se renderiza
+    // en grayscale + un sello rotado -30° "VENDIDO/ALQUILADO/TRASPASADO"
+    // sobre la galería principal. JSON-LD ya manda SoldOut + meta noindex.
+    const reasonRaw = (property as { deactivation_reason?: string | null }).deactivation_reason;
+    const closedReason: 'vendido' | 'alquilado' | 'traspasado' | null =
+        reasonRaw && ['vendido', 'alquilado', 'traspasado'].includes(reasonRaw)
+            ? (reasonRaw as 'vendido' | 'alquilado' | 'traspasado')
+            : null;
+    const closedLabel = closedReason ? closedReason.toUpperCase() : '';
+
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950">
+        <div
+            className="min-h-screen bg-white dark:bg-slate-950"
+            style={closedReason ? { filter: 'grayscale(1) brightness(0.96)' } : undefined}
+        >
             {/* Botón Volver */}
             <button
                 onClick={() => router.back()}
@@ -243,10 +256,35 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                 <ArrowLeft size={18} className="text-slate-900 dark:text-white" />
             </button>
 
-            <PropertyGallery
-                images={property.fotos_lista || []}
-                propertyLabel={`${localizedType || t('defaultType')} en ${property.poblacion || 'La Safor'} — Ref. ${property.ref}`}
-            />
+            <div className="relative">
+                <PropertyGallery
+                    images={property.fotos_lista || []}
+                    propertyLabel={`${localizedType || t('defaultType')} en ${property.poblacion || 'La Safor'} — Ref. ${property.ref}`}
+                />
+                {closedReason && (
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden z-20">
+                        <div
+                            style={{
+                                transform: 'rotate(-30deg)',
+                                background: 'rgba(180,24,40,0.92)',
+                                color: '#fffbf2',
+                                padding: '18px 72px',
+                                fontSize: '52px',
+                                fontWeight: 800,
+                                letterSpacing: '12px',
+                                border: '4px double rgba(255,251,242,0.85)',
+                                borderRadius: '6px',
+                                fontFamily: 'Georgia, "Times New Roman", serif',
+                                textShadow: '0 2px 4px rgba(0,0,0,0.45)',
+                                boxShadow: '0 12px 36px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(0,0,0,0.18)',
+                                whiteSpace: 'nowrap',
+                            }}
+                        >
+                            {closedLabel}
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <main className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 pb-28 lg:pb-24">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 lg:gap-24">

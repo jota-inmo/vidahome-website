@@ -28,9 +28,23 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
     }, [property.cod_ofer, trackPropertyView]);
 
     const localizedType = translatePropertyType(property.tipo_nombre, locale);
-    const isUnavailable = !!property.nodisponible;
+    // Cierre con motivo de operación dentro del grace period (default 7d).
+    // El backend ya filtra para que solo lleguen aquí los que están dentro
+    // de la ventana — usamos el motivo explícito para el label en lugar
+    // del fallback heurístico por ref/keyacci. Convive con el flag legacy
+    // `nodisponible` (refs viejos sin motivo) — para esos NO renderizamos
+    // el sello, simplemente las dejamos pasar.
+    const reason = (property as { deactivation_reason?: string | null }).deactivation_reason;
+    const closedReason = reason && ['vendido', 'alquilado', 'traspasado'].includes(reason)
+        ? (reason as 'vendido' | 'alquilado' | 'traspasado')
+        : null;
+    const isUnavailable = !!property.nodisponible || closedReason !== null;
     const isTraspaso = (property.ref || '').toUpperCase().startsWith('T');
-    const soldLabel = isTraspaso ? 'TRASPASADO' : property.keyacci === 2 ? 'ALQUILADO' : 'VENDIDO';
+    const soldLabel = closedReason
+        ? closedReason.toUpperCase()
+        : (isTraspaso
+            ? 'TRASPASADO'
+            : property.keyacci === 2 ? 'ALQUILADO' : 'VENDIDO');
 
     // Use real Inmovilla image if available, fallback to high-end architectural images
     const imageUrl = property.mainImage || `https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop`;
@@ -64,13 +78,30 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     </div>
                 )}
 
-                {/* Badge VENDIDO / ALQUILADO */}
-                {isUnavailable && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="bg-black/60 backdrop-blur-sm px-6 py-3 rotate-[-10deg] border-2 border-white/80">
-                            <span className="text-white text-2xl font-bold tracking-[0.3em] uppercase">
-                                {soldLabel}
-                            </span>
+                {/* Sello rotado -30° estilo escaparate. Solo se renderiza
+                    cuando hay un motivo explícito de cierre por operación —
+                    para legacy `nodisponible` sin motivo basta con el
+                    grayscale, evitamos mentir al visitor con un "VENDIDO". */}
+                {closedReason && (
+                    <div aria-hidden="true" className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+                        <div
+                            style={{
+                                transform: 'rotate(-30deg)',
+                                background: 'rgba(180,24,40,0.92)',
+                                color: '#fffbf2',
+                                padding: '8px 36px',
+                                fontSize: '20px',
+                                fontWeight: 800,
+                                letterSpacing: '6px',
+                                border: '3px double rgba(255,251,242,0.85)',
+                                borderRadius: '4px',
+                                fontFamily: 'Georgia, "Times New Roman", serif',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+                                boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+                                whiteSpace: 'nowrap',
+                            }}
+                        >
+                            {soldLabel}
                         </div>
                     </div>
                 )}

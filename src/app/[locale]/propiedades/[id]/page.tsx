@@ -85,6 +85,13 @@ export async function generateMetadata(
     }
     languages['x-default'] = `${SITE_URL}/propiedades/${id}`;
 
+    // Cierre por operación dentro del grace: noindex/nofollow para que
+    // Google no aprenda la versión "VENDIDO" de la URL — desaparece
+    // automáticamente tras los 7d así que indexarla es ruido.
+    const closedReason = (prop as { deactivation_reason?: string | null }).deactivation_reason;
+    const isClosedDeal = !!prop.nodisponible && !!closedReason
+        && ['vendido', 'alquilado', 'traspasado'].includes(closedReason);
+
     return {
         title,
         description,
@@ -92,6 +99,7 @@ export async function generateMetadata(
             canonical: url,
             languages,
         },
+        ...(isClosedDeal ? { robots: { index: false, follow: false } } : {}),
         openGraph: {
             title,
             description,
@@ -140,6 +148,12 @@ export default async function PropertyDetailPage({ params }: Props) {
     const url = `${SITE_URL}${buildLocalePath(locale, id)}`;
     const images = data.fotos_lista?.slice(0, 3) || [];
     const isAvailable = !data.nodisponible;
+    // Cierre por operación dentro del grace period — el getPropertyDetailAction
+    // ya validó la ventana antes de devolver la ficha. Si llega aquí con
+    // motivo + nodisponible=true es porque el visitor está en los 7 días
+    // grayscale + sello.
+    const closedReason = (data as { deactivation_reason?: string | null }).deactivation_reason;
+    const isClosedDeal = !isAvailable && !!closedReason && ['vendido', 'alquilado', 'traspasado'].includes(closedReason);
     const lat = Number(data.latitud) || undefined;
     const lng = Number(data.longitud) || undefined;
 
@@ -175,9 +189,11 @@ export default async function PropertyDetailPage({ params }: Props) {
             '@type': 'Offer',
             'price': data.precioinmo,
             'priceCurrency': 'EUR',
-            'availability': isAvailable
-                ? 'https://schema.org/InStock'
-                : 'https://schema.org/OutOfStock',
+            'availability': isClosedDeal
+                ? 'https://schema.org/SoldOut'
+                : (isAvailable
+                    ? 'https://schema.org/InStock'
+                    : 'https://schema.org/OutOfStock'),
             'url': url,
         },
         // Linkea cada listing con la entidad agente declarada en GlobalSchema

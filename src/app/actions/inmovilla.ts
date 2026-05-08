@@ -172,8 +172,28 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
     try {
         const { supabase } = await import('@/lib/supabase');
 
-        // Get property metadata: only visible_web=true, plus recently sold (nodisponible in last 10 days)
-        const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+        // Visibilidad web:
+        //  - Activas: visible_web=true AND nodisponible=false
+        //  - Cierre con motivo de operación (vendido / alquilado / traspasado):
+        //    visible_web=true AND deactivation_reason IN (...) AND deactivated_at
+        //    > NOW() - app_config.deactivation_grace_days (default 7).
+        //
+        // Antes usábamos `updated_at` como proxy, lo que mantenía visible
+        // cualquier touch al row durante 10d aunque el motivo fuera "pausada".
+        // Desde 2026-05-08 la columna `deactivation_reason` distingue el motivo
+        // y `deactivated_at` ancla el inicio del grace period.
+        let graceDays = 7;
+        try {
+            const { data: cfg } = await supabase
+                .from('app_config')
+                .select('value')
+                .eq('key', 'deactivation_grace_days')
+                .maybeSingle();
+            const v = (cfg as { value?: unknown } | null)?.value;
+            const n = typeof v === 'number' ? v : Number(v);
+            if (Number.isFinite(n) && n > 0 && n <= 365) graceDays = n;
+        } catch { /* default 7 */ }
+        const graceCutoff = new Date(Date.now() - graceDays * 24 * 60 * 60 * 1000).toISOString();
         const { data: properties, error } = await supabase
             .from('property_metadata')
             .select(`
@@ -188,11 +208,14 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 descriptions,
                 updated_at,
                 pub_overrides,
-                source
+                source,
+                deactivation_reason,
+                deactivated_at
             `)
             .eq('visible_web', true)
-            .or(`nodisponible.eq.false,and(nodisponible.eq.true,updated_at.gte.${tenDaysAgo})`)
+            .or(`and(nodisponible.eq.false,deactivation_reason.is.null),and(deactivation_reason.in.(vendido,alquilado,traspasado),deactivated_at.gte.${graceCutoff})`)
             .order('nodisponible', { ascending: true })
+            .order('deactivated_at', { ascending: false, nullsFirst: false })
             .order('updated_at', { ascending: false });
 
         if (error) throw error;
@@ -269,6 +292,10 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 // Expose updated_at so the catalog can offer a
                 // "most recent first" sort option.
                 updated_at: row.updated_at,
+                // Cierre con motivo dentro del grace period — el UI lo usa
+                // para grayscale + sello "VENDIDO"/"ALQUILADO"/"TRASPASADO".
+                deactivation_reason: (row as { deactivation_reason?: string | null }).deactivation_reason ?? null,
+                deactivated_at: (row as { deactivated_at?: string | null }).deactivated_at ?? null,
             };
         });
 
@@ -298,7 +325,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         const { supabase } = await import('@/lib/supabase');
 
         const asString = String(idOrRef).trim();
-        const SELECT_COLS = 'cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value, pub_overrides, tipo, precio, source';
+        const SELECT_COLS = 'cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value, pub_overrides, tipo, precio, source, deactivation_reason, deactivated_at';
 
         // Try lookup by ref first (CRM source-of-truth, every URL minted by
         // the new wizard uses ref). maybeSingle so a miss doesn't throw.
@@ -326,9 +353,45 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             return { success: false, error: 'Propiedad no encontrada' };
         }
 
-        // Block detail page for deactivated or hidden properties
-        if ((meta as any).nodisponible || (meta as any).visible_web === false) {
+        // Visibilidad: bloqueamos si visible_web=false. Si nodisponible=true
+        // permitimos solo cuando hay deactivation_reason de operación cerrada
+        // (vendido/alquilado/traspasado) DENTRO del grace period configurable
+        // (default 7d) — el visitor verá la ficha en grayscale con sello.
+        const m = meta as unknown as {
+            nodisponible?: boolean;
+            visible_web?: boolean;
+            deactivation_reason?: string | null;
+            deactivated_at?: string | null;
+        };
+        if (m.visible_web === false) {
             return { success: false, error: 'Propiedad no disponible' };
+        }
+        if (m.nodisponible === true) {
+            const inGrace = m.deactivation_reason !== null
+                && m.deactivation_reason !== undefined
+                && ['vendido', 'alquilado', 'traspasado'].includes(m.deactivation_reason)
+                && m.deactivated_at != null;
+            if (inGrace) {
+                let graceDays = 7;
+                try {
+                    const { data: cfg } = await supabase
+                        .from('app_config')
+                        .select('value')
+                        .eq('key', 'deactivation_grace_days')
+                        .maybeSingle();
+                    const v = (cfg as { value?: unknown } | null)?.value;
+                    const n = typeof v === 'number' ? v : Number(v);
+                    if (Number.isFinite(n) && n > 0 && n <= 365) graceDays = n;
+                } catch { /* default 7 */ }
+                const cutoff = Date.now() - graceDays * 24 * 60 * 60 * 1000;
+                const deactAt = new Date(m.deactivated_at!).getTime();
+                if (!Number.isFinite(deactAt) || deactAt < cutoff) {
+                    return { success: false, error: 'Propiedad no disponible' };
+                }
+                // Dentro del grace period — caer en el render normal con el flag.
+            } else {
+                return { success: false, error: 'Propiedad no disponible' };
+            }
         }
 
         // Get full property data from stored full_data
@@ -454,6 +517,11 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             energy_consumption: (meta as any).energy_consumption || null,
             emissions_label: (meta as any).emissions_label || null,
             emissions_value: (meta as any).emissions_value || null,
+            // Cierre con motivo (vendido/alquilado/traspasado dentro del grace
+            // period). El UI usa este flag para renderizar el sello rotado y
+            // grayscale + bloquear el formulario de contacto.
+            deactivation_reason: (meta as any).deactivation_reason || null,
+            deactivated_at: (meta as any).deactivated_at || null,
         };
 
         return { success: true, data: propertyWithPhotos as PropertyDetails };
