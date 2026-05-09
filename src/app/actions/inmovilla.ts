@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { parseSpanishNumber } from '@/lib/utils/parse-spanish-number';
+import { getPublicCoords, coerceCoord } from '@/lib/utils/coords';
 
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
@@ -41,7 +42,11 @@ const ENCARGO_COLUMNS_FOR_WEB =
     'res_patio, com_mes, ibi_anual, "contractType", calefaccion, ' +
     'aire_acondicionado, armarios_empotrados, balcon, cocina_independiente, ' +
     'adaptado_movilidad, jardin_propio, piscina_comunitaria, ' +
-    'piscina_privada, amueblado, planta';
+    'piscina_privada, amueblado, planta, ' +
+    // Coords duales: lat_exacta + lng_exacta nunca salen tal cual al
+    // visitor — pasan por getPublicCoords con jitter por defecto.
+    // ubicacion_exacta_publica es el opt-in del agente (default false).
+    'lat_exacta, lng_exacta, ubicacion_exacta_publica';
 
 // `encargos.precio` (y otras cols numéricas tipo `text`) acepta formato ES
 // con punto como separador de miles ("320.000" = 320 mil). `Number()` raw lo
@@ -481,6 +486,59 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         // PRIVACY: strip street address from public data — never expose
         // calle/dir to the website. Only poblacion (city) is public.
         const { calle: _calle, dir: _dir, ...safeFullData } = fullData as any;
+
+        // Coords duales (2026-05-09): la web NUNCA devuelve coords exactas
+        // salvo opt-in explícito del agente (ubicacion_exacta_publica=true).
+        // Default: jitter determinista por ref con radio según tipo_vivienda
+        // (200m piso / 500m chalet). Si el encargo aún no tiene lat_exacta
+        // poblado, dejamos pasar las coords legacy de full_data — pero
+        // también jittered. Solo el opt-in expone la coord exacta.
+        const encargoCoordsRow = encargoRow as {
+            lat_exacta?: unknown;
+            lng_exacta?: unknown;
+            ubicacion_exacta_publica?: boolean;
+            tipo_vivienda?: string | null;
+        } | null;
+        const exposeExact = encargoCoordsRow?.ubicacion_exacta_publica === true;
+        const seedRef = String(meta.ref ?? idOrRef ?? '');
+        const tipoVivienda = encargoCoordsRow?.tipo_vivienda || resolvedTipoNombre || null;
+
+        const exactLat = coerceCoord(encargoCoordsRow?.lat_exacta);
+        const exactLng = coerceCoord(encargoCoordsRow?.lng_exacta);
+        let publicCoords: { lat: number; lng: number } | null = null;
+        if (exactLat != null && exactLng != null) {
+            publicCoords = getPublicCoords({
+                lat: exactLat,
+                lng: exactLng,
+                seed: seedRef,
+                exposeExact,
+                tipoVivienda,
+            });
+        } else {
+            // Fallback a coords legacy de full_data — también jittered si
+            // no hay opt-in. Si tampoco hay coords legacy, no se devuelven
+            // y la web cae en geocoding por poblacion.
+            const legacyLat = coerceCoord((safeFullData as { latitud?: unknown }).latitud);
+            const legacyLng = coerceCoord((safeFullData as { longitud?: unknown }).longitud);
+            if (legacyLat != null && legacyLng != null) {
+                publicCoords = getPublicCoords({
+                    lat: legacyLat,
+                    lng: legacyLng,
+                    seed: seedRef,
+                    exposeExact,
+                    tipoVivienda,
+                });
+            }
+        }
+        if (publicCoords) {
+            (safeFullData as { latitud?: number; longitud?: number }).latitud = publicCoords.lat;
+            (safeFullData as { latitud?: number; longitud?: number }).longitud = publicCoords.lng;
+        } else {
+            // No coords disponibles — borramos por si acaso quedaron las
+            // legacy en safeFullData sin pasar por jitter.
+            delete (safeFullData as { latitud?: unknown }).latitud;
+            delete (safeFullData as { longitud?: unknown }).longitud;
+        }
 
         // Mismo patrón que `fetchPropertiesAction`: pm.precio es numeric limpio
         // (escrito por publish_to_web) y por tanto la fuente preferida sobre
