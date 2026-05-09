@@ -236,11 +236,16 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
     // en grayscale + un sello rotado -30° "VENDIDO/ALQUILADO/TRASPASADO"
     // sobre la galería principal. JSON-LD ya manda SoldOut + meta noindex.
     const reasonRaw = (property as { deactivation_reason?: string | null }).deactivation_reason;
-    const closedReason: 'vendido' | 'alquilado' | 'traspasado' | null =
-        reasonRaw && ['vendido', 'alquilado', 'traspasado'].includes(reasonRaw)
-            ? (reasonRaw as 'vendido' | 'alquilado' | 'traspasado')
+    type ClosedReasonKind = 'vendido' | 'vendido_por_otros' | 'alquilado' | 'traspasado';
+    const closedReason: ClosedReasonKind | null =
+        reasonRaw && ['vendido', 'vendido_por_otros', 'alquilado', 'traspasado'].includes(reasonRaw)
+            ? (reasonRaw as ClosedReasonKind)
             : null;
-    const closedLabel = closedReason ? closedReason.toUpperCase() : '';
+    // Sello: 'vendido_por_otros' muestra "VENDIDO" igual que 'vendido' — el
+    // sello es genérico, no clama crédito. La distinción es solo dato interno.
+    const closedLabel = closedReason
+        ? (closedReason === 'vendido_por_otros' ? 'VENDIDO' : closedReason.toUpperCase())
+        : '';
 
     return (
         <div

@@ -218,7 +218,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 deactivated_at
             `)
             .eq('visible_web', true)
-            .or(`and(nodisponible.eq.false,deactivation_reason.is.null),and(deactivation_reason.in.(vendido,alquilado,traspasado),deactivated_at.gte.${graceCutoff})`)
+            .or(`and(nodisponible.eq.false,deactivation_reason.is.null),and(deactivation_reason.in.(vendido,vendido_por_otros,alquilado,traspasado),deactivated_at.gte.${graceCutoff})`)
             .order('nodisponible', { ascending: true })
             .order('deactivated_at', { ascending: false, nullsFirst: false })
             .order('updated_at', { ascending: false });
@@ -374,7 +374,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         if (m.nodisponible === true) {
             const inGrace = m.deactivation_reason !== null
                 && m.deactivation_reason !== undefined
-                && ['vendido', 'alquilado', 'traspasado'].includes(m.deactivation_reason)
+                && ['vendido', 'vendido_por_otros', 'alquilado', 'traspasado'].includes(m.deactivation_reason)
                 && m.deactivated_at != null;
             if (inGrace) {
                 let graceDays = 7;

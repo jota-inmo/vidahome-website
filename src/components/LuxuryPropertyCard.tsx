@@ -35,13 +35,15 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
     // `nodisponible` (refs viejos sin motivo) — para esos NO renderizamos
     // el sello, simplemente las dejamos pasar.
     const reason = (property as { deactivation_reason?: string | null }).deactivation_reason;
-    const closedReason = reason && ['vendido', 'alquilado', 'traspasado'].includes(reason)
-        ? (reason as 'vendido' | 'alquilado' | 'traspasado')
+    type ClosedReasonKind = 'vendido' | 'vendido_por_otros' | 'alquilado' | 'traspasado';
+    const closedReason: ClosedReasonKind | null = reason && ['vendido', 'vendido_por_otros', 'alquilado', 'traspasado'].includes(reason)
+        ? (reason as ClosedReasonKind)
         : null;
     const isUnavailable = !!property.nodisponible || closedReason !== null;
     const isTraspaso = (property.ref || '').toUpperCase().startsWith('T');
+    // Sello: 'vendido_por_otros' muestra "VENDIDO" (genérico, no clama crédito).
     const soldLabel = closedReason
-        ? closedReason.toUpperCase()
+        ? (closedReason === 'vendido_por_otros' ? 'VENDIDO' : closedReason.toUpperCase())
         : (isTraspaso
             ? 'TRASPASADO'
             : property.keyacci === 2 ? 'ALQUILADO' : 'VENDIDO');

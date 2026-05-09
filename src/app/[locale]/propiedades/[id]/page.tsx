@@ -90,7 +90,7 @@ export async function generateMetadata(
     // automáticamente tras los 7d así que indexarla es ruido.
     const closedReason = (prop as { deactivation_reason?: string | null }).deactivation_reason;
     const isClosedDeal = !!prop.nodisponible && !!closedReason
-        && ['vendido', 'alquilado', 'traspasado'].includes(closedReason);
+        && ['vendido', 'vendido_por_otros', 'alquilado', 'traspasado'].includes(closedReason);
 
     return {
         title,
@@ -153,7 +153,7 @@ export default async function PropertyDetailPage({ params }: Props) {
     // motivo + nodisponible=true es porque el visitor está en los 7 días
     // grayscale + sello.
     const closedReason = (data as { deactivation_reason?: string | null }).deactivation_reason;
-    const isClosedDeal = !isAvailable && !!closedReason && ['vendido', 'alquilado', 'traspasado'].includes(closedReason);
+    const isClosedDeal = !isAvailable && !!closedReason && ['vendido', 'vendido_por_otros', 'alquilado', 'traspasado'].includes(closedReason);
     const lat = Number(data.latitud) || undefined;
     const lng = Number(data.longitud) || undefined;
 
