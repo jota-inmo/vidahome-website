@@ -24,6 +24,7 @@ const DEFAULT_RADIUS_METERS = 200;
 const METERS_PER_DEG_LAT = 111_320;
 
 const JITTER_RADIUS_BY_TYPE: Record<string, number> = {
+    // Residencial multi-vivienda → 200m (anónimos en planta)
     'piso': 200,
     'apartamento': 200,
     'estudio': 200,
@@ -34,6 +35,24 @@ const JITTER_RADIUS_BY_TYPE: Record<string, number> = {
     'loft': 200,
     'entresuelo': 200,
     'bajo': 200,
+    // No-residenciales → 200m explícito (decisión JC 2026-05-09).
+    // Aunque el default ya es 200m, las dejamos listadas para que
+    // un cambio futuro del default no las arrastre con él.
+    'local': 200,
+    'local comercial': 200,
+    'comercial': 200,
+    'oficina': 200,
+    'oficinas': 200,
+    'garaje': 200,
+    'plaza de garaje': 200,
+    'trastero': 200,
+    'nave': 200,
+    'nave industrial': 200,
+    'edificio': 200,
+    'edificio comercial': 200,
+    'negocio': 200,
+    'traspaso': 200,
+    // Residencial unifamiliar → 500m (footprint identificable en aérea)
     'casa/chalet': 500,
     'casa': 500,
     'chalet': 500,
