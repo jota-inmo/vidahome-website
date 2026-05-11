@@ -83,6 +83,10 @@ export const config = {
     // Match all pathnames except for
     // - API routes
     // - Static files (_next, images, etc.)
-    // - Vericel internals
-    matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
+    // - Vercel internals
+    // - confirmar-visita: vive en el CRM (rewrite en next.config.ts).
+    //   Sin exclusión, next-intl redirige a /es/confirmar-visita/... y
+    //   el rewrite source no matchea → 404. El CRM maneja su propio i18n
+    //   vía ?lang=es, no necesita locale prefix.
+    matcher: ['/((?!api|_next|_vercel|confirmar-visita|.*\\..*).*)']
 };
