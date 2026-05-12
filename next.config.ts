@@ -61,6 +61,17 @@ const nextConfig: NextConfig = {
         source: '/api/visita-confirm',
         destination: `${crmBase}/api/visita-confirm`,
       },
+      // Static assets del CRM (SPA Vite). El HTML de /confirmar-visita
+      // viene del CRM con `<script src="/assets/index-{hash}.js">` y
+      // `<link href="/assets/index-{hash}.css">` — paths relativos.
+      // Sin este rewrite el browser los pide a vidahome.es → 404 →
+      // SPA no carga → pantalla blanca. Reportado JC 2026-05-12.
+      // El web no usa `/assets/*` para nada propio (sus estáticos
+      // viven en /public/ root), así que la captura es segura.
+      {
+        source: '/assets/:path*',
+        destination: `${crmBase}/assets/:path*`,
+      },
     ];
   },
   async redirects() {
