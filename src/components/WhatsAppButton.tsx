@@ -9,7 +9,7 @@ export const WhatsAppButton = () => {
             href="https://wa.me/34659027512"
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-8 right-8 z-50 group flex items-center justify-center text-[#25D366] hover:scale-110 transition-all duration-300 drop-shadow-md"
+            className="fixed bottom-8 right-8 z-50 group flex items-center justify-center w-12 h-12 text-[#25D366] hover:scale-110 transition-all duration-300 drop-shadow-md"
             aria-label="Contactar por WhatsApp"
         >
             <MessageCircle size={32} strokeWidth={2} className="group-hover:rotate-12 transition-transform duration-300 fill-current opacity-90 group-hover:opacity-100" />

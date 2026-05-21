@@ -134,6 +134,13 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
                                         // MP4 on every hero mount — the dominant LCP killer
                                         // on 4G mobile.
                                         preload="metadata"
+                                        // Boost LCP discovery: the first slide is the LCP
+                                        // candidate on initial paint; the rest should not
+                                        // compete for bandwidth (Swiper EffectFade keeps
+                                        // them all mounted, so without fetchPriority they
+                                        // all download with priority=Low).
+                                        // @ts-expect-error — Chrome supports fetchPriority on <video> but @types/react only declares it on <img>/<link>/<script>.
+                                        fetchPriority={index === 0 ? 'high' : 'low'}
                                         poster={slide.poster ? getRealUrl(slide.poster) : undefined}
                                         src={getRealUrl(slide.video_path)}
                                         className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[6000ms] ease-linear"
@@ -165,7 +172,7 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
                                         <React.Fragment key={i}>
                                             {i > 0 && <br className="hidden md:block" />}
                                             <span className={`${i === 1 ? 'italic font-normal text-slate-100' : 'font-medium'}`}>
-                                                {text}{i === 0 && ((slide.titles?.[locale] || slide.title || '').includes(', ')) ? ',' : ''}
+                                                {text}{i === 0 && ((slide.titles?.[locale] || slide.title || '').includes(', ')) ? ', ' : ''}
                                             </span>
                                         </React.Fragment>
                                     ))}
