@@ -63,11 +63,15 @@ export async function uploadMediaAction(formData: FormData) {
 
         console.log(`⏳ Subiendo archivo ${safeName} (${(file.size / (1024 * 1024)).toFixed(1)} MB) a Supabase Storage...`);
 
-        // Upload to 'media' bucket
+        // Upload to 'media' bucket.
+        // cacheControl largo + safeName único (random+timestamp) = el CDN nunca
+        // sirve una versión obsoleta: cada subida produce una URL nueva, así que
+        // un cambio de vídeo se ve al instante sin purgar la cache de Cloudflare.
         const { data, error } = await supabaseAdmin.storage
             .from('media')
             .upload(safeName, arrayBuffer, {
                 contentType: file.type,
+                cacheControl: '31536000, immutable',
                 upsert: true
             });
 

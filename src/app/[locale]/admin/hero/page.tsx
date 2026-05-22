@@ -15,6 +15,65 @@ import { Trash2, Plus, Upload, MoveUp, MoveDown, Play, Image as ImageIcon, Exter
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
+// Extrae el primer frame de un vídeo como JPEG, en el navegador, sin red ni
+// ffmpeg: el archivo ya está en memoria. Se usa como `poster` del <video> del
+// hero para que el primer paint sea instantáneo (mejora LCP) en vez de esperar
+// a que el MP4 descargue su primer frame. Devuelve null si el navegador no
+// puede decodificar el vídeo — en ese caso el caller degrada con gracia.
+async function extractPosterFromVideo(file: File): Promise<File | null> {
+    return new Promise((resolve) => {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.src = url;
+
+        let done = false;
+        const finish = (result: File | null) => {
+            if (done) return;
+            done = true;
+            URL.revokeObjectURL(url);
+            resolve(result);
+        };
+
+        const grabFrame = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                if (!ctx || !canvas.width || !canvas.height) return finish(null);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) return finish(null);
+                        finish(new File(
+                            [blob],
+                            file.name.replace(/\.[^.]+$/, '') + '-poster.jpg',
+                            { type: 'image/jpeg' },
+                        ));
+                    },
+                    'image/jpeg',
+                    0.82,
+                );
+            } catch {
+                finish(null);
+            }
+        };
+
+        video.addEventListener('error', () => finish(null), { once: true });
+        video.addEventListener('loadeddata', () => {
+            // Un seek mínimo garantiza que haya un frame decodificado listo.
+            video.addEventListener('seeked', grabFrame, { once: true });
+            video.currentTime = 0.1;
+        }, { once: true });
+
+        // Red de seguridad: vídeos corruptos o lentos no bloquean la subida.
+        setTimeout(() => finish(null), 15000);
+    });
+}
+
 export default function HeroAdmin() {
     const [slides, setSlides] = useState<HeroSlide[]>([]);
     const [loading, setLoading] = useState(true);
@@ -84,16 +143,41 @@ export default function HeroAdmin() {
         if (!file) return;
 
         setUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
 
-        const result = await uploadMediaAction(formData);
-        if (result.success && result.path) {
-            setEditingSlide(prev => ({ ...prev, [field]: result.path }));
-        } else {
-            toast.error('Error al subir: ' + result.error);
+            const result = await uploadMediaAction(formData);
+            if (!result.success || !result.path) {
+                toast.error('Error al subir: ' + result.error);
+                return;
+            }
+
+            const updates: Partial<HeroSlide> = { [field]: result.path };
+
+            // Al subir un vídeo, generar y subir su póster automáticamente.
+            // Si la extracción falla, el vídeo igualmente queda subido.
+            if (field === 'video_path' && file.type.startsWith('video/')) {
+                const posterFile = await extractPosterFromVideo(file);
+                if (posterFile) {
+                    const posterForm = new FormData();
+                    posterForm.append('file', posterFile);
+                    const posterResult = await uploadMediaAction(posterForm);
+                    if (posterResult.success && posterResult.path) {
+                        updates.poster = posterResult.path;
+                        toast.success('Vídeo subido y póster generado');
+                    } else {
+                        toast.warning('Vídeo subido. El póster no pudo subirse — puedes añadirlo a mano.');
+                    }
+                } else {
+                    toast.warning('Vídeo subido. No se pudo extraer el póster automáticamente.');
+                }
+            }
+
+            setEditingSlide(prev => ({ ...prev, ...updates }));
+        } finally {
+            setUploading(false);
         }
-        setUploading(false);
     };
 
     const toggleActive = async (slide: HeroSlide) => {
@@ -417,9 +501,31 @@ export default function HeroAdmin() {
                                                     </div>
                                                 )}
                                             </div>
+                                            <div className="relative w-32 aspect-video bg-black rounded-sm overflow-hidden flex-shrink-0 shadow-lg group">
+                                                {editingSlide.poster ? (
+                                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                                    <img src={getStorageUrl(editingSlide.poster)} alt="Póster" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-700">
+                                                        <ImageIcon size={20} />
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    onChange={e => handleFileUpload(e, 'poster')}
+                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    accept="image/jpeg,image/png,image/webp"
+                                                    title="Sustituir póster manualmente"
+                                                />
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[9px] uppercase tracking-widest text-white font-bold pointer-events-none">
+                                                    {uploading ? '...' : 'Cambiar'}
+                                                </div>
+                                            </div>
                                             <div>
-                                                <h4 className="text-sm font-serif italic mb-1 text-[#0a192f] dark:text-white">Vista Previa del Media</h4>
-                                                <p className="text-[10px] text-slate-400 font-light max-w-xs">Si los cambios no aparecen, verifica que el archivo exista en el bucket 'media' de Supabase.</p>
+                                                <h4 className="text-sm font-serif italic mb-1 text-[#0a192f] dark:text-white">Vídeo y Póster</h4>
+                                                <p className="text-[10px] text-slate-400 font-light max-w-xs">
+                                                    El póster se genera solo al subir el vídeo (primer fotograma). Pásale el ratón por encima para sustituirlo a mano.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
