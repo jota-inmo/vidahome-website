@@ -6,7 +6,7 @@ import { PropertyListEntry } from '@/types/inmovilla';
 import { Bed, Bath, Square } from 'lucide-react';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
 import { totalBathrooms, bathroomsTooltip } from '@/lib/utils/bathrooms';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale, useFormatter } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { Link } from '@/i18n/routing';
@@ -19,6 +19,9 @@ interface LuxuryPropertyCardProps {
 export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
     const t = useTranslations('Search');
     const locale = useLocale();
+    // Formatter ligado al locale de la ruta — determinista SSR/cliente.
+    // `toLocaleString()` sin locale provocaba hydration mismatch React #418.
+    const format = useFormatter();
     const [imageLoaded, setImageLoaded] = useState(false);
     const { trackPropertyView } = useAnalytics();
 
@@ -151,8 +154,8 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                     <div className="mb-6">
                         <span className="text-xl font-serif text-slate-700 dark:text-slate-300 italic">
                             {property.keyacci === 2
-                                ? (property.precioalq ? `€ ${property.precioalq.toLocaleString()} ${t('perMonth')}` : t('priceUnderRequest'))
-                                : (property.precioinmo ? `€ ${property.precioinmo.toLocaleString()}` : t('priceUnderRequest'))
+                                ? (property.precioalq ? `€ ${format.number(property.precioalq)} ${t('perMonth')}` : t('priceUnderRequest'))
+                                : (property.precioinmo ? `€ ${format.number(property.precioinmo)}` : t('priceUnderRequest'))
                             }
                         </span>
                     </div>

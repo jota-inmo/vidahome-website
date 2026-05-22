@@ -25,7 +25,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cleanDescription } from '@/lib/utils/text-cleaner';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations, useLocale, useFormatter } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { getPropertyDetailAction } from '@/app/actions/inmovilla';
@@ -107,6 +107,10 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
     const router = useRouter();
     const t = useTranslations('Property');
     const locale = useLocale();
+    // Formatter ligado al locale de la ruta (next-intl). Determinista entre
+    // SSR y cliente — `toLocaleString()` sin locale daba "310,000" en el
+    // server (ICU en-US) vs "310.000" en el navegador → React #418.
+    const format = useFormatter();
     const { trackPropertyView } = useAnalytics();
     
     // State to hold property data that updates with locale
@@ -324,7 +328,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                                     <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">{t('priceUnderRequest')}</span>
                                 )}
                                 <span className="text-4xl font-serif text-slate-900 dark:text-white">
-                                    {property.precioinmo && property.precioinmo > 0 ? `€ ${property.precioinmo.toLocaleString()}` : t('consultPrice')}
+                                    {property.precioinmo && property.precioinmo > 0 ? `€ ${format.number(property.precioinmo)}` : t('consultPrice')}
                                 </span>
                             </div>
 
@@ -430,7 +434,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                                     <span className="text-[10px] tracking-widest uppercase text-slate-400 block mb-2">{t('priceUnderRequest')}</span>
                                 )}
                                 <span className="text-4xl font-serif text-slate-900 dark:text-white">
-                                    {property.precioinmo && property.precioinmo > 0 ? `€ ${property.precioinmo.toLocaleString()}` : t('consultPrice')}
+                                    {property.precioinmo && property.precioinmo > 0 ? `€ ${format.number(property.precioinmo)}` : t('consultPrice')}
                                 </span>
                             </div>
 
@@ -463,7 +467,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                                     {t('reference')} {property.ref}
                                 </span>
                                 <span className="text-lg font-serif text-slate-900 dark:text-white leading-tight">
-                                    € {property.precioinmo.toLocaleString()}
+                                    € {format.number(property.precioinmo)}
                                 </span>
                             </>
                         )}
