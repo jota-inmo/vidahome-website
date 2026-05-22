@@ -133,7 +133,7 @@ export default function FeaturedAdmin() {
                                         <td className="p-6 text-slate-500 font-light">{prop.tipo_nombre || 'Residencia'}</td>
                                         <td className="p-6 text-slate-500 font-light">{prop.poblacion}</td>
                                         <td className="p-6 text-slate-900 dark:text-slate-100 font-serif">
-                                            {prop.precioinmo ? `€ ${prop.precioinmo.toLocaleString()}` : '-'}
+                                            {prop.precioinmo ? `€ ${prop.precioinmo.toLocaleString('es-ES')}` : '-'}
                                         </td>
                                     </tr>
                                 ))}
