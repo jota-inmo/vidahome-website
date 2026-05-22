@@ -231,10 +231,16 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
         const refs = (properties || []).map((p: any) => p.ref).filter(Boolean);
         const encargosByRef = new Map<string, Record<string, unknown>>();
         if (refs.length > 0) {
-            const { data: encs } = await supabase
-                .from('encargos')
+            // encargos_public_view: vista anon-readable (Phase 0 v2 F.6
+            // bloqueó el SELECT directo a `encargos` para el rol anon). La
+            // vista expone solo columnas seguras — sin owners/NIF/honorarios.
+            const { data: encs, error: encsError } = await supabase
+                .from('encargos_public_view')
                 .select(`ref, ${ENCARGO_COLUMNS_FOR_WEB}`)
                 .in('ref', refs);
+            if (encsError) {
+                console.error('[inmovilla] encargos_public_view batch query failed:', encsError);
+            }
             for (const e of (encs || [])) {
                 if ((e as any).ref) encargosByRef.set(String((e as any).ref), e as Record<string, unknown>);
             }
@@ -409,11 +415,15 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         // pub_overrides > encargo > full_data. Orden del merge refleja eso.
         let encargoRow: Record<string, unknown> | null = null;
         if (meta.ref) {
-            const { data: enc } = await supabase
-                .from('encargos')
+            // encargos_public_view: ver nota en fetchPropertiesAction.
+            const { data: enc, error: encError } = await supabase
+                .from('encargos_public_view')
                 .select(ENCARGO_COLUMNS_FOR_WEB)
                 .ilike('ref', meta.ref)
                 .maybeSingle();
+            if (encError) {
+                console.error('[inmovilla] encargos_public_view detail query failed:', encError);
+            }
             encargoRow = enc as Record<string, unknown> | null;
         }
         const encargoAsFullData = encargoToFullDataShape(
