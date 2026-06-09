@@ -592,13 +592,20 @@ export async function updateFeaturedPropertiesAction(ids: number[]) {
     try {
         if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
         const { supabaseAdmin } = await import('@/lib/supabase-admin');
+        const { VIDAHOME_TENANT_ID } = await import('@/lib/tenant');
 
-        // Delete all existing featured properties (featured_properties has cod_ofer as PRIMARY KEY, not 'id')
-        const { error: deleteError } = await supabaseAdmin.from('featured_properties').delete().gt('cod_ofer', 0);
+        // Replace this tenant's featured list. supabaseAdmin uses the service role,
+        // which bypasses RLS, so the tenant_id column's DEFAULT app.current_tenant_id()
+        // would resolve to NULL — we must scope the delete and stamp the insert with the
+        // VidaHome tenant_id explicitly (single-tenant interim, see @/lib/tenant).
+        const { error: deleteError } = await supabaseAdmin
+            .from('featured_properties')
+            .delete()
+            .eq('tenant_id', VIDAHOME_TENANT_ID);
         if (deleteError) throw deleteError;
 
         if (ids.length > 0) {
-            const inserts = ids.map(id => ({ cod_ofer: id }));
+            const inserts = ids.map(id => ({ cod_ofer: id, tenant_id: VIDAHOME_TENANT_ID }));
             const { error: insertError } = await supabaseAdmin.from('featured_properties').insert(inserts);
             if (insertError) throw insertError;
         }

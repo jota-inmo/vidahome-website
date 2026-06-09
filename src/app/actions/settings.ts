@@ -3,6 +3,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/auth';
+import { VIDAHOME_TENANT_ID } from '@/lib/tenant';
 
 export interface CompanySettings {
     phone: string;
@@ -51,9 +52,14 @@ export async function getCompanySettingsAction(): Promise<CompanySettings> {
 export async function updateCompanySettingsAction(settings: Partial<CompanySettings>) {
     try {
         if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
+        // Stamp the VidaHome tenant_id explicitly: supabaseAdmin uses the service role
+        // (bypasses RLS), so the tenant_id DEFAULT app.current_tenant_id() would resolve
+        // to NULL and the NOT NULL constraint would reject the upsert. Single-tenant
+        // interim — see @/lib/tenant. onConflict stays 'key' (the table PK).
         const entries = Object.entries(settings).map(([key, value]) => ({
             key,
             value: String(value),
+            tenant_id: VIDAHOME_TENANT_ID,
             updated_at: new Date().toISOString()
         }));
 
