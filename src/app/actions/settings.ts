@@ -55,7 +55,7 @@ export async function updateCompanySettingsAction(settings: Partial<CompanySetti
         // Stamp the VidaHome tenant_id explicitly: supabaseAdmin uses the service role
         // (bypasses RLS), so the tenant_id DEFAULT app.current_tenant_id() would resolve
         // to NULL and the NOT NULL constraint would reject the upsert. Single-tenant
-        // interim — see @/lib/tenant. onConflict stays 'key' (the table PK).
+        // interim — see @/lib/tenant.
         const entries = Object.entries(settings).map(([key, value]) => ({
             key,
             value: String(value),
@@ -63,9 +63,14 @@ export async function updateCompanySettingsAction(settings: Partial<CompanySetti
             updated_at: new Date().toISOString()
         }));
 
+        // onConflict per-tenant (P3.1 key-readiness): la clave de negocio es ahora
+        // (tenant_id, key), no `key` global — así un 2º tenant puede tener sus propias
+        // settings. Casa con UNIQUE/PK compuesto company_settings_tenant_key_key /
+        // company_settings_pkey(tenant_id,key). NO usar 'key' suelto: tras el CONTRACT
+        // ese constraint ya no existe y el upsert fallaría.
         const { error } = await supabaseAdmin
             .from('company_settings')
-            .upsert(entries, { onConflict: 'key' });
+            .upsert(entries, { onConflict: 'tenant_id,key' });
 
         if (error) throw error;
 
