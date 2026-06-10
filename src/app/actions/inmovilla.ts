@@ -9,6 +9,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { parseSpanishNumber } from '@/lib/utils/parse-spanish-number';
 import { getPublicCoords, coerceCoord } from '@/lib/utils/coords';
 import { encargoToFullDataShape } from '@/lib/utils/encargo-shape';
+import { getPublicTenantClient } from '@/lib/tenantClient';
 
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
@@ -76,7 +77,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
     meta?: { populations: string[] };
 }> {
     try {
-        const { supabase } = await import('@/lib/supabase');
+        const supabase = await getPublicTenantClient();
 
         // Visibilidad web:
         //  - Activas: visible_web=true AND nodisponible=false
@@ -234,7 +235,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
  */
 export async function getPropertyDetailAction(idOrRef: number | string, locale: string = 'es'): Promise<{ success: boolean; data?: PropertyDetails; error?: string }> {
     try {
-        const { supabase } = await import('@/lib/supabase');
+        const supabase = await getPublicTenantClient();
 
         const asString = String(idOrRef).trim();
         const SELECT_COLS = 'cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value, pub_overrides, tipo, precio, source, deactivation_reason, deactivated_at';
@@ -505,7 +506,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
  */
 export async function getFeaturedPropertiesAction(): Promise<number[]> {
     try {
-        const { supabase } = await import('@/lib/supabase');
+        const supabase = await getPublicTenantClient();
         const { data, error } = await supabase
             .from('featured_properties')
             .select('cod_ofer')
@@ -525,7 +526,7 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
  */
 export async function getFeaturedPropertiesWithDetailsAction(locale: string): Promise<{ success: boolean; data: any[] }> {
     try {
-        const { supabase } = await import('@/lib/supabase');
+        const supabase = await getPublicTenantClient();
 
         // Get featured properties
         const { data: featured, error: featError } = await supabase
@@ -653,7 +654,7 @@ export async function submitLeadAction(formData: {
         let propertyRef = formData.ref || 'General';
         if (propertyRef === 'General' && formData.cod_ofer && formData.cod_ofer > 0) {
             try {
-                const { supabase } = await import('@/lib/supabase');
+                const supabase = await getPublicTenantClient();
                 const { data: propData } = await supabase
                     .from('property_metadata')
                     .select('ref')
