@@ -172,9 +172,20 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(withNextIntl(nextConfig), {
-  org: "vidahome",
-  project: "vidahome-website",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-});
+// Sentry's build-time plugin (source-map upload + `sentry-cli releases new`)
+// needs SENTRY_AUTH_TOKEN, which is configured ONLY in Vercel's *production*
+// environment. On preview/local builds that step failed with
+// "Project not found" and aborted the whole build — that's why every
+// non-production deploy errored (preview deploys were unusable for review).
+// Gate the plugin to production: previews/local skip it and build cleanly;
+// production keeps full source-map upload + release tagging unchanged.
+const baseConfig = withNextIntl(nextConfig);
+
+export default process.env.VERCEL_ENV === 'production'
+  ? withSentryConfig(baseConfig, {
+      org: "vidahome",
+      project: "vidahome-website",
+      silent: !process.env.CI,
+      widenClientFileUpload: true,
+    })
+  : baseConfig;
