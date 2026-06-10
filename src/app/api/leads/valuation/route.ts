@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { escapeHtml } from '@/lib/utils/sanitize';
 import { valuationBodySchema } from '@/lib/validations';
+import { VIDAHOME_TENANT_ID } from '@/lib/tenant';
 
 export async function POST(request: NextRequest) {
     // ─── Rate Limiting ──────────────────────────────────────────────────────────
@@ -112,6 +113,7 @@ export async function POST(request: NextRequest) {
             const { supabase } = await import('@/lib/supabase');
             await supabase.from('valuation_leads').insert([
                 {
+                    tenant_id: VIDAHOME_TENANT_ID,
                     nombre: contactData.nombre,
                     email: contactData.email,
                     telefono: contactData.telefono,

@@ -667,9 +667,11 @@ export async function submitLeadAction(formData: {
 
         // Store in Supabase (Internal backup)
         const { supabase } = await import('@/lib/supabase');
+        const { VIDAHOME_TENANT_ID } = await import('@/lib/tenant');
         if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
             await supabase.from('leads').insert([{
                 ...formData,
+                tenant_id: VIDAHOME_TENANT_ID,
                 created_at: new Date().toISOString()
             }]);
         }

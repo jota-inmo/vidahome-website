@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { VIDAHOME_TENANT_ID } from '@/lib/tenant';
 
 // Session tracking
 const getSessionId = () => {
@@ -69,6 +70,7 @@ export function useAnalytics() {
         const trackPageView = async () => {
             try {
                 await supabase.from('analytics_page_views').insert({
+                    tenant_id: VIDAHOME_TENANT_ID,
                     page_path: pathname,
                     locale,
                     session_id: getSessionId(),
@@ -93,6 +95,7 @@ export function useAnalytics() {
             const trafficSource = utm.utm_source || detectTrafficSource(referrer);
 
             await supabase.from('analytics_property_views').insert({
+                tenant_id: VIDAHOME_TENANT_ID,
                 cod_ofer: codOfer,
                 locale,
                 session_id: getSessionId(),
@@ -112,6 +115,7 @@ export function useAnalytics() {
     const trackSearch = useCallback(async (query: string, resultsCount: number) => {
         try {
             await supabase.from('analytics_searches').insert({
+                tenant_id: VIDAHOME_TENANT_ID,
                 search_query: query,
                 locale,
                 results_count: resultsCount,
@@ -133,6 +137,7 @@ export function useAnalytics() {
             const trafficSource = utm.utm_source || detectTrafficSource(referrer);
 
             await supabase.from('analytics_leads').insert({
+                tenant_id: VIDAHOME_TENANT_ID,
                 cod_ofer: options.codOfer,
                 source: options.source || trafficSource || 'direct',
                 locale,

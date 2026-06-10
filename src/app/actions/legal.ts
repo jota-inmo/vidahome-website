@@ -3,6 +3,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/auth';
+import { VIDAHOME_TENANT_ID } from '@/lib/tenant';
 
 export interface LegalPage {
     slug: string;
@@ -60,6 +61,7 @@ export async function saveLegalPageAction(page: LegalPage) {
             .from('legal_pages')
             .upsert({
                 ...page,
+                tenant_id: VIDAHOME_TENANT_ID,
                 updated_at: new Date().toISOString()
             });
 

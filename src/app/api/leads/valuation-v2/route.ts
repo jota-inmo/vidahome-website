@@ -3,6 +3,7 @@ import { LeadValuationV2 } from '@/types/sell-form';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { escapeHtml } from '@/lib/utils/sanitize';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { VIDAHOME_TENANT_ID } from '@/lib/tenant';
 import { z } from 'zod';
 
 const valuationV2Schema = z.object({
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
 
     // Crear registro en Supabase
     const leadData = {
+      tenant_id: VIDAHOME_TENANT_ID,
       operation_type: operationType || 'venta',
       property_type: propertyType || 'piso',
       property_type_other: propertyTypeOther,
