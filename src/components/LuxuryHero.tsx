@@ -203,7 +203,7 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={t('searchPlaceholder')}
-                                className="w-full bg-white/10 border-none text-white placeholder:text-white/60 text-[10px] md:text-xs py-4 md:py-5 px-10 focus:ring-2 focus:ring-brand-accent/70 rounded-md transition-all uppercase tracking-[0.2em] font-medium focus:bg-white/15"
+                                className="w-full bg-white/10 border-none text-white placeholder:text-white/60 text-xs py-4 md:py-5 px-10 focus:ring-2 focus:ring-brand-accent/70 rounded-md transition-all uppercase tracking-[0.2em] font-medium focus:bg-white/15"
                                 autoComplete="off"
                             />
                             <Search className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-white/50" size={16} />
@@ -211,7 +211,7 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
 
                         <button
                             type="submit"
-                            className="bg-white text-brand-navy px-8 md:px-12 py-4 md:py-5 text-[10px] md:text-[11px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold hover:bg-brand-accent hover:text-slate-900 transition-all flex items-center justify-center gap-3 rounded-md active:scale-95 shadow-lg"
+                            className="bg-white text-brand-navy px-8 md:px-12 py-4 md:py-5 text-xs uppercase tracking-[0.3em] md:tracking-[0.4em] font-bold hover:bg-brand-accent hover:text-slate-900 transition-all flex items-center justify-center gap-3 rounded-md active:scale-95 shadow-lg"
                         >
                             {t('viewCatalog')}
                         </button>

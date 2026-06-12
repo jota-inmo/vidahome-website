@@ -32,16 +32,16 @@ export const Navbar = () => {
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-12">
-                    <Link href="/propiedades" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
+                    <Link href="/propiedades" className="text-xs uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
                         {t('properties')}
                     </Link>
-                    <Link href="/vender" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
+                    <Link href="/vender" className="text-xs uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
                         {t('sell')}
                     </Link>
-                    <Link href="/nosotros" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
+                    <Link href="/nosotros" className="text-xs uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
                         {t('about')}
                     </Link>
-                    <Link href="/blog" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
+                    <Link href="/blog" className="text-xs uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
                         Blog
                     </Link>
 
@@ -49,7 +49,7 @@ export const Navbar = () => {
                     <div className="relative group border-l border-slate-200 dark:border-slate-800 pl-6 ml-2">
                         <button className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">
                             <Image src={availableLocales.find(l => l.id === locale)?.flag || '/flags/es.svg'} alt="" width={20} height={15} className="rounded-[2px]" />
-                            <span className="text-[10px] tracking-widest font-bold">{locale.toUpperCase()}</span>
+                            <span className="text-xs tracking-widest font-bold">{locale.toUpperCase()}</span>
                         </button>
                         
                         {/* Dropdown Menu */}
@@ -74,7 +74,7 @@ export const Navbar = () => {
 
                     <Link
                         href="/contacto"
-                        className="px-6 py-3 bg-brand-navy text-white text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-brand-navy-light transition-all rounded-sm"
+                        className="px-6 py-3 bg-brand-navy text-white text-xs uppercase tracking-[0.3em] font-bold hover:bg-brand-navy-light transition-all rounded-sm"
                     >
                         {t('contact')}
                     </Link>
@@ -123,7 +123,7 @@ export const Navbar = () => {
                                     }`}
                                 >
                                     <Image src={loc.flag} alt={loc.label} width={24} height={18} className="rounded-[2px]" />
-                                    <span className="text-[10px]">{loc.label}</span>
+                                    <span className="text-xs">{loc.label}</span>
                                 </Link>
                             ))}
                         </div>

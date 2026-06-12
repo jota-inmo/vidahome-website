@@ -33,7 +33,7 @@ export default async function Home() {
             </div>
             <Link
               href="/propiedades"
-              className="text-[11px] tracking-[0.3em] uppercase font-bold text-brand-navy dark:text-white border-b border-brand-navy dark:border-white pb-1 hover:opacity-60 transition-all"
+              className="text-xs tracking-[0.3em] uppercase font-bold text-brand-navy dark:text-white border-b border-brand-navy dark:border-white pb-1 hover:opacity-60 transition-all"
             >
               {t('viewCatalog')}
             </Link>

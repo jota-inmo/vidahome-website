@@ -61,7 +61,7 @@ export async function Footer() {
                     {t('rights', { year: new Date().getFullYear() })}
                 </p>
                 <div className="flex gap-6">
-                    <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="text-[10px] tracking-[0.2em] uppercase text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Instagram</a>
+                    <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="text-xs tracking-[0.2em] uppercase text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Instagram</a>
                 </div>
             </div>
         </footer>

@@ -53,7 +53,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                         <button
                             type="button"
                             onClick={() => handleTypeChange('buy')}
-                            className={`px-6 py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${type === 'buy'
+                            className={`px-6 py-3 text-xs uppercase tracking-widest font-bold transition-all ${type === 'buy'
                                 ? 'bg-brand-navy text-white shadow-lg'
                                 : 'text-slate-400 hover:text-slate-600'
                                 } rounded-sm`}
@@ -63,7 +63,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                         <button
                             type="button"
                             onClick={() => handleTypeChange('rent')}
-                            className={`px-6 py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${type === 'rent'
+                            className={`px-6 py-3 text-xs uppercase tracking-widest font-bold transition-all ${type === 'rent'
                                 ? 'bg-brand-navy text-white shadow-lg'
                                 : 'text-slate-400 hover:text-slate-600'
                                 } rounded-sm`}
@@ -73,7 +73,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                         <button
                             type="button"
                             onClick={() => handleTypeChange('transfer')}
-                            className={`px-6 py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${type === 'transfer'
+                            className={`px-6 py-3 text-xs uppercase tracking-widest font-bold transition-all ${type === 'transfer'
                                 ? 'bg-brand-navy text-white shadow-lg'
                                 : 'text-slate-400 hover:text-slate-600'
                                 } rounded-sm`}
@@ -119,7 +119,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                         className="bg-brand-navy text-white px-10 py-4 flex items-center justify-center gap-3 hover:bg-brand-navy-light transition-colors rounded-sm group mt-2 md:mt-0"
                     >
                         <SearchIcon size={16} className="group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] uppercase tracking-[0.2em] font-bold">{t('button')}</span>
+                        <span className="text-xs uppercase tracking-[0.2em] font-bold">{t('button')}</span>
                     </button>
                 </div>
             </form>
