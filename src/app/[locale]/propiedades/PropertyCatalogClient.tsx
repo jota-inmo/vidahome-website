@@ -8,6 +8,7 @@ import { PropertySearch, SearchFilters } from '@/components/PropertySearch';
 import { LuxuryPropertyCard } from '@/components/LuxuryPropertyCard';
 import { useTranslations } from 'next-intl';
 import { sortProperties, type SortKey } from '@/lib/utils/property-sort';
+import { matchesType } from '@/lib/utils/property-rules';
 
 interface PropertyCatalogClientProps {
     initialProperties: PropertyListEntry[];
@@ -27,17 +28,10 @@ function filterProperties(
     all: PropertyListEntry[],
     { query, type, population }: SearchFilters,
 ): PropertyListEntry[] {
-    let filtered = [...all];
-
-    if (type === 'transfer') {
-        // Traspasos: ref starts with 'T'.
-        filtered = filtered.filter(p => (p.ref || '').toUpperCase().startsWith('T'));
-    } else {
-        // Exclude traspasos from comprar/alquilar.
-        filtered = filtered.filter(p => !(p.ref || '').toUpperCase().startsWith('T'));
-        const targetAcci = type === 'buy' ? 1 : 2;
-        filtered = filtered.filter(p => !p.keyacci || p.keyacci === targetAcci);
-    }
+    // Classification (venta / alquiler / traspaso) lives in property-rules.
+    // A property with no keyacci is treated as venta and never appears under
+    // alquiler — no more `!p.keyacci ||` fallback.
+    let filtered = all.filter(p => matchesType(p, type));
 
     if (population) {
         filtered = filtered.filter(p => p.poblacion === population);
