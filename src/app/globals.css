@@ -45,6 +45,17 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Respect users who prefer reduced motion — no smooth scrolling for them. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

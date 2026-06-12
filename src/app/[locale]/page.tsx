@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Link } from '@/i18n/routing';
 import { LuxuryHero } from '@/components/LuxuryHero';
 import { FeaturedGrid } from '@/components/FeaturedGrid';
+import { PropertySkeleton } from '@/components/LuxuryPropertySkeleton';
 import { getTranslations } from 'next-intl/server';
 import { getHeroSlidesAction } from '@/app/actions';
 
@@ -109,10 +110,12 @@ export default async function Home() {
 }
 
 function GridSkeleton() {
+  // Same grid + card dimensions as FeaturedGrid so the loaded cards drop in
+  // without any layout shift.
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="aspect-[16/11] bg-slate-100 dark:bg-slate-900 animate-pulse rounded-sm" />
+        <PropertySkeleton key={i} />
       ))}
     </div>
   );

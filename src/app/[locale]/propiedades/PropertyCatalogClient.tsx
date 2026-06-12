@@ -135,7 +135,7 @@ export function PropertyCatalogClient({
                     </label>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-24">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 md:gap-y-16">
                     {sortedProperties.length > 0 ? (
                         sortedProperties.map((prop: PropertyListEntry) => (
                             // Use ref as the key — cod_ofer is NULL for every
