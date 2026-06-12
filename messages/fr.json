@@ -40,6 +40,7 @@
         "vidahomeProperties": "Propriétés de Vidahome"
     },
     "Navbar": {
+        "language": "Langue",
         "properties": "Propriétés",
         "contact": "Contact",
         "about": "À propos",

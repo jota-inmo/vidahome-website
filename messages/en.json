@@ -40,6 +40,7 @@
         "vidahomeProperties": "Vidahome Properties"
     },
     "Navbar": {
+        "language": "Language",
         "properties": "Properties",
         "contact": "Contact",
         "about": "About",

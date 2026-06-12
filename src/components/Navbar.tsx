@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Link, usePathname } from '@/i18n/routing';
 import { Logo } from '@/components/Logo';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 
 export const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [langOpen, setLangOpen] = useState(false);
+    const langRef = useRef<HTMLDivElement>(null);
     const t = useTranslations('Navbar');
     const locale = useLocale();
     const pathname = usePathname();
@@ -57,6 +59,25 @@ export const Navbar = () => {
         return () => { document.body.style.overflow = previous; };
     }, [isOpen]);
 
+    // Language dropdown: close on Escape and on outside click.
+    useEffect(() => {
+        if (!langOpen) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setLangOpen(false);
+        };
+        const onPointerDown = (e: MouseEvent) => {
+            if (langRef.current && !langRef.current.contains(e.target as Node)) {
+                setLangOpen(false);
+            }
+        };
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('mousedown', onPointerDown);
+        return () => {
+            document.removeEventListener('keydown', onKeyDown);
+            document.removeEventListener('mousedown', onPointerDown);
+        };
+    }, [langOpen]);
+
     return (
         <nav
             className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
@@ -102,23 +123,38 @@ export const Navbar = () => {
                     })}
 
                     {/* Language Switcher Dropdown */}
-                    <div className="relative group border-l border-slate-200 dark:border-slate-800 pl-6 ml-2">
+                    <div ref={langRef} className="relative border-l border-slate-200 dark:border-slate-800 pl-6 ml-2">
                         <button
+                            type="button"
+                            onClick={() => setLangOpen((o) => !o)}
+                            aria-haspopup="menu"
+                            aria-expanded={langOpen}
+                            aria-label={`${t('language')}: ${locale.toUpperCase()}`}
                             className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
                                 isTransparent ? 'text-white/80 hover:text-white' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                             }`}
                         >
                             <Image src={availableLocales.find(l => l.id === locale)?.flag || '/flags/es.svg'} alt="" width={20} height={15} className="rounded-[2px]" />
                             <span className="text-xs tracking-widest font-bold">{locale.toUpperCase()}</span>
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {/* Dropdown Menu */}
-                        <div className="absolute right-0 mt-3 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-1">
+                        <div
+                            role="menu"
+                            aria-label={t('language')}
+                            className={`absolute right-0 mt-3 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-lg z-50 transition-all py-1 ${
+                                langOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1 pointer-events-none'
+                            }`}
+                        >
                             {availableLocales.map((loc) => (
                                 <Link
                                     key={loc.id}
                                     href={pathname}
                                     locale={loc.id}
+                                    role="menuitem"
+                                    onClick={() => setLangOpen(false)}
+                                    aria-current={locale === loc.id ? 'true' : undefined}
                                     className={`flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold transition-all ${
                                         locale === loc.id
                                             ? 'bg-brand-navy text-white'

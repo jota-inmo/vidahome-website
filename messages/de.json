@@ -40,6 +40,7 @@
         "vidahomeProperties": "Vidahome-Immobilien"
     },
     "Navbar": {
+        "language": "Sprache",
         "properties": "Immobilien",
         "contact": "Kontakt",
         "about": "Über uns",
