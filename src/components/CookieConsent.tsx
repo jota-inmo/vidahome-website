@@ -34,7 +34,7 @@ export function CookieConsent() {
                     <h4 className="font-serif text-xl text-slate-900 dark:text-white">{t('title')}</h4>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl">
                         {t('description')}
-                        Consulte nuestra <Link href="/legal/cookies" className="underline underline-offset-4 hover:text-[#0a192f] dark:hover:text-white transition-all">{t('policy')}</Link>.
+                        Consulte nuestra <Link href="/legal/cookies" className="underline underline-offset-4 hover:text-brand-navy dark:hover:text-white transition-all">{t('policy')}</Link>.
                     </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">

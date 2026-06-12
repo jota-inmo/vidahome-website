@@ -19,11 +19,11 @@ export default function GlobalError({
                 {/* Decorative line */}
                 <div className="w-16 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent mx-auto mb-10" />
 
-                <p className="text-[10px] tracking-[0.5em] uppercase text-teal-500 font-bold mb-6">
+                <p className="text-[10px] tracking-[0.5em] uppercase text-brand-accent font-bold mb-6">
                     Algo no ha ido bien
                 </p>
 
-                <h1 className="font-serif text-4xl md:text-5xl text-[#0a192f] dark:text-white mb-6 leading-tight">
+                <h1 className="font-serif text-4xl md:text-5xl text-brand-navy dark:text-white mb-6 leading-tight">
                     Disculpa las <span className="italic text-slate-400">molestias</span>
                 </h1>
 
@@ -35,13 +35,13 @@ export default function GlobalError({
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button
                         onClick={reset}
-                        className="px-10 py-4 bg-[#0a192f] text-white text-[10px] uppercase tracking-widest font-bold hover:bg-teal-600 transition-all rounded-sm shadow-xl"
+                        className="px-10 py-4 bg-brand-navy text-white text-[10px] uppercase tracking-widest font-bold hover:bg-teal-600 transition-all rounded-sm shadow-xl"
                     >
                         Intentar de nuevo
                     </button>
                     <a
                         href="/"
-                        className="px-10 py-4 border border-slate-200 dark:border-slate-700 text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-[#0a192f] dark:hover:text-white hover:border-slate-400 transition-all rounded-sm"
+                        className="px-10 py-4 border border-slate-200 dark:border-slate-700 text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-brand-navy dark:hover:text-white hover:border-slate-400 transition-all rounded-sm"
                     >
                         Volver al inicio
                     </a>

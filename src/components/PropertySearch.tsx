@@ -54,7 +54,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                             type="button"
                             onClick={() => handleTypeChange('buy')}
                             className={`px-6 py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${type === 'buy'
-                                ? 'bg-[#0a192f] text-white shadow-lg'
+                                ? 'bg-brand-navy text-white shadow-lg'
                                 : 'text-slate-400 hover:text-slate-600'
                                 } rounded-sm`}
                         >
@@ -64,7 +64,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                             type="button"
                             onClick={() => handleTypeChange('rent')}
                             className={`px-6 py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${type === 'rent'
-                                ? 'bg-[#0a192f] text-white shadow-lg'
+                                ? 'bg-brand-navy text-white shadow-lg'
                                 : 'text-slate-400 hover:text-slate-600'
                                 } rounded-sm`}
                         >
@@ -74,7 +74,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                             type="button"
                             onClick={() => handleTypeChange('transfer')}
                             className={`px-6 py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${type === 'transfer'
-                                ? 'bg-[#0a192f] text-white shadow-lg'
+                                ? 'bg-brand-navy text-white shadow-lg'
                                 : 'text-slate-400 hover:text-slate-600'
                                 } rounded-sm`}
                         >
@@ -116,7 +116,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                     {/* Botón Buscar */}
                     <button
                         type="submit"
-                        className="bg-[#0a192f] text-white px-10 py-4 flex items-center justify-center gap-3 hover:bg-[#112240] transition-colors rounded-sm group mt-2 md:mt-0"
+                        className="bg-brand-navy text-white px-10 py-4 flex items-center justify-center gap-3 hover:bg-brand-navy-light transition-colors rounded-sm group mt-2 md:mt-0"
                     >
                         <SearchIcon size={16} className="group-hover:scale-110 transition-transform" />
                         <span className="text-[10px] uppercase tracking-[0.2em] font-bold">{t('button')}</span>

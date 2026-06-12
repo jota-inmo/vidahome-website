@@ -30,7 +30,7 @@ export function ValuationContactForm({
                             required
                             value={contactData.nombre}
                             onChange={(e) => setContactData({ ...contactData, nombre: e.target.value })}
-                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-accent focus:border-transparent"
                         />
                     </div>
 
@@ -43,7 +43,7 @@ export function ValuationContactForm({
                             required
                             value={contactData.email}
                             onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-accent focus:border-transparent"
                         />
                     </div>
 
@@ -56,7 +56,7 @@ export function ValuationContactForm({
                             required
                             value={contactData.telefono}
                             onChange={(e) => setContactData({ ...contactData, telefono: e.target.value })}
-                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-accent focus:border-transparent"
                         />
                     </div>
 
@@ -85,7 +85,7 @@ export function ValuationContactForm({
                             rows={4}
                             value={contactData.mensaje}
                             onChange={(e) => setContactData({ ...contactData, mensaje: e.target.value })}
-                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-accent focus:border-transparent"
                             placeholder="Cuéntanos más sobre tu propiedad..."
                         />
                     </div>
@@ -93,7 +93,7 @@ export function ValuationContactForm({
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-4 bg-gradient-to-r from-lime-400 to-teal-500 text-[#0a192f] font-bold text-sm uppercase tracking-widest rounded-sm hover:shadow-lg transition-all disabled:opacity-50"
+                        className="w-full py-4 bg-gradient-to-r from-brand-accent to-brand-accent text-brand-navy font-bold text-sm uppercase tracking-widest rounded-sm hover:shadow-lg transition-all disabled:opacity-50"
                     >
                         {loading ? 'Enviando...' : 'Enviar Solicitud'}
                     </button>

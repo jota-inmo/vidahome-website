@@ -123,9 +123,9 @@ export default function VenderPage() {
           <span className="text-[10px] tracking-[0.5em] uppercase text-slate-400 mb-6 block">
             Solicita tu Valoración
           </span>
-          <h1 className="text-5xl md:text-7xl font-serif mb-8 text-[#0a192f] dark:text-white leading-tight">
+          <h1 className="text-5xl md:text-7xl font-serif mb-8 text-brand-navy dark:text-white leading-tight">
             ¿Cuánto vale tu <br />
-            <span className="italic pr-4 bg-clip-text text-transparent bg-gradient-to-r from-lime-500 to-teal-500">
+            <span className="italic pr-4 bg-clip-text text-transparent bg-gradient-to-r from-lime-500 to-brand-accent">
               propiedad
             </span>?
           </h1>
@@ -213,7 +213,7 @@ export default function VenderPage() {
           <div className="flex flex-col md:flex-row gap-6 justify-center">
             <a
               href="tel:+34961234567"
-              className="px-8 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors"
+              className="px-8 py-3 bg-brand-accent text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors"
             >
               Llamar ahora
             </a>

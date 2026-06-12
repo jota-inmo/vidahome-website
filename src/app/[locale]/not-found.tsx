@@ -5,11 +5,11 @@ export default function NotFound() {
                 {/* Decorative line */}
                 <div className="w-16 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent mx-auto mb-10" />
 
-                <p className="text-[10px] tracking-[0.5em] uppercase text-teal-500 font-bold mb-6">
+                <p className="text-[10px] tracking-[0.5em] uppercase text-brand-accent font-bold mb-6">
                     Error 404
                 </p>
 
-                <h1 className="font-serif text-5xl md:text-7xl text-[#0a192f] dark:text-white mb-4">
+                <h1 className="font-serif text-5xl md:text-7xl text-brand-navy dark:text-white mb-4">
                     404
                 </h1>
 
@@ -25,13 +25,13 @@ export default function NotFound() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <a
                         href="/"
-                        className="px-10 py-4 bg-[#0a192f] text-white text-[10px] uppercase tracking-widest font-bold hover:bg-teal-600 transition-all rounded-sm shadow-xl"
+                        className="px-10 py-4 bg-brand-navy text-white text-[10px] uppercase tracking-widest font-bold hover:bg-teal-600 transition-all rounded-sm shadow-xl"
                     >
                         Volver al inicio
                     </a>
                     <a
                         href="/propiedades"
-                        className="px-10 py-4 border border-slate-200 dark:border-slate-700 text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-[#0a192f] dark:hover:text-white hover:border-slate-400 transition-all rounded-sm"
+                        className="px-10 py-4 border border-slate-200 dark:border-slate-700 text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-brand-navy dark:hover:text-white hover:border-slate-400 transition-all rounded-sm"
                     >
                         Ver propiedades
                     </a>

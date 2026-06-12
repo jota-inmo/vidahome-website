@@ -7,10 +7,10 @@ export default function GlobalLoading() {
                     {/* Outer ring */}
                     <div className="absolute inset-0 rounded-full border-2 border-slate-100 dark:border-slate-800" />
                     {/* Spinning accent */}
-                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-teal-500 animate-spin" />
+                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-brand-accent animate-spin" />
                     {/* Inner dot */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                        <div className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
                     </div>
                 </div>
 
@@ -21,7 +21,7 @@ export default function GlobalLoading() {
                 {/* Subtle progress bar */}
                 <div className="w-48 h-px bg-slate-100 dark:bg-slate-800 mx-auto mt-6 overflow-hidden rounded-full">
                     <div
-                        className="h-full bg-gradient-to-r from-teal-500 to-teal-400 rounded-full"
+                        className="h-full bg-gradient-to-r from-brand-accent to-brand-accent rounded-full"
                         style={{
                             animation: 'loadingBar 1.5s ease-in-out infinite',
                             width: '40%',

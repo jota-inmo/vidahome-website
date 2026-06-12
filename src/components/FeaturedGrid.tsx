@@ -69,7 +69,7 @@ export async function FeaturedGrid() {
         <div className="flex justify-center py-16">
             <Link
                 href="/propiedades"
-                className="text-[11px] tracking-[0.3em] uppercase font-bold text-[#0a192f] dark:text-white border-b border-[#0a192f] dark:border-white pb-1 hover:opacity-60 transition-all"
+                className="text-[11px] tracking-[0.3em] uppercase font-bold text-brand-navy dark:text-white border-b border-brand-navy dark:border-white pb-1 hover:opacity-60 transition-all"
             >
                 {t('viewCatalog')}
             </Link>

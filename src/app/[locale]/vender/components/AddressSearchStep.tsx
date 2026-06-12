@@ -204,7 +204,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               onClick={() => handleSelectProperty(prop)}
               disabled={searching}
               className="w-full text-left p-5 border border-slate-200 dark:border-slate-700 rounded-xl
-                hover:border-lime-400 hover:bg-lime-50/50 dark:hover:border-lime-500 dark:hover:bg-lime-950/10
+                hover:border-brand-accent hover:bg-lime-50/50 dark:hover:border-lime-500 dark:hover:bg-lime-950/10
                 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="flex items-start justify-between gap-4">
@@ -228,7 +228,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
                 </div>
                 <CheckCircle
                   size={20}
-                  className="text-slate-200 dark:text-slate-700 group-hover:text-lime-400 transition-colors flex-shrink-0 mt-0.5"
+                  className="text-slate-200 dark:text-slate-700 group-hover:text-brand-accent transition-colors flex-shrink-0 mt-0.5"
                 />
               </div>
             </button>
@@ -311,7 +311,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               className={`
                 w-full px-4 py-3 border rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono tracking-widest
-                focus:ring-2 focus:ring-lime-400 outline-none transition-colors
+                focus:ring-2 focus:ring-brand-accent outline-none transition-colors
                 ${refCatastralInput.length >= 14 && refCatastralInput.length <= 20
                   ? 'border-lime-300 dark:border-lime-700'
                   : 'border-slate-300 dark:border-slate-700'
@@ -322,7 +322,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               <p className="text-xs text-slate-400">
                 {t('addressChars', { count: refCatastralInput.length })}
                 {refCatastralInput.length >= 14 && refCatastralInput.length <= 20 && (
-                  <span className="ml-2 text-lime-600 dark:text-lime-400">{t('addressValidLength')}</span>
+                  <span className="ml-2 text-lime-600 dark:text-brand-accent">{t('addressValidLength')}</span>
                 )}
                 {refCatastralInput.length > 0 && refCatastralInput.length < 14 && (
                   <span className="ml-2 text-orange-600 dark:text-orange-400">{t('addressMinChars')}</span>
@@ -345,7 +345,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               onChange={e => setFormState(prev => ({ ...prev, provincia: e.target.value, municipio: '' }))}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+                focus:ring-2 focus:ring-brand-accent outline-none appearance-none"
             >
               <option value="">{t('addressSelectProvince')}</option>
               {provincias.map(p => <option key={p} value={p}>{p}</option>)}
@@ -364,7 +364,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
                 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed
-                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+                focus:ring-2 focus:ring-brand-accent outline-none appearance-none"
             >
               <option value="">{t('addressSelectMunicipality')}</option>
               {municipios.map(m => <option key={m} value={m}>{m}</option>)}
@@ -381,7 +381,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               onChange={e => setFormState(prev => ({ ...prev, tipoVia: e.target.value }))}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+                focus:ring-2 focus:ring-brand-accent outline-none appearance-none"
             >
               <option value="">{t('addressSelectType')}</option>
               <option value="CL">{t('addressStreet')}</option>
@@ -406,7 +406,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               placeholder={t('addressStreetPlaceholder')}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none"
+                focus:ring-2 focus:ring-brand-accent outline-none"
             />
             {showViaSuggestions && viaSuggestions.length > 0 && (
               <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
@@ -440,7 +440,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
               placeholder={t('addressNumberPlaceholder')}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none"
+                focus:ring-2 focus:ring-brand-accent outline-none"
             />
             {showNumeroSuggestions && numeroSuggestions.length > 0 && (
               <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
@@ -467,7 +467,7 @@ export const AddressSearchStep: React.FC<AddressSearchStepProps> = ({
         className={`w-full py-4 rounded-lg font-bold uppercase tracking-[0.1em] text-sm transition-all mb-6 flex items-center justify-center gap-2 ${
           searching || loading
             ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-            : 'bg-lime-400 text-slate-900 hover:bg-lime-500 shadow-lg hover:shadow-lime-200/50 dark:hover:shadow-lime-900/50'
+            : 'bg-brand-accent text-slate-900 hover:bg-lime-500 shadow-lg hover:shadow-lime-200/50 dark:hover:shadow-lime-900/50'
         }`}
       >
         {searching || loading ? (

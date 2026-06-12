@@ -17,7 +17,7 @@ export async function Footer() {
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Vidahome ' + settings.address)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-slate-500 leading-relaxed font-light hover:text-[#0a192f] dark:hover:text-white transition-all block whitespace-pre-line"
+                        className="text-sm text-slate-500 leading-relaxed font-light hover:text-brand-navy dark:hover:text-white transition-all block whitespace-pre-line"
                     >
                         {settings.address}
                     </a>
@@ -25,10 +25,10 @@ export async function Footer() {
                 <div>
                     <h4 className="font-serif text-xl mb-6">{t('contacto')}</h4>
                     <div className="flex flex-col gap-2">
-                        <a href={`tel:${settings.phone.replace(/\s+/g, '')}`} className="text-sm text-slate-500 leading-relaxed font-light hover:text-[#0a192f] dark:hover:text-white transition-all">
+                        <a href={`tel:${settings.phone.replace(/\s+/g, '')}`} className="text-sm text-slate-500 leading-relaxed font-light hover:text-brand-navy dark:hover:text-white transition-all">
                             {t('call')}: {settings.phone}
                         </a>
-                        <a href={`mailto:${settings.email}`} className="text-sm text-slate-500 leading-relaxed font-light hover:text-[#0a192f] dark:hover:text-white transition-all">
+                        <a href={`mailto:${settings.email}`} className="text-sm text-slate-500 leading-relaxed font-light hover:text-brand-navy dark:hover:text-white transition-all">
                             Email: {settings.email}
                         </a>
                     </div>
@@ -44,13 +44,13 @@ export async function Footer() {
                 <div>
                     <h4 className="font-serif text-xl mb-6">{t('legal')}</h4>
                     <div className="flex flex-col gap-2">
-                        <Link href="/legal/aviso-legal" className="text-sm text-slate-500 leading-relaxed font-light hover:text-[#0a192f] dark:hover:text-white transition-all">
+                        <Link href="/legal/aviso-legal" className="text-sm text-slate-500 leading-relaxed font-light hover:text-brand-navy dark:hover:text-white transition-all">
                             {t('aviso')}
                         </Link>
-                        <Link href="/legal/privacidad" className="text-sm text-slate-500 leading-relaxed font-light hover:text-[#0a192f] dark:hover:text-white transition-all">
+                        <Link href="/legal/privacidad" className="text-sm text-slate-500 leading-relaxed font-light hover:text-brand-navy dark:hover:text-white transition-all">
                             {t('privacidad')}
                         </Link>
-                        <Link href="/legal/cookies" className="text-sm text-slate-500 leading-relaxed font-light hover:text-[#0a192f] dark:hover:text-white transition-all">
+                        <Link href="/legal/cookies" className="text-sm text-slate-500 leading-relaxed font-light hover:text-brand-navy dark:hover:text-white transition-all">
                             {t('cookies')}
                         </Link>
                     </div>

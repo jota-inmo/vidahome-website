@@ -40,12 +40,12 @@ export default function ContactoPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <a href={`tel:${settings.phone.replace(/\s+/g, '')}`} className="p-8 border border-slate-50 dark:border-slate-900/50 rounded-sm hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-all block group">
-                                <Phone size={24} className="text-slate-300 mb-6 group-hover:text-[#0a192f] transition-colors" />
+                                <Phone size={24} className="text-slate-300 mb-6 group-hover:text-brand-navy transition-colors" />
                                 <h4 className="text-[10px] tracking-widest uppercase font-bold text-slate-400 mb-2">{t('phone')}</h4>
                                 <p className="text-slate-900 dark:text-white font-serif">{settings.phone}</p>
                             </a>
                             <a href={`mailto:${settings.email}`} className="p-8 border border-slate-50 dark:border-slate-900/50 rounded-sm hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-all block group">
-                                <Mail size={24} className="text-slate-300 mb-6 group-hover:text-[#0a192f] transition-colors" />
+                                <Mail size={24} className="text-slate-300 mb-6 group-hover:text-brand-navy transition-colors" />
                                 <h4 className="text-[10px] tracking-widest uppercase font-bold text-slate-400 mb-2">Email</h4>
                                 <p className="text-slate-900 dark:text-white font-serif">{settings.email}</p>
                             </a>
@@ -55,7 +55,7 @@ export default function ContactoPage() {
                                 rel="noopener noreferrer"
                                 className="p-8 border border-slate-50 dark:border-slate-900/50 rounded-sm hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-all block group"
                             >
-                                <MapPin size={24} className="text-slate-300 mb-6 group-hover:text-[#0a192f] transition-colors" />
+                                <MapPin size={24} className="text-slate-300 mb-6 group-hover:text-brand-navy transition-colors" />
                                 <h4 className="text-[10px] tracking-widest uppercase font-bold text-slate-400 mb-2">{t('address')}</h4>
                                 <p className="text-slate-900 dark:text-white font-serif text-sm whitespace-pre-line">{settings.address}</p>
                             </a>

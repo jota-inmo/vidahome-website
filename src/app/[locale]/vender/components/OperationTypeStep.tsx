@@ -40,7 +40,7 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
           className={`
             relative p-8 rounded-lg border-2 transition-all duration-300
             ${formState.operationType === 'venta'
-              ? 'border-lime-400 bg-lime-50 dark:bg-lime-950/20 shadow-lg shadow-lime-200/50 dark:shadow-lime-900/20'
+              ? 'border-brand-accent bg-lime-50 dark:bg-lime-950/20 shadow-lg shadow-lime-200/50 dark:shadow-lime-900/20'
               : 'border-slate-200 dark:border-slate-800 hover:border-lime-200 dark:hover:border-lime-800 bg-white dark:bg-slate-950'
             }
           `}
@@ -50,7 +50,7 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
               className={`
                 w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors
                 ${formState.operationType === 'venta'
-                  ? 'bg-lime-400 text-white'
+                  ? 'bg-brand-accent text-white'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                 }
               `}
@@ -64,8 +64,8 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
               {t('operationSellDesc')}
             </p>
             {formState.operationType === 'venta' && (
-              <div className="mt-4 inline-flex items-center gap-2 text-lime-600 dark:text-lime-400 text-sm font-medium">
-                <span className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white">
+              <div className="mt-4 inline-flex items-center gap-2 text-lime-600 dark:text-brand-accent text-sm font-medium">
+                <span className="w-5 h-5 bg-brand-accent rounded-full flex items-center justify-center text-white">
                   ✓
                 </span>
                 {t('selected')}
@@ -80,7 +80,7 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
           className={`
             relative p-8 rounded-lg border-2 transition-all duration-300
             ${formState.operationType === 'alquiler'
-              ? 'border-lime-400 bg-lime-50 dark:bg-lime-950/20 shadow-lg shadow-lime-200/50 dark:shadow-lime-900/20'
+              ? 'border-brand-accent bg-lime-50 dark:bg-lime-950/20 shadow-lg shadow-lime-200/50 dark:shadow-lime-900/20'
               : 'border-slate-200 dark:border-slate-800 hover:border-lime-200 dark:hover:border-lime-800 bg-white dark:bg-slate-950'
             }
           `}
@@ -90,7 +90,7 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
               className={`
                 w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors
                 ${formState.operationType === 'alquiler'
-                  ? 'bg-lime-400 text-white'
+                  ? 'bg-brand-accent text-white'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                 }
               `}
@@ -104,8 +104,8 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
               {t('operationRentDesc')}
             </p>
             {formState.operationType === 'alquiler' && (
-              <div className="mt-4 inline-flex items-center gap-2 text-lime-600 dark:text-lime-400 text-sm font-medium">
-                <span className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white">
+              <div className="mt-4 inline-flex items-center gap-2 text-lime-600 dark:text-brand-accent text-sm font-medium">
+                <span className="w-5 h-5 bg-brand-accent rounded-full flex items-center justify-center text-white">
                   ✓
                 </span>
                 {t('selected')}
@@ -123,7 +123,7 @@ export const OperationTypeStep: React.FC<OperationTypeStepProps> = ({
           className={`
             px-8 py-3 rounded-sm font-medium uppercase tracking-[0.1em] text-sm transition-all
             ${formState.operationType
-              ? 'bg-lime-400 text-slate-900 hover:bg-lime-500 shadow-lg hover:shadow-xl hover:-translate-y-0.5'
+              ? 'bg-brand-accent text-slate-900 hover:bg-lime-500 shadow-lg hover:shadow-xl hover:-translate-y-0.5'
               : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
             }
           `}

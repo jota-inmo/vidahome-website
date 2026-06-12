@@ -77,7 +77,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                 {/* Badge venta/alquiler/traspaso */}
                 {!isUnavailable && (
                     <div className="absolute top-6 left-6">
-                        <span className="px-3 py-1.5 bg-[#0a192f] text-white text-[10px] tracking-[0.2em] font-medium uppercase rounded-sm">
+                        <span className="px-3 py-1.5 bg-brand-navy text-white text-[10px] tracking-[0.2em] font-medium uppercase rounded-sm">
                             {isTraspaso ? t('transfer') : property.keyacci === 2 ? t('rent') : t('buy')}
                         </span>
                     </div>

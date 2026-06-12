@@ -43,7 +43,7 @@ export default function PropertyDetailError({ error, reset }: ErrorProps) {
             <div className="flex flex-col sm:flex-row gap-4">
                 <button
                     onClick={reset}
-                    className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-4 text-[11px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-teal-500 dark:hover:bg-teal-400 active:scale-95 transition-all"
+                    className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-4 text-[11px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-brand-accent dark:hover:bg-brand-accent active:scale-95 transition-all"
                 >
                     Reintentar
                 </button>

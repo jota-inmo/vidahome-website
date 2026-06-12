@@ -122,7 +122,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
             required
             className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none"
+              focus:ring-2 focus:ring-brand-accent outline-none"
           />
         </div>
 
@@ -139,7 +139,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
             className={`
               w-full px-4 py-3 border rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none transition-colors
+              focus:ring-2 focus:ring-brand-accent outline-none transition-colors
               ${emailError
                 ? 'border-red-300 dark:border-red-700 focus:ring-red-400'
                 : 'border-slate-300 dark:border-slate-700'
@@ -178,7 +178,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
               onChange={e => phone.setCountry(e.target.value as CountryCode)}
               className="max-w-[100px] px-3 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none appearance-none text-sm"
+                focus:ring-2 focus:ring-brand-accent outline-none appearance-none text-sm"
             >
               {Object.entries(COUNTRY_CODES).map(([key, info]) => (
                 <option key={key} value={key}>
@@ -200,7 +200,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
                 focus:outline-none focus:ring-2 transition-colors
                 ${phone.error
                   ? 'border-red-300 dark:border-red-700 focus:ring-red-400'
-                  : 'border-slate-300 dark:border-slate-700 focus:ring-lime-400'
+                  : 'border-slate-300 dark:border-slate-700 focus:ring-brand-accent'
                 }
               `}
             />
@@ -239,7 +239,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
             rows={4}
             className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none resize-none"
+              focus:ring-2 focus:ring-brand-accent outline-none resize-none"
           />
           <div className="flex justify-between items-center mt-2">
             <p className="text-xs text-slate-600 dark:text-slate-400">
@@ -266,7 +266,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
           />
           <label htmlFor="gdpr-valuation" className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed cursor-pointer">
             {t('contactPrivacy')}{' '}
-            <a href="/legal/privacidad" target="_blank" className="text-lime-600 dark:text-lime-400 underline">
+            <a href="/legal/privacidad" target="_blank" className="text-lime-600 dark:text-brand-accent underline">
               {t('contactPrivacyLink')}
             </a>.
           </label>
@@ -291,7 +291,7 @@ export const ContactFormStep: React.FC<ContactFormStepProps> = ({
               px-8 py-3 rounded-sm font-medium uppercase tracking-[0.1em] text-sm transition-all
               ${loading || !!phone.error || !formState.nombre || !gdprAccepted
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                : 'bg-lime-400 text-slate-900 hover:bg-lime-500 shadow-lg hover:shadow-xl hover:-translate-y-0.5'
+                : 'bg-brand-accent text-slate-900 hover:bg-lime-500 shadow-lg hover:shadow-xl hover:-translate-y-0.5'
               }
             `}
           >

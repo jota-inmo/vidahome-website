@@ -42,7 +42,7 @@ export const PropertyDetailsStep: React.FC<PropertyDetailsStepProps> = ({
             onChange={e => setFormState(prev => ({ ...prev, habitaciones: e.target.value ? Number(e.target.value) : undefined }))}
             className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+              focus:ring-2 focus:ring-brand-accent outline-none appearance-none"
           >
             <option value="">{t('detailsSelect')}</option>
             <option value="1">{t('detailsBedroom1')}</option>
@@ -64,7 +64,7 @@ export const PropertyDetailsStep: React.FC<PropertyDetailsStepProps> = ({
             onChange={e => setFormState(prev => ({ ...prev, banos: e.target.value ? Number(e.target.value) : undefined }))}
             className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+              focus:ring-2 focus:ring-brand-accent outline-none appearance-none"
           >
             <option value="">{t('detailsSelect')}</option>
             <option value="1">{t('detailsBathroom1')}</option>
@@ -86,7 +86,7 @@ export const PropertyDetailsStep: React.FC<PropertyDetailsStepProps> = ({
             rows={4}
             className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
               bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-              focus:ring-2 focus:ring-lime-400 outline-none resize-none text-sm leading-relaxed"
+              focus:ring-2 focus:ring-brand-accent outline-none resize-none text-sm leading-relaxed"
           />
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {t('detailsAdditionalHint')}
@@ -107,7 +107,7 @@ export const PropertyDetailsStep: React.FC<PropertyDetailsStepProps> = ({
         </button>
         <button
           onClick={onNext}
-          className="px-8 py-3 bg-lime-400 text-slate-900 hover:bg-lime-500
+          className="px-8 py-3 bg-brand-accent text-slate-900 hover:bg-lime-500
             rounded-sm font-medium uppercase tracking-[0.1em] text-sm transition-all
             shadow-lg hover:shadow-xl hover:-translate-y-0.5"
         >

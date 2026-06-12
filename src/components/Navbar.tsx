@@ -32,16 +32,16 @@ export const Navbar = () => {
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-12">
-                    <Link href="/propiedades" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
+                    <Link href="/propiedades" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
                         {t('properties')}
                     </Link>
-                    <Link href="/vender" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
+                    <Link href="/vender" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
                         {t('sell')}
                     </Link>
-                    <Link href="/nosotros" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
+                    <Link href="/nosotros" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
                         {t('about')}
                     </Link>
-                    <Link href="/blog" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-[#0a192f] dark:hover:text-white transition-colors">
+                    <Link href="/blog" className="text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 hover:text-brand-navy dark:hover:text-white transition-colors">
                         Blog
                     </Link>
 
@@ -60,8 +60,8 @@ export const Navbar = () => {
                                     href={pathname}
                                     locale={loc.id}
                                     className={`flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold transition-all ${
-                                        locale === loc.id 
-                                            ? 'bg-lime-400 text-slate-900'
+                                        locale === loc.id
+                                            ? 'bg-brand-navy text-white'
                                             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                                 >
@@ -74,7 +74,7 @@ export const Navbar = () => {
 
                     <Link
                         href="/contacto"
-                        className="px-6 py-3 bg-[#0a192f] text-white text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-gradient-to-r hover:from-lime-400 hover:to-teal-500 hover:text-[#0a192f] transition-all rounded-sm"
+                        className="px-6 py-3 bg-brand-navy text-white text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-brand-navy-light transition-all rounded-sm"
                     >
                         {t('contact')}
                     </Link>
@@ -118,7 +118,7 @@ export const Navbar = () => {
                                     onClick={() => setIsOpen(false)}
                                     className={`flex items-center justify-center gap-1.5 text-[12px] tracking-widest font-bold px-2 py-2 rounded-sm transition-all ${
                                         locale === loc.id
-                                            ? 'bg-lime-400 text-slate-900'
+                                            ? 'bg-brand-navy text-white'
                                             : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-800'
                                     }`}
                                 >
@@ -132,7 +132,7 @@ export const Navbar = () => {
                     <Link
                         href="/contacto"
                         onClick={() => setIsOpen(false)}
-                        className="w-full text-center px-6 py-4 bg-[#0a192f] text-white text-[12px] uppercase tracking-[0.3em] font-bold hover:bg-slate-800 transition-all rounded-sm"
+                        className="w-full text-center px-6 py-4 bg-brand-navy text-white text-[12px] uppercase tracking-[0.3em] font-bold hover:bg-brand-navy-light transition-all rounded-sm"
                     >
                         {t('contact')}
                     </Link>

@@ -44,9 +44,9 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
       </div>
 
       {/* Tarjeta de propiedad encontrada */}
-      <div className="bg-gradient-to-br from-lime-50 to-teal-50 dark:from-lime-950/20 dark:to-teal-950/20 border-2 border-lime-400 dark:border-lime-700 rounded-lg p-8 mb-8">
+      <div className="bg-gradient-to-br from-lime-50 to-teal-50 dark:from-lime-950/20 dark:to-teal-950/20 border-2 border-brand-accent dark:border-lime-700 rounded-lg p-8 mb-8">
         <div className="flex items-start gap-3 mb-6">
-          <div className="w-8 h-8 bg-lime-400 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 bg-brand-accent rounded-full flex items-center justify-center flex-shrink-0">
             <CheckCircle2 size={20} className="text-slate-900" strokeWidth={3} />
           </div>
           <div>
@@ -147,13 +147,13 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-slate-600 dark:text-slate-400">{t('reviewEstMin')}</span>
-              <span className="text-2xl font-serif text-lime-600 dark:text-lime-400">
+              <span className="text-2xl font-serif text-lime-600 dark:text-brand-accent">
                 €{est.min?.toLocaleString('es-ES')}
               </span>
             </div>
             <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
               <span className="text-slate-600 dark:text-slate-400">{t('reviewEstMax')}</span>
-              <span className="text-2xl font-serif text-lime-600 dark:text-lime-400">
+              <span className="text-2xl font-serif text-lime-600 dark:text-brand-accent">
                 €{est.max?.toLocaleString('es-ES')}
               </span>
             </div>
@@ -180,7 +180,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
               onChange={e => setFormState(prev => ({ ...prev, propertyType: e.target.value as PropertyType }))}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+                focus:ring-2 focus:ring-brand-accent outline-none appearance-none"
             >
               <option value="">{t('detailsSelect')}</option>
               {PROPERTY_TYPES.map(type => (
@@ -199,7 +199,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
               onChange={e => setFormState(prev => ({ ...prev, habitaciones: e.target.value ? Number(e.target.value) : undefined }))}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+                focus:ring-2 focus:ring-brand-accent outline-none appearance-none"
             >
               <option value="">{t('detailsSelect')}</option>
               <option value="1">{t('detailsBedroom1')}</option>
@@ -221,7 +221,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
               onChange={e => setFormState(prev => ({ ...prev, banos: e.target.value ? Number(e.target.value) : undefined }))}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none appearance-none"
+                focus:ring-2 focus:ring-brand-accent outline-none appearance-none"
             >
               <option value="">{t('detailsSelect')}</option>
               <option value="1">{t('detailsBathroom1')}</option>
@@ -243,7 +243,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
               rows={3}
               className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded-lg
                 bg-white dark:bg-slate-900 text-slate-900 dark:text-white
-                focus:ring-2 focus:ring-lime-400 outline-none resize-none text-sm leading-relaxed"
+                focus:ring-2 focus:ring-brand-accent outline-none resize-none text-sm leading-relaxed"
             />
           </div>
         </div>
@@ -279,7 +279,7 @@ export const PropertyReviewStep: React.FC<PropertyReviewStepProps> = ({
         </button>
         <button
           onClick={onNext}
-          className="px-8 py-3 bg-lime-400 text-slate-900 hover:bg-lime-500
+          className="px-8 py-3 bg-brand-accent text-slate-900 hover:bg-lime-500
             rounded-sm font-medium uppercase tracking-[0.1em] text-sm transition-all
             shadow-lg hover:shadow-xl hover:-translate-y-0.5"
         >

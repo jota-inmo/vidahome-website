@@ -304,7 +304,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                                 <span className="text-[20px] tracking-[0.4em] uppercase text-slate-400">{t('reference')}: {property.ref}</span>
                                 <button
                                     onClick={handleShare}
-                                    className="p-2 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-400 hover:text-[#2dd4bf] hover:bg-slate-100 transition-all"
+                                    className="p-2 bg-slate-50 dark:bg-slate-900 rounded-full text-slate-400 hover:text-brand-accent hover:bg-slate-100 transition-all"
                                     title={t('share')}
                                     aria-label={t('share')}
                                 >
@@ -420,7 +420,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                                 poblacion={property.poblacion}
                             />
                             <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
                                 {t('locationNotice')}
                             </p>
                         </section>
@@ -441,7 +441,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                             <ContactForm cod_ofer={property.cod_ofer} propertyRef={property.ref} />
 
                             <div className="mt-12 p-10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-100 dark:border-slate-800/60 flex items-center justify-center rounded-2xl transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/5 dark:hover:shadow-none group relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                                 <div className="relative z-10 transition-transform duration-700 group-hover:scale-110">
                                     <Logo variant="full" className="h-10 w-auto filter drop-shadow-sm" plain />
                                 </div>
@@ -474,7 +474,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
                     </div>
                     <a
                         href="#contact-form-anchor"
-                        className="shrink-0 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 text-[11px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-teal-500 dark:hover:bg-teal-400 active:scale-95 transition-all shadow-lg"
+                        className="shrink-0 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 text-[11px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-brand-accent dark:hover:bg-brand-accent active:scale-95 transition-all shadow-lg"
                     >
                         {t('contactCta')}
                     </a>

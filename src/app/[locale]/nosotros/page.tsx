@@ -30,7 +30,7 @@ export default function NosotrosPage() {
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-16">
                     <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
-                            <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-800 text-teal-600 dark:text-teal-400 text-[10px] font-bold uppercase tracking-[0.2em] animate-fade-in">
+                            <span className="inline-block py-1 px-3 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-800 text-teal-600 dark:text-brand-accent text-[10px] font-bold uppercase tracking-[0.2em] animate-fade-in">
                                 {t('badge')}
                             </span>
                             <span className="inline-block py-1 px-3 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] animate-fade-in">
@@ -39,7 +39,7 @@ export default function NosotrosPage() {
                         </div>
                         <h1 className="text-4xl md:text-7xl font-serif mb-8 leading-[1.1] animate-slide-up">
                             {t('heroTitle1')} <br />
-                            <span className="italic font-normal text-teal-600 dark:text-teal-400">{t('heroTitle2')}</span>
+                            <span className="italic font-normal text-teal-600 dark:text-brand-accent">{t('heroTitle2')}</span>
                         </h1>
                         <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl mx-auto md:mx-0 animate-slide-up delay-100">
                             {t('heroDesc')}
@@ -66,12 +66,12 @@ export default function NosotrosPage() {
                         <div className="space-y-8 order-2 lg:order-1">
                             <h2 className="text-3xl md:text-4xl font-serif leading-snug">
                                 {t('ecoTitle1')} <br />
-                                <span className="text-teal-600 dark:text-teal-400 text-4xl md:text-5xl">{t('ecoTitle2')}</span>
+                                <span className="text-teal-600 dark:text-brand-accent text-4xl md:text-5xl">{t('ecoTitle2')}</span>
                             </h2>
                             <div className="space-y-6 text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-light">
                                 <p>{t('ecoP1')}</p>
                                 <p>{t('ecoP2')}</p>
-                                <p className="font-medium text-slate-800 dark:text-slate-200 italic border-l-2 border-teal-500 pl-6 py-2">
+                                <p className="font-medium text-slate-800 dark:text-slate-200 italic border-l-2 border-brand-accent pl-6 py-2">
                                     &ldquo;{t('ecoQuote')}&rdquo;
                                 </p>
                             </div>
@@ -89,7 +89,7 @@ export default function NosotrosPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {cards.map((item, i) => (
                                     <div key={i} className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-sm shadow-sm hover:shadow-md transition-all group">
-                                        <div className="text-teal-500 mb-6 group-hover:scale-110 transition-transform origin-left">{item.icon}</div>
+                                        <div className="text-brand-accent mb-6 group-hover:scale-110 transition-transform origin-left">{item.icon}</div>
                                         <h3 className="text-lg font-serif mb-3 italic">{item.title}</h3>
                                         <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{item.desc}</p>
                                     </div>
@@ -104,7 +104,7 @@ export default function NosotrosPage() {
             <section className="py-32 px-6">
                 <div className="max-w-4xl mx-auto text-center space-y-16">
                     <div className="space-y-6">
-                        <HeartHandshake size={48} className="mx-auto text-teal-600 dark:text-teal-400 mb-8 opacity-50" />
+                        <HeartHandshake size={48} className="mx-auto text-teal-600 dark:text-brand-accent mb-8 opacity-50" />
                         <h2 className="text-4xl font-serif italic">{t('valuesTitle')}</h2>
                         <p className="text-xl text-slate-600 dark:text-slate-400 font-light leading-relaxed">
                             {t('valuesDesc')}
@@ -141,7 +141,7 @@ export default function NosotrosPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {services.map((item, i) => (
                             <div key={i} className="flex flex-col items-center text-center p-6 transition-all hover:-translate-y-1">
-                                <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-teal-500 shadow-sm mb-6">
+                                <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-brand-accent shadow-sm mb-6">
                                     {item.icon}
                                 </div>
                                 <h3 className="text-lg font-serif mb-3 italic">{item.title}</h3>

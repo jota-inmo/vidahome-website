@@ -124,9 +124,9 @@ export default function VenderPage() {
           <span className="text-[10px] tracking-[0.5em] uppercase text-slate-400 mb-6 block">
             {t('subtitle')}
           </span>
-          <h1 className="text-5xl md:text-7xl font-serif mb-8 text-[#0a192f] dark:text-white leading-tight">
+          <h1 className="text-5xl md:text-7xl font-serif mb-8 text-brand-navy dark:text-white leading-tight">
             {t('title')} <br />
-            <span className="italic pr-4 bg-clip-text text-transparent bg-gradient-to-r from-lime-500 to-teal-500">
+            <span className="italic pr-4 bg-clip-text text-transparent bg-gradient-to-r from-lime-500 to-brand-accent">
               {t('titleHighlight')}
             </span>?
           </h1>
@@ -146,7 +146,7 @@ export default function VenderPage() {
             ? <PropertyReviewStep formState={formState} setFormState={setFormState} onNext={handleNextStep} onBack={() => setStep(2)} />
             : <div className="max-w-2xl mx-auto text-center py-16 px-8">
                 <p className="text-slate-500 mb-6">{t('noPropertyFound')}</p>
-                <button onClick={() => setStep(2)} className="px-6 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">{t('backToSearch')}</button>
+                <button onClick={() => setStep(2)} className="px-6 py-3 bg-brand-accent text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">{t('backToSearch')}</button>
               </div>
         )}
         {step === 4 && <ContactFormStep formState={formState} setFormState={setFormState} onSubmit={handleSubmitContact} onBack={handleBackStep} loading={loading} />}
@@ -159,7 +159,7 @@ export default function VenderPage() {
             {t('questionsDesc')}
           </p>
           <div className="flex flex-col md:flex-row gap-6 justify-center">
-            <a href="tel:+34961234567" className="px-8 py-3 bg-lime-400 text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">
+            <a href="tel:+34961234567" className="px-8 py-3 bg-brand-accent text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">
               {t('callNow')}
             </a>
             <a href="mailto:info@vidahome.es" className="px-8 py-3 border border-white rounded-lg font-medium hover:bg-white hover:text-slate-900 transition-colors">

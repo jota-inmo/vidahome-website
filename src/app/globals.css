@@ -27,6 +27,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Brand design tokens (public UI).
+   - brand-navy / brand-navy-light: the deep navy used across buttons,
+     headings and nav.
+   - brand-accent: the single accent colour. We standardised on teal-400
+     (#2dd4bf) and removed lime-400 from the public surface. */
+@theme {
+  --color-brand-navy: #0a192f;
+  --color-brand-navy-light: #112240;
+  --color-brand-accent: #2dd4bf;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #020617;
