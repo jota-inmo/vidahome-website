@@ -48,6 +48,8 @@
         "blog": "Blog"
     },
     "Hero": {
+        "exploreCatalog": "Przeglądaj katalog",
+        "viewProperty": "Zobacz nieruchomość",
         "explore": "Odkryj naszą kolekcję",
         "searchPlaceholder": "Szukaj po referencji lub strefy...",
         "viewCatalog": "Wyświetl katalog"

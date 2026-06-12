@@ -48,6 +48,8 @@
         "blog": "Blog"
     },
     "Hero": {
+        "exploreCatalog": "Explorar catálogo",
+        "viewProperty": "Ver propiedad",
         "explore": "Explora nuestra selección",
         "searchPlaceholder": "Busca por referencia o zona...",
         "viewCatalog": "Ver catálogo"

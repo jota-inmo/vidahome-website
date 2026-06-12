@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useRouter } from '@/i18n/routing';
-import { Search } from 'lucide-react';
+import { Search, ArrowRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
 import type { HeroSlide } from '@/app/actions';
@@ -55,7 +55,11 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
     };
 
     useEffect(() => {
-        // If no initial slides were provided, fetch client-side (fallback)
+        // If no initial slides were provided, fetch client-side (fallback).
+        // The hero no longer subscribes to Supabase Realtime — the page is
+        // statically generated with a 1h ISR window, which already covers
+        // admin edits to the slides without holding an open socket per
+        // visitor.
         if (!initialSlides || initialSlides.length === 0) {
             import('@/app/actions').then(({ getHeroSlidesAction }) => {
                 getHeroSlidesAction(true).then((dynamicSlides) => {
@@ -66,24 +70,6 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
                 });
             });
         }
-
-        // Realtime Subscription — keeps hero updated when admin edits slides
-        const channel = supabase
-            .channel('hero_changes')
-            .on('postgres_changes', { event: '*', table: 'hero_slides', schema: 'public' }, () => {
-                import('@/app/actions').then(({ getHeroSlidesAction }) => {
-                    getHeroSlidesAction(true).then((dynamicSlides) => {
-                        if (dynamicSlides && dynamicSlides.length > 0) {
-                            setSlides(dynamicSlides);
-                        }
-                    });
-                });
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
     }, [initialSlides]);
 
     const getRealUrl = (path: string) => {
@@ -97,6 +83,17 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
         if (/^\d+$/.test(link.trim())) return `/propiedades/${link.trim()}`;
         return link;
     };
+
+    // CTA label: a numeric link_url points at a specific property, anything
+    // else (or empty) sends the visitor to the catalog.
+    const getCtaLabel = (link?: string) =>
+        link && /^\d+$/.test(link.trim()) ? t('viewProperty') : t('exploreCatalog');
+
+    // Only the active slide and the immediately upcoming one mount their
+    // <video>; every other video slide renders its poster as a still image to
+    // avoid downloading several MP4s on first paint.
+    const shouldPlayVideo = (index: number) =>
+        index === currentSlideIndex || index === (currentSlideIndex + 1) % slides.length;
 
 
     return (
@@ -112,75 +109,91 @@ export const LuxuryHero = ({ initialSlides }: LuxuryHeroProps) => {
                 loop={slides.length > 1}
                 className="absolute inset-0 w-full h-full"
             >
-                {slides.map((slide, index) => (
-                    <SwiperSlide key={slide.id} className="relative w-full h-full overflow-hidden">
-                        {/* Slide Link Wrapper */}
-                        <Link
-                            href={getSmartLink(slide.link_url) as any}
-                            className="block w-full h-full relative group cursor-pointer"
-                        >
+                {slides.map((slide, index) => {
+                    // A video slide only mounts its <video> when it is the active
+                    // or upcoming slide; otherwise it shows its poster. Video
+                    // slides without a poster fall back to playing (we have no
+                    // still image to substitute).
+                    const playVideo = slide.type === 'video' && (shouldPlayVideo(index) || !slide.poster);
+                    const stillSrc = slide.type === 'video'
+                        ? getRealUrl(slide.poster as string)
+                        : getRealUrl(slide.video_path);
+                    return (
+                        <SwiperSlide key={slide.id} className="relative w-full h-full overflow-hidden">
+                            {/* The slide background no longer navigates — clicking
+                                the hero does nothing; the explicit CTA below the
+                                heading is the only navigation affordance. */}
+                            <div className="block w-full h-full relative group">
 
-                            <div className="absolute inset-0 z-0 overflow-hidden">
-                                {slide.type === 'video' ? (
-                                    <video
-                                        autoPlay
-                                        muted
-                                        loop
-                                        playsInline
-                                        // preload="metadata" tells the browser to grab only
-                                        // the headers (duration, dimensions, codec) up front
-                                        // and stream frames as playback starts. Without this,
-                                        // Chrome defaults to "auto" and downloads the full
-                                        // MP4 on every hero mount — the dominant LCP killer
-                                        // on 4G mobile.
-                                        preload="metadata"
-                                        // Boost LCP discovery: the first slide is the LCP
-                                        // candidate on initial paint; the rest should not
-                                        // compete for bandwidth (Swiper EffectFade keeps
-                                        // them all mounted, so without fetchPriority they
-                                        // all download with priority=Low).
-                                        // @ts-expect-error — Chrome supports fetchPriority on <video> but @types/react only declares it on <img>/<link>/<script>.
-                                        fetchPriority={index === 0 ? 'high' : 'low'}
-                                        poster={slide.poster ? getRealUrl(slide.poster) : undefined}
-                                        src={getRealUrl(slide.video_path)}
-                                        className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[6000ms] ease-linear"
-                                    />
-                                ) : (
-                                    <Image
-                                        src={getRealUrl(slide.video_path)}
-                                        alt={slide.title || 'Vidahome Hero'}
-                                        fill
-                                        priority={index === 0}
-                                        sizes="100vw"
-                                        className="object-cover scale-100 group-hover:scale-105 transition-transform duration-[6000ms] ease-linear"
-                                    />
-                                )}
+                                <div className="absolute inset-0 z-0 overflow-hidden">
+                                    {playVideo ? (
+                                        <video
+                                            autoPlay
+                                            muted
+                                            loop
+                                            playsInline
+                                            // preload="metadata" tells the browser to grab only
+                                            // the headers (duration, dimensions, codec) up front
+                                            // and stream frames as playback starts. Without this,
+                                            // Chrome defaults to "auto" and downloads the full
+                                            // MP4 on every hero mount — the dominant LCP killer
+                                            // on 4G mobile.
+                                            preload="metadata"
+                                            // Boost LCP discovery: the first slide is the LCP
+                                            // candidate on initial paint; the rest should not
+                                            // compete for bandwidth.
+                                            // @ts-expect-error — Chrome supports fetchPriority on <video> but @types/react only declares it on <img>/<link>/<script>.
+                                            fetchPriority={index === 0 ? 'high' : 'low'}
+                                            poster={slide.poster ? getRealUrl(slide.poster) : undefined}
+                                            src={getRealUrl(slide.video_path)}
+                                            className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[6000ms] ease-linear"
+                                        />
+                                    ) : (
+                                        <Image
+                                            src={stillSrc}
+                                            alt={slide.title || 'Vidahome Hero'}
+                                            fill
+                                            priority={index === 0}
+                                            sizes="100vw"
+                                            className="object-cover scale-100 group-hover:scale-105 transition-transform duration-[6000ms] ease-linear"
+                                        />
+                                    )}
+                                </div>
+
+                                {/* Overlays */}
+                                <div className="absolute inset-0 bg-black/10 z-[1]" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 z-[2]" />
+
+                                {/* Center Content */}
+                                <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-8 text-center text-white">
+                                    <span className="text-[10px] tracking-[0.6em] uppercase font-bold mb-8 block text-brand-accent drop-shadow-xl animate-fade-in opacity-80">
+                                        {t('explore')}
+                                    </span>
+
+                                    <h1 className="text-3xl sm:text-4xl lg:text-6xl xl:text-7xl font-serif mb-8 md:mb-12 leading-[1.1] md:leading-[1.05] tracking-tight drop-shadow-2xl max-w-5xl transition-all duration-1000">
+                                        {((slide.titles?.[locale]) || slide.title || '').split(', ').map((text, i) => (
+                                            <React.Fragment key={i}>
+                                                {i > 0 && <br className="hidden md:block" />}
+                                                <span className={`${i === 1 ? 'italic font-normal text-slate-100' : 'font-medium'}`}>
+                                                    {text}{i === 0 && ((slide.titles?.[locale] || slide.title || '').includes(', ')) ? ', ' : ''}
+                                                </span>
+                                            </React.Fragment>
+                                        ))}
+                                    </h1>
+
+                                    {/* Explicit CTA — replaces the full-slide link. */}
+                                    <Link
+                                        href={getSmartLink(slide.link_url) as never}
+                                        className="inline-flex items-center gap-3 px-8 py-3.5 bg-white text-brand-navy text-xs uppercase tracking-[0.3em] font-bold rounded-md shadow-lg hover:bg-brand-accent hover:text-brand-navy active:scale-95 transition-all"
+                                    >
+                                        {getCtaLabel(slide.link_url)}
+                                        <ArrowRight size={16} />
+                                    </Link>
+                                </div>
                             </div>
-
-                            {/* Overlays */}
-                            <div className="absolute inset-0 bg-black/10 z-[1]" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 z-[2]" />
-
-                            {/* Center Content */}
-                            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-8 text-center text-white">
-                                <span className="text-[10px] tracking-[0.6em] uppercase font-bold mb-8 block text-brand-accent drop-shadow-xl animate-fade-in opacity-80">
-                                    {t('explore')}
-                                </span>
-
-                                <h1 className="text-3xl sm:text-4xl md:text-8xl font-serif mb-8 md:mb-12 leading-[1.1] md:leading-[1.05] tracking-tight drop-shadow-2xl max-w-5xl transition-all duration-1000">
-                                    {((slide.titles?.[locale]) || slide.title || '').split(', ').map((text, i) => (
-                                        <React.Fragment key={i}>
-                                            {i > 0 && <br className="hidden md:block" />}
-                                            <span className={`${i === 1 ? 'italic font-normal text-slate-100' : 'font-medium'}`}>
-                                                {text}{i === 0 && ((slide.titles?.[locale] || slide.title || '').includes(', ')) ? ', ' : ''}
-                                            </span>
-                                        </React.Fragment>
-                                    ))}
-                                </h1>
-                            </div>
-                        </Link>
-                    </SwiperSlide>
-                ))}
+                        </SwiperSlide>
+                    );
+                })}
             </Swiper>
 
 
