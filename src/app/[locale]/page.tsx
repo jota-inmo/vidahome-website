@@ -17,7 +17,10 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="min-h-screen">
+    // The global layout wraps every page in pt-24 to clear the fixed navbar.
+    // The home hero is full-bleed under the (transparent) navbar, so we pull
+    // it back up by the same amount.
+    <div className="min-h-screen -mt-24">
       <LuxuryHero initialSlides={heroSlides} />
 
 

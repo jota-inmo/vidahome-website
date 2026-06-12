@@ -9,9 +9,13 @@ interface LogoProps {
     variant?: 'full' | 'simple' | 'icon';
     showSlogan?: boolean;
     plain?: boolean;
+    /** Force the white-stroke logo regardless of colour scheme. Used when the
+        logo sits on a dark surface in light mode (e.g. the transparent navbar
+        over the hero). */
+    onDark?: boolean;
 }
 
-export const Logo = ({ className = '', variant = 'full', showSlogan = true, plain = false }: LogoProps) => {
+export const Logo = ({ className = '', variant = 'full', showSlogan = true, plain = false, onDark = false }: LogoProps) => {
 
     // Dos PNGs separados — URL nueva (post 2026-04-21) para bustear la caché
     // del CDN de Vercel y del image optimizer de Next (el path viejo
@@ -28,7 +32,7 @@ export const Logo = ({ className = '', variant = 'full', showSlogan = true, plai
                 alt="Vidahome Logo"
                 width={320}
                 height={96}
-                className="h-12 md:h-20 w-auto object-contain dark:hidden"
+                className={`h-12 md:h-20 w-auto object-contain ${onDark ? 'hidden' : 'dark:hidden'}`}
                 priority
             />
             <Image
@@ -36,7 +40,7 @@ export const Logo = ({ className = '', variant = 'full', showSlogan = true, plai
                 alt="Vidahome Logo"
                 width={320}
                 height={96}
-                className="h-12 md:h-20 w-auto object-contain hidden dark:block"
+                className={`h-12 md:h-20 w-auto object-contain ${onDark ? 'block' : 'hidden dark:block'}`}
                 priority
             />
         </div>
