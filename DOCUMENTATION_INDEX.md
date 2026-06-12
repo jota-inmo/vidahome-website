@@ -59,8 +59,6 @@
 |-----------|-----------|--------|----------|
 | **CATASTRO_API.md** | Dev | 30 min | Integración con Catastro API |
 | **CATASTRO_DIAGNOSTICO.md** | Dev | 20 min | Debugging Catastro |
-| **INMOVILLA_IP_ISSUE.md** | Dev/DevOps | 15 min | Problema de IP + Proxy |
-| **ARSYS_PROXY_SETUP.md** | DevOps | 30 min | Configuración de proxy en Arsys |
 | **PROJECT_CONTEXT_LOG.md** | Dev | 15 min | Historial de contexto del proyecto |
 
 ---
@@ -184,17 +182,13 @@ Documentos para performance:
 ### Seguridad
 - AUDITORIA_TECNICA.md
 - OPTIMIZATION_ROADMAP.md §1-2
-- ARSYS_PROXY_SETUP.md (proxy seguro)
 
 ### Integración de APIs
 - MASTER_SETUP_GUIDE.md §3
-- INMOVILLA_IP_ISSUE.md
 - CATASTRO_API.md
-- ARSYS_PROXY_SETUP.md
 
 ### Operaciones & DevOps
 - MIGRATION_CHECKLIST.md
-- ARSYS_PROXY_SETUP.md
 - PLAN_MIGRACION_SEO_GEO.md (Fase 1)
 
 ---
@@ -238,9 +232,8 @@ Documentos para performance:
 | Admin Security | OPTIMIZATION_ROADMAP §2 | AUDITORIA_TECNICA §2.1 |
 | Multi-idioma | MULTI_LANGUAGE_ARCHITECTURE | PROJECT_CONTEXT_LOG §5-7 |
 | Migración DNS | MIGRATION_CHECKLIST | PLAN_MIGRACION_SEO_GEO |
-| Inmovilla API | MASTER_SETUP_GUIDE §3 | INMOVILLA_IP_ISSUE |
+| Inmovilla API | MASTER_SETUP_GUIDE §3 | - |
 | Catastro | CATASTRO_API | CATASTRO_DIAGNOSTICO |
-| Proxy Arsys | ARSYS_PROXY_SETUP | INMOVILLA_IP_ISSUE |
 | SEO Metadatos | OPTIMIZATION_ROADMAP §3 | PLAN_MIGRACION_SEO |
 | GEO (IAs) | PLAN_MIGRACION_SEO_GEO | - |
 
@@ -256,9 +249,6 @@ Documentos para performance:
 
 ### Si Catastro no funciona
 → Revisar CATASTRO_API.md + CATASTRO_DIAGNOSTICO.md
-
-### Si IP es bloqueada por Inmovilla
-→ Revisar INMOVILLA_IP_ISSUE.md + ARSYS_PROXY_SETUP.md
 
 ### Si hay errores en admin
 → Revisar OPTIMIZATION_ROADMAP.md §2 + AUDITORIA_TECNICA.md

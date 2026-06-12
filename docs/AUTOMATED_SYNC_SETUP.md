@@ -75,54 +75,9 @@ Edit in `vercel.json`:
 
 ---
 
-### **Option B: GitHub Actions (Free)**
+### **Option B: GitHub Actions — ❌ RETIRADA (2026-06)**
 
-**If you're using GitHub, this is automatic**
-
-#### What happens:
-```
-Every 6 hours:
-  GitHub Action runs npm run sync:manual
-    ↓
-  Logs visible in GitHub → Actions
-    ↓
-  Properties synced
-    ↓
-  Emails you on failure
-```
-
-#### Setup (3 steps):
-
-**1. Secrets in GitHub:**
-- Repo → Settings → Secrets and variables → Actions
-- Add all your secrets:
-  ```
-  NEXT_PUBLIC_SUPABASE_URL
-  SUPABASE_SERVICE_ROLE_KEY
-  INMOVILLA_USER
-  INMOVILLA_PASSWORD
-  INMOVILLA_AGENT_ID
-  ```
-
-**2. File is already created:**
-- `.github/workflows/auto-sync.yml` ✅
-
-**3. Push to main:**
-```powershell
-git add .
-git commit -m "feat: add github actions auto sync"
-git push origin main
-```
-
-**4. Go to GitHub:**
-- Repo → Actions → See "Auto-sync Properties from Inmovilla"
-- Can see every run + logs
-
-#### Advantages:
-- Free (GitHub hosted)
-- Transparent logs
-- Can trigger manually
-- Email notifications
+El workflow `.github/workflows/auto-sync.yml` y el script `npm run sync:manual` se eliminaron del repo: dependían del pipeline Inmovilla API Web + proxy Arsys, retirado el 2026-04-15 (`b57eaae`). La sincronización con Inmovilla vive hoy en el CRM (`vidahome-encargo`).
 
 ---
 
@@ -201,11 +156,6 @@ Every 6 hours via cron_jobs table:
 Dashboard → Crons → /api/sync/cron → See logs
 ```
 
-### GitHub Actions:
-```
-Repo → Actions → Auto-sync Properties → See all runs
-```
-
 ### Supabase Edge Function:
 ```
 Supabase Dashboard → Edge Functions → Logs
@@ -231,10 +181,7 @@ Every run does:
 Even with automation, you can manually sync anytime:
 
 ```powershell
-# Development
-npm run sync:manual
-
-# Or via API
+# Via API
 curl https://your-app.com/api/sync/cron \
   -H "Authorization: Bearer YOUR_CRON_SECRET"
 ```

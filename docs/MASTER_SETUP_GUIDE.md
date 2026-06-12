@@ -2,30 +2,16 @@
 
 Este documento detalla toda la arquitectura y los pasos técnicos realizados para integrar la Inmovilla Web API, el sistema de Catastro y la persistencia en Supabase. Úsalo como referencia si necesitas reconstruir el sistema o entender su funcionamiento.
 
-## 1. El Desafío: El Filtro de Seguridad de Inmovilla
-Inmovilla requiere que las llamadas a su API provengan de una **IP estática autorizada**.
+> **⚠️ HISTÓRICO (2026-06):** el pipeline Inmovilla Web API + proxy Arsys descrito en las secciones 1-3 se retiró el 2026-04-15 (commit `b57eaae`) y su código se eliminó del repo (`arsys-proxy/`, `web-client.ts`/`web-service.ts`, scripts y workflow asociados). La web es hoy read-only sobre Supabase; la sincronización con Inmovilla vive en el CRM. Estas secciones se conservan solo como referencia histórica.
+
+## 1. El Desafío: El Filtro de Seguridad de Inmovilla *(histórico)*
+Inmovilla Web API requería que las llamadas provinieran de una **IP estática autorizada**.
 *   **Problema**: Vercel (donde está alojada la web) utiliza una infraestructura de nube con IPs dinámicas que cambian constantemente. Inmovilla bloqueaba estas peticiones con el error `IP NO VALIDADA`.
-*   **Solución**: Implementar un **Proxy Intermedio** en un servidor con IP estática.
+*   **Solución (retirada)**: Un **Proxy Intermedio** PHP en el hosting Arsys de la agencia (`api.vidahome.es` → IP estática), que validaba un secreto compartido (`X-Proxy-Secret`) y reenviaba a Inmovilla. El proxy y su configuración ya no existen en el repo.
 
 ---
 
-## 2. Infraestructura del Proxy (Arsys)
-Hemos utilizado el hosting existente de la agencia en Arsys para actuar como puente seguro.
-
-### Configuración DNS
-*   **Subdominio**: `api.vidahome.es`
-*   **Tipo**: Registro A
-*   **Destino**: `217.76.132.196` (IP estática del servidor de Arsys).
-*   **Nota**: En Arsys se activó la opción "Atender a todos los encabezados" para que el servidor responda correctamente a este subdominio.
-
-### Script de Proxy (`arsys-proxy/inmovilla-proxy.php`)
-Ubicado en el servidor de Arsys en `/api/inmovilla-proxy.php`.
-*   **Función**: Recibe la petición de Vercel, valida una clave secreta (`X-Proxy-Secret`) y reenvía los datos a Inmovilla usando la IP estática del servidor.
-*   **Seguridad**: Solo Vercel conoce la clave secreta, impidiendo que terceros usen tu proxy.
-
----
-
-## 3. Integración Inmovilla Web API
+## 3. Integración Inmovilla Web API *(histórico — cliente eliminado del repo)*
 Se ha implementado un cliente profesional (`src/lib/api/web-client.ts`) que maneja:
 *   **Credenciales**: 
     *   Agencia: `ID_AGENCIA`
@@ -159,12 +145,6 @@ Para superar la restricción de Inmovilla que omite descripciones en el catálog
 ## 5. Variables de Entorno (Vercel)
 | Variable | Descripción |
 | :--- | :--- |
-| `INMOVILLA_AGENCIA` | Número de agencia Inmovilla |
-| `INMOVILLA_ADDAGENCIA` | Sufijo de sucursal Inmovilla |
-| `INMOVILLA_PASSWORD` | Contraseña de la API de Inmovilla |
-| `INMOVILLA_DOMAIN` | Dominio autorizado en Inmovilla |
-| `ARSYS_PROXY_URL` | URL del script PHP en Arsys |
-| `ARSYS_PROXY_SECRET` | Clave secreta para el proxy |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL de Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anónima de Supabase |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio de Supabase |
@@ -173,10 +153,8 @@ Para superar la restricción de Inmovilla que omite descripciones en el catálog
 ---
 
 ## 6. Seguridad y Protección Anti-Spam
-1.  **Validación de IPs**: Inmovilla solo responde a Arsys.
-2.  **Secretos**: Comunicación Vercel -> Arsys protegida.
-3.  **Sanitización**: Filtros anti-inyección SQL y limpieza de HTML (`text-cleaner.ts`).
-4.  **Rate Limiting**: Control de intentos por IP en Supabase.
+1.  **Sanitización**: Filtros anti-inyección SQL y limpieza de HTML (`text-cleaner.ts`).
+2.  **Rate Limiting**: Control de intentos por IP en Supabase.
 
 ---
 
@@ -326,7 +304,6 @@ CREATE TABLE discrepancias_dismissed (
 
 | Script | Función |
 | :--- | :--- |
-| `scripts/audit-vs-inmovilla.ts` | Auditoría: DB columns vs full_data (Modo A) o vs API live (Modo B) |
 | `scripts/compare-encargos-web.ts` | Comparación encargos vs datos publicados en web |
 | `scripts/fix-habitaciones.ts` | Corrige hab. simples/dobles y total en property_features |
 | `scripts/build-localidades-map.ts` | Genera `localidades_map.json` desde CPs y actualiza poblaciones |

@@ -11,16 +11,15 @@
 - **Analytics**: Custom event tracking system integrated with Supabase.
 
 ## 🔄 CRM & External Systems
-- **Inmovilla CRM**: The primary source of property data.
-- **Inmovilla Web API**: Integrated via `src/lib/api/web-client.ts`.
-- **Relationship**: The project acts as a high-performance, SEO-friendly storefront for Inmovilla. It uses Supabase as a local cache/repository (`property_metadata`) to avoid direct API latency and rate limits.
+- **Inmovilla CRM**: The primary source of property data (synced into Supabase by the Broker CRM, not by this repo).
+- **Inmovilla Web API**: ❌ Retired 2026-04-15 (`b57eaae`) — `web-client.ts`/`web-service.ts` and the Arsys proxy were deleted. This repo makes NO direct Inmovilla API calls.
+- **Relationship**: The project acts as a high-performance, SEO-friendly storefront. It reads Supabase (`property_metadata`) only.
 - **Shared Database**: This Supabase DB is shared with a **Broker CRM/Backoffice**. The web consumes `encargos` (energy certificates) and `price_audit` updated by that side.
 
 ## 📋 Commands (npm)
 - `npm run dev`: Start local development server.
 - `npm run build`: Production build.
 - `npm run lint`: Linting with ESLint.
-- `npm run sync:manual`: Run manual Inmovilla sync script.
 - `npm run translate:perplexity`: Bulk translation script.
 - `npm run test`: Run unit tests (Vitest).
 
@@ -53,7 +52,7 @@
   - React Components: PascalCase.
   - Files/Folders: kebab-case.
   - DB Columns: snake_case.
-- **API**: Base Inmovilla logic in `src/lib/api/web-client.ts`. Do not use old `client.ts` (REST API).
+- **API**: Do NOT add direct Inmovilla API calls — the Web API client was removed 2026-04 (the web reads Supabase only).
 
 ## 🔐 Authentication
 Admin routes are protected via `requireAdmin()` check in Server Actions and Middlewares. The secret is `process.env.ADMIN_PASSWORD`.
