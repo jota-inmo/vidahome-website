@@ -34,15 +34,9 @@ npm run release:major  # 0.1.0 -> 1.0.0 (breaking changes)
 Nota: ejecuta estos comandos con el árbol Git limpio.
 
 ## 🛠️ Integración con Inmovilla
-Para conectar con la API de Inmovilla desde Vercel, el sistema utiliza un **Arsys Proxy Layer** (debido a restricciones de IP).
+La web es **read-only sobre Supabase**: no llama a la API de Inmovilla. La sincronización con Inmovilla vive en el CRM (`vidahome-encargo`). El antiguo pipeline vía API Web + proxy Arsys se retiró el 2026-04-15 (`b57eaae`); su código residual se eliminó del repo en 2026-06.
 
-📖 **Guía de Configuración**: [docs/ARSYS_PROXY_SETUP.md](./docs/ARSYS_PROXY_SETUP.md)  
-📚 **Guía Maestra de Setup**: [docs/MASTER_SETUP_GUIDE.md](./docs/MASTER_SETUP_GUIDE.md)  
-
-Para verificar la conexión manual con la API:
-```bash
-npm run api:test
-```
+📚 **Guía Maestra de Setup**: [docs/MASTER_SETUP_GUIDE.md](./docs/MASTER_SETUP_GUIDE.md)
 
 ## Getting Started
 

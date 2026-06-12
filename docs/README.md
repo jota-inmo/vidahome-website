@@ -91,7 +91,6 @@
 |----------|---------|-----------|
 | **MASTER_SETUP_GUIDE.md** | Original project setup | Reference for dependencies |
 | **AUDITORIA_TECNICA.md** | Technical audit report | Security & performance review |
-| **ARSYS_PROXY_SETUP.md** | ARSYS proxy configuration | If needing to interact with proxy |
 
 ---
 
@@ -142,8 +141,7 @@
 │   ├── ANALYTICS_DASHBOARD.md
 │   ├── ANALYTICS_IMPLEMENTATION_SUMMARY.md
 │   ├── MASTER_SETUP_GUIDE.md
-│   ├── AUDITORIA_TECNICA.md
-│   └── ARSYS_PROXY_SETUP.md
+│   └── AUDITORIA_TECNICA.md
 │
 └── 📁 LEGACY (Historical)
     ├── CATASTRO_* (5 files)

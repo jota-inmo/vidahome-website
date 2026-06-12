@@ -20,7 +20,6 @@
 - `npm run dev`: Start local development server.
 - `npm run build`: Production build.
 - `npm run lint`: Linting with ESLint.
-- `npm run sync:manual`: Run manual Inmovilla sync script.
 - `npm run translate:perplexity`: Bulk translation script.
 - `npm run test`: Run unit tests (Vitest).
 

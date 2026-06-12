@@ -306,13 +306,11 @@ Esta tabla documenta **todas** las variables que deben estar configuradas en Ver
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave pública de Supabase | ✅ Sí |
 | `SUPABASE_SERVICE_ROLE_KEY` | Escrituras admin (bypass RLS) | ✅ Sí |
 | `ADMIN_PASSWORD` | Login al panel de administración | ✅ Sí |
-| `INMOVILLA_AGENCIA` | Nº de agencia para API Web | ✅ Sí |
-| `INMOVILLA_PASSWORD` | Contraseña API Web | ✅ Sí |
+| `INMOVILLA_AGENCIA` | Nº de agencia para API Web | ❌ Legacy (API Web retirada 2026-04) |
+| `INMOVILLA_PASSWORD` | Contraseña API Web | ❌ Legacy (API Web retirada 2026-04) |
 | `INMOVILLA_TOKEN` | Token para API REST (fallback) | ✅ Sí |
 | `INMOVILLA_AUTH_TYPE` | Tipo de autenticación (`Token` o `Bearer`) | ✅ Sí |
 | `INMOVILLA_DOMAIN` | Dominio para validación API | ⚠️ Recomendada |
-| `ARSYS_PROXY_URL` | URL del proxy de IP estática | ⚠️ Si se usa Vercel |
-| `ARSYS_PROXY_SECRET` | Secreto compartido con proxy | ⚠️ Si se usa proxy |
 | `RESEND_API_KEY` | Envío de emails transaccionales | ⚠️ Recomendada |
 
 ---
