@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from '@/i18n/routing';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { PropertySearch, SearchFilters } from '@/components/PropertySearch';
 import { LuxuryPropertyCard } from '@/components/LuxuryPropertyCard';
@@ -10,63 +12,97 @@ import { sortProperties, type SortKey } from '@/lib/utils/property-sort';
 interface PropertyCatalogClientProps {
     initialProperties: PropertyListEntry[];
     populations: string[];
-    /** Query string pre-filled from the URL ?q= param (e.g. from the hero search). */
+    /** Filters pre-filled from the URL (?q=, ?type=, ?pop=, ?sort=). */
     initialQuery?: string;
+    initialType?: SearchFilters['type'];
+    initialPopulation?: string;
+    initialSort?: SortKey;
 }
 
-function applyInitialFilter(
+/**
+ * Applies the active filters to the full property list. Pure — no side
+ * effects, easy to reason about and reuse.
+ */
+function filterProperties(
     all: PropertyListEntry[],
-    initialQuery: string,
+    { query, type, population }: SearchFilters,
 ): PropertyListEntry[] {
-    const filteredByType = all.filter(p => {
-        const ref = (p.ref || '').toUpperCase();
-        return !ref.startsWith('T') && (!p.keyacci || p.keyacci === 1);
-    });
-    if (!initialQuery) return filteredByType;
-    const q = initialQuery.toLowerCase();
-    return filteredByType.filter(p =>
-        p.ref.toLowerCase().includes(q) ||
-        (p.descripciones && p.descripciones.toLowerCase().includes(q)) ||
-        (p.poblacion && p.poblacion.toLowerCase().includes(q))
-    );
+    let filtered = [...all];
+
+    if (type === 'transfer') {
+        // Traspasos: ref starts with 'T'.
+        filtered = filtered.filter(p => (p.ref || '').toUpperCase().startsWith('T'));
+    } else {
+        // Exclude traspasos from comprar/alquilar.
+        filtered = filtered.filter(p => !(p.ref || '').toUpperCase().startsWith('T'));
+        const targetAcci = type === 'buy' ? 1 : 2;
+        filtered = filtered.filter(p => !p.keyacci || p.keyacci === targetAcci);
+    }
+
+    if (population) {
+        filtered = filtered.filter(p => p.poblacion === population);
+    }
+
+    if (query) {
+        const q = query.toLowerCase();
+        filtered = filtered.filter(p =>
+            p.ref.toLowerCase().includes(q) ||
+            (p.descripciones && p.descripciones.toLowerCase().includes(q)) ||
+            (p.poblacion && p.poblacion.toLowerCase().includes(q)),
+        );
+    }
+
+    return filtered;
 }
 
-export function PropertyCatalogClient({ initialProperties, populations, initialQuery = '' }: PropertyCatalogClientProps) {
+export function PropertyCatalogClient({
+    initialProperties,
+    populations,
+    initialQuery = '',
+    initialType = 'buy',
+    initialPopulation = '',
+    initialSort = 'recent',
+}: PropertyCatalogClientProps) {
     const [allProperties] = useState<PropertyListEntry[]>(initialProperties);
-    const [filteredProperties, setFilteredProperties] = useState<PropertyListEntry[]>(
-        () => applyInitialFilter(initialProperties, initialQuery)
-    );
-    const [sortKey, setSortKey] = useState<SortKey>('recent');
+    const [filters, setFilters] = useState<SearchFilters>({
+        query: initialQuery,
+        type: initialType,
+        population: initialPopulation,
+    });
+    const [sortKey, setSortKey] = useState<SortKey>(initialSort);
     const t = useTranslations('Search');
 
-    const handleSearch = (filters: SearchFilters) => {
-        let filtered = [...allProperties];
+    const pathname = usePathname();
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-        if (filters.type === 'transfer') {
-            // Traspasos: ref starts with 'T'
-            filtered = filtered.filter(p => (p.ref || '').toUpperCase().startsWith('T'));
-        } else {
-            // Exclude traspasos from comprar/alquilar
-            filtered = filtered.filter(p => !(p.ref || '').toUpperCase().startsWith('T'));
-            const targetAcci = filters.type === 'buy' ? 1 : 2;
-            filtered = filtered.filter(p => !p.keyacci || p.keyacci === targetAcci);
-        }
-
-        if (filters.population) {
-            filtered = filtered.filter(p => p.poblacion === filters.population);
-        }
-
-        if (filters.query) {
-            const q = filters.query.toLowerCase();
-            filtered = filtered.filter(p =>
-                p.ref.toLowerCase().includes(q) ||
-                (p.descripciones && p.descripciones.toLowerCase().includes(q)) ||
-                (p.poblacion && p.poblacion.toLowerCase().includes(q))
-            );
-        }
-
-        setFilteredProperties(filtered);
+    // Reflect the current filter + sort state into the URL with router.replace
+    // (no new history entry, no scroll reset). The defaults (buy / recent) are
+    // omitted to keep shared URLs clean.
+    const syncUrl = (next: SearchFilters, sort: SortKey) => {
+        const params = new URLSearchParams(searchParams?.toString());
+        next.query ? params.set('q', next.query) : params.delete('q');
+        next.type && next.type !== 'buy' ? params.set('type', next.type) : params.delete('type');
+        next.population ? params.set('pop', next.population) : params.delete('pop');
+        sort !== 'recent' ? params.set('sort', sort) : params.delete('sort');
+        const qs = params.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     };
+
+    const handleSearch = (next: SearchFilters) => {
+        setFilters(next);
+        syncUrl(next, sortKey);
+    };
+
+    const handleSortChange = (key: SortKey) => {
+        setSortKey(key);
+        syncUrl(filters, key);
+    };
+
+    const filteredProperties = useMemo(
+        () => filterProperties(allProperties, filters),
+        [allProperties, filters],
+    );
 
     // Apply sort on top of the current filter result. useMemo so we only
     // re-sort when the filter or sort key actually change.
@@ -81,6 +117,8 @@ export function PropertyCatalogClient({ initialProperties, populations, initialQ
                 onSearch={handleSearch}
                 populations={populations}
                 initialQuery={initialQuery}
+                initialType={initialType}
+                initialPopulation={initialPopulation}
             />
 
             <main className="px-8 max-w-[1600px] mx-auto pb-32">
@@ -93,7 +131,7 @@ export function PropertyCatalogClient({ initialProperties, populations, initialQ
                         <span>{t('sortBy')}</span>
                         <select
                             value={sortKey}
-                            onChange={(e) => setSortKey(e.target.value as SortKey)}
+                            onChange={(e) => handleSortChange(e.target.value as SortKey)}
                             className="bg-transparent border border-slate-200 dark:border-slate-800 rounded-sm px-3 py-2 text-slate-900 dark:text-white text-xs uppercase tracking-[0.15em] font-medium cursor-pointer focus:outline-none focus:border-slate-400 dark:focus:border-slate-600"
                         >
                             <option value="recent">{t('sortRecent')}</option>

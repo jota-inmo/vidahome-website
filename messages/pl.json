@@ -93,6 +93,7 @@
         "resultsCount": "{count, plural, =0 {Brak wyników} =1 {# wynik} few {# wyniki} many {# wyników} other {# wyników}}"
     },
     "Property": {
+        "backToResults": "Powrót do wyników",
         "summary": "Podsumowanie ogłoszenia",
         "floor": "Piętro",
         "groundFloor": "Parter",

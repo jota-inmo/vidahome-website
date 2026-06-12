@@ -4,6 +4,7 @@ import { fetchPropertiesAction } from '@/app/actions';
 import { PropertyCatalogClient } from './PropertyCatalogClient';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
+import type { SortKey } from '@/lib/utils/property-sort';
 
 // Was 60s — changed to 3600s to reduce Supabase cached egress.
 // The catalog fetches full_data for ~400 properties (~20 MB per rebuild).
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 interface PropiedadesPageProps {
     // searchParams is a Promise in Next 15 async routes
-    searchParams?: Promise<{ q?: string }>;
+    searchParams?: Promise<{ q?: string; type?: string; pop?: string; sort?: string }>;
 }
 
 export default async function PropiedadesPage({ searchParams }: PropiedadesPageProps) {
@@ -61,7 +62,18 @@ export default async function PropiedadesPage({ searchParams }: PropiedadesPageP
     const populations = result.meta?.populations || [];
     const error = result.success ? null : result.error;
     const params = await searchParams;
+
+    // Hydrate the catalog filters straight from the URL so a shared/bookmarked
+    // link — and the browser Back button from a property detail — restore the
+    // exact same view.
     const initialQuery = (params?.q || '').trim();
+    const rawType = params?.type;
+    const initialType: 'buy' | 'rent' | 'transfer' =
+        rawType === 'rent' || rawType === 'transfer' ? rawType : 'buy';
+    const initialPopulation = (params?.pop || '').trim();
+    const rawSort = params?.sort;
+    const initialSort: SortKey =
+        rawSort === 'price_asc' || rawSort === 'price_desc' ? rawSort : 'recent';
 
     const t = await getTranslations('Index');
     const f = await getTranslations('Footer');
@@ -94,6 +106,9 @@ export default async function PropiedadesPage({ searchParams }: PropiedadesPageP
                 initialProperties={properties}
                 populations={populations}
                 initialQuery={initialQuery}
+                initialType={initialType}
+                initialPopulation={initialPopulation}
+                initialSort={initialSort}
             />
 
             <footer className="px-8 py-20 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-900">

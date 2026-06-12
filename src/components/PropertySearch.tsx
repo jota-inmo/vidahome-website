@@ -9,6 +9,8 @@ interface PropertySearchProps {
     onSearch: (filters: SearchFilters) => void;
     populations: string[];
     initialQuery?: string;
+    initialType?: 'buy' | 'rent' | 'transfer';
+    initialPopulation?: string;
 }
 
 export interface SearchFilters {
@@ -17,16 +19,21 @@ export interface SearchFilters {
     population: string;
 }
 
-export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: PropertySearchProps) => {
-    const [type, setType] = React.useState<'buy' | 'rent' | 'transfer'>('buy');
+export const PropertySearch = ({ onSearch, populations, initialQuery = '', initialType = 'buy', initialPopulation = '' }: PropertySearchProps) => {
+    const [type, setType] = React.useState<'buy' | 'rent' | 'transfer'>(initialType);
     const [query, setQuery] = React.useState(initialQuery);
-    const [population, setPopulation] = React.useState('');
+    const [population, setPopulation] = React.useState(initialPopulation);
     const t = useTranslations('Search');
     const { trackSearch } = useAnalytics();
 
     const handleTypeChange = (newType: 'buy' | 'rent' | 'transfer') => {
         setType(newType);
         onSearch({ type: newType, query, population });
+    };
+
+    const handlePopulationChange = (newPopulation: string) => {
+        setPopulation(newPopulation);
+        onSearch({ type, query, population: newPopulation });
     };
 
     const handleSearch = () => {
@@ -99,7 +106,7 @@ export const PropertySearch = ({ onSearch, populations, initialQuery = '' }: Pro
                         <MapPin size={18} className="text-slate-300 mr-4 flex-shrink-0" />
                         <select
                             value={population}
-                            onChange={(e) => setPopulation(e.target.value)}
+                            onChange={(e) => handlePopulationChange(e.target.value)}
                             className="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white text-sm py-4 cursor-pointer appearance-none"
                         >
                             <option value="" className="bg-white text-slate-900 dark:bg-slate-900 dark:text-white">

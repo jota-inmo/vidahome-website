@@ -93,6 +93,7 @@
         "resultsCount": "{count, plural, =0 {Aucun résultat} =1 {# résultat} other {# résultats}}"
     },
     "Property": {
+        "backToResults": "Retour aux résultats",
         "summary": "Résumé de l'annonce",
         "floor": "Étage",
         "groundFloor": "Rez-de-chaussée",

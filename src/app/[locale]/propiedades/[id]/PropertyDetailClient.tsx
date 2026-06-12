@@ -150,6 +150,16 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
 
     const localizedType = translatePropertyType(property.tipo_nombre, locale);
 
+    // Back to results: use the browser history when we arrived from the
+    // catalog (preserving its filters), otherwise fall back to the catalog.
+    const handleBackToResults = () => {
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+            router.back();
+        } else {
+            router.push(`/${locale}/propiedades`);
+        }
+    };
+
     const handleShare = async () => {
         const type = localizedType || t('defaultType');
         const population = property.poblacion || 'La Safor';
@@ -258,7 +268,7 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
         >
             {/* Botón Volver */}
             <button
-                onClick={() => router.back()}
+                onClick={handleBackToResults}
                 className="fixed top-28 left-6 md:top-8 md:left-8 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-2.5 md:p-3 rounded-full shadow-lg hover:scale-110 transition-all border border-slate-100 dark:border-slate-800"
                 title={t('back')}
             >
@@ -296,6 +306,14 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
             </div>
 
             <main className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24 pb-28 lg:pb-24">
+                <button
+                    onClick={handleBackToResults}
+                    className="group mb-10 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] font-medium text-slate-400 hover:text-brand-navy dark:hover:text-white transition-colors"
+                >
+                    <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                    {t('backToResults')}
+                </button>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 lg:gap-24">
                     {/* Detalles Principales */}
                     <div className="lg:col-span-2">
