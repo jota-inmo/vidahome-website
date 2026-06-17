@@ -672,11 +672,20 @@ export async function submitLeadAction(formData: {
         // host-resolved tenant (not a hardcoded constant) so it's tenant-2 ready.
         if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
             const { supabase: leadsClient, tenantId } = await getPublicTenantContext();
-            await leadsClient.from('leads').insert([{
-                ...formData,
+            // `formData.ref` is NOT a column on `leads` (the column is `ref_propiedad`)
+            // — spreading it raised 42703 and, because the insert error was never
+            // checked, the lead silently never persisted (the email still went out, so
+            // it failed invisibly since ~May). Map ref → ref_propiedad and surface any
+            // error. The email is the operative channel, so we don't fail the response,
+            // but the backup insert failure must stop being invisible.
+            const { ref, ...leadFields } = formData;
+            const { error: leadErr } = await leadsClient.from('leads').insert([{
+                ...leadFields,
+                ref_propiedad: ref ?? null,
                 tenant_id: tenantId,
                 created_at: new Date().toISOString()
             }]);
+            if (leadErr) console.error('[submitLeadAction] leads backup insert failed:', leadErr);
         }
 
         // Send notification email
