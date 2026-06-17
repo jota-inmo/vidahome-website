@@ -114,34 +114,19 @@ function plainAnonClient(): SupabaseClient {
     });
 }
 
-/**
- * Returns a public Supabase client whose requests carry a tenant-scoped anon JWT
- * (host-resolved). Use this for the public anon READS on tenantized tables
- * (property_metadata, fotos_inmuebles, encargos_public_view, featured_properties,
- * app_config). Service-role writes and admin paths keep using `supabaseAdmin`.
- *
- * Never throws for a missing secret — degrades to the plain anon client (see the
- * module header: safe only while policies are transitional).
- */
-export async function getPublicTenantClient(): Promise<SupabaseClient> {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        // No Supabase config at all — return the plain client; the caller's query
-        // will surface the real error.
-        return plainAnonClient();
-    }
+function warnMissingSecretOnce() {
+    if (warnedMissingSecret) return;
+    warnedMissingSecret = true;
+    console.warn(
+        '[tenantClient] SUPABASE_JWT_SECRET not set — falling back to plain anon ' +
+        '(no tenant claim). Safe only while RLS policies are transitional (Estado 1). ' +
+        'Set it before tightening to strict (Step 6).',
+    );
+}
 
-    if (!JWT_SECRET) {
-        if (!warnedMissingSecret) {
-            warnedMissingSecret = true;
-            console.warn(
-                '[tenantClient] SUPABASE_JWT_SECRET not set — falling back to plain anon ' +
-                '(no tenant claim). Safe only while RLS policies are transitional (Estado 1). ' +
-                'Set it before tightening to strict (Step 6).',
-            );
-        }
-        return plainAnonClient();
-    }
-
+/** Reads the request Host (server context) and resolves it to a tenant_id. Empty
+ *  host (e.g. static generation) → VidaHome via resolveTenantByHost. */
+async function resolveHostTenant(): Promise<{ host: string; tenantId: string }> {
     let host = '';
     try {
         const h = await headers();
@@ -150,18 +135,73 @@ export async function getPublicTenantClient(): Promise<SupabaseClient> {
         // headers() unavailable (e.g. static generation context) — fall back to
         // VidaHome via the empty-host path in resolveTenantByHost.
     }
+    const tenantId = await resolveTenantByHost(host);
+    return { host, tenantId };
+}
+
+/**
+ * Resolve the request's tenant_id from the Host header (server context only).
+ * Use this when a service-role writer must STAMP `tenant_id` explicitly (service
+ * role bypasses RLS, so the DEFAULT `app.current_tenant_id()` resolves to NULL).
+ * Always returns a tenant_id — VidaHome on host miss / no headers (single-tenant
+ * safe). Does NOT depend on SUPABASE_JWT_SECRET (the lookup uses the service role).
+ */
+export async function resolvePublicTenantId(): Promise<string> {
+    const { tenantId } = await resolveHostTenant();
+    return tenantId;
+}
+
+/**
+ * Returns a public Supabase client carrying a tenant-scoped anon JWT (host-resolved)
+ * TOGETHER WITH the resolved `tenantId`. Use this for public anon WRITES on tenantized
+ * tables (leads, valuation_leads, analytics_*): the claim makes `app.current_tenant_id()`
+ * resolve so the anon INSERT policy passes, and the caller stamps `tenant_id` with the
+ * returned value (the column DEFAULT is the literal VidaHome on these web tables until
+ * the policies are made strict — see module header). `tenantId` is the host-resolved
+ * tenant even in the degraded (no-secret) path, where the client is the plain anon one.
+ *
+ * Never throws for a missing secret — degrades to the plain anon client (see the
+ * module header: safe only while policies are transitional).
+ */
+export async function getPublicTenantContext(): Promise<{ supabase: SupabaseClient; tenantId: string }> {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        // No Supabase config at all — return the plain client; the caller's query
+        // will surface the real error. No host lookup possible.
+        return { supabase: plainAnonClient(), tenantId: VIDAHOME_TENANT_ID };
+    }
+
+    const { host, tenantId } = await resolveHostTenant();
+
+    if (!JWT_SECRET) {
+        warnMissingSecretOnce();
+        return { supabase: plainAnonClient(), tenantId };
+    }
 
     try {
-        const tenantId = await resolveTenantByHost(host);
         const jwt = await mintAnonTenantJwt(tenantId, host);
-        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             global: { headers: { Authorization: `Bearer ${jwt}` } },
             auth: { persistSession: false, autoRefreshToken: false },
         });
+        return { supabase, tenantId };
     } catch (err) {
         // Mint/resolve failed unexpectedly — never take the public site down over
         // tenant scoping while policies are transitional.
         console.error('[tenantClient] mint failed, falling back to plain anon:', err);
-        return plainAnonClient();
+        return { supabase: plainAnonClient(), tenantId };
     }
+}
+
+/**
+ * Returns a public Supabase client whose requests carry a tenant-scoped anon JWT
+ * (host-resolved). Use this for the public anon READS on tenantized tables
+ * (property_metadata, fotos_inmuebles, encargos_public_view, featured_properties,
+ * app_config). Service-role writes and admin paths keep using `supabaseAdmin`.
+ *
+ * Thin wrapper over `getPublicTenantContext` for read call-sites that don't need
+ * the resolved tenant_id. Never throws for a missing secret (see module header).
+ */
+export async function getPublicTenantClient(): Promise<SupabaseClient> {
+    const { supabase } = await getPublicTenantContext();
+    return supabase;
 }

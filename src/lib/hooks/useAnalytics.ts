@@ -8,8 +8,27 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { VIDAHOME_TENANT_ID } from '@/lib/tenant';
+
+// Analytics events are posted to a server route that resolves the tenant from the
+// request Host and stamps `tenant_id` with the resolved tenant (the browser cannot
+// resolve the tenant nor mint the anon claim — SUPABASE_JWT_SECRET is server-only).
+// Fire-and-forget: analytics must never block or surface errors to the visitor.
+const ANALYTICS_ENDPOINT = '/api/analytics/track';
+
+function sendEvent(payload: Record<string, unknown>) {
+    try {
+        void fetch(ANALYTICS_ENDPOINT, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(payload),
+            keepalive: true,
+        }).catch((error) => {
+            console.warn('[Analytics] Error sending event:', error);
+        });
+    } catch (error) {
+        console.warn('[Analytics] Error sending event:', error);
+    }
+}
 
 // Session tracking
 const getSessionId = () => {
@@ -67,21 +86,12 @@ export function useAnalytics() {
 
     // Track page view
     useEffect(() => {
-        const trackPageView = async () => {
-            try {
-                await supabase.from('analytics_page_views').insert({
-                    tenant_id: VIDAHOME_TENANT_ID,
-                    page_path: pathname,
-                    locale,
-                    session_id: getSessionId(),
-                    visitor_ip: 'client', // Cliente no puede obtener IP real
-                });
-            } catch (error) {
-                console.warn('[Analytics] Error tracking page view:', error);
-            }
-        };
-
-        trackPageView();
+        sendEvent({
+            type: 'page_view',
+            page_path: pathname,
+            locale,
+            session_id: getSessionId(),
+        });
     }, [pathname, locale]);
 
     // Track property view. cod_ofer may be null for CRM-published rows that
@@ -89,41 +99,33 @@ export function useAnalytics() {
     // since analytics_property_views.cod_ofer has a NOT NULL constraint.
     const trackPropertyView = useCallback(async (codOfer: number | null | undefined) => {
         if (codOfer == null) return;
-        try {
-            const utm = getUTMParams();
-            const referrer = typeof document !== 'undefined' ? document.referrer : '';
-            const trafficSource = utm.utm_source || detectTrafficSource(referrer);
+        const utm = getUTMParams();
+        const referrer = typeof document !== 'undefined' ? document.referrer : '';
+        const trafficSource = utm.utm_source || detectTrafficSource(referrer);
 
-            await supabase.from('analytics_property_views').insert({
-                tenant_id: VIDAHOME_TENANT_ID,
-                cod_ofer: codOfer,
-                locale,
-                session_id: getSessionId(),
-                user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
-                referer: referrer,
-                traffic_source: trafficSource,
-                utm_source: utm.utm_source,
-                utm_medium: utm.utm_medium,
-                utm_campaign: utm.utm_campaign,
-            });
-        } catch (error) {
-            console.warn('[Analytics] Error tracking property view:', error);
-        }
+        sendEvent({
+            type: 'property_view',
+            cod_ofer: codOfer,
+            locale,
+            session_id: getSessionId(),
+            user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+            referer: referrer,
+            traffic_source: trafficSource,
+            utm_source: utm.utm_source,
+            utm_medium: utm.utm_medium,
+            utm_campaign: utm.utm_campaign,
+        });
     }, [locale]);
 
     // Track search
     const trackSearch = useCallback(async (query: string, resultsCount: number) => {
-        try {
-            await supabase.from('analytics_searches').insert({
-                tenant_id: VIDAHOME_TENANT_ID,
-                search_query: query,
-                locale,
-                results_count: resultsCount,
-                session_id: getSessionId(),
-            });
-        } catch (error) {
-            console.warn('[Analytics] Error tracking search:', error);
-        }
+        sendEvent({
+            type: 'search',
+            search_query: query,
+            locale,
+            results_count: resultsCount,
+            session_id: getSessionId(),
+        });
     }, [locale]);
 
     // Track lead/conversion. Skip when codOfer is missing (CRM-only rows
@@ -131,21 +133,17 @@ export function useAnalytics() {
     // has a NOT NULL constraint.
     const trackConversion = useCallback(async (options: TrackEventOptions) => {
         if (options.codOfer == null) return;
-        try {
-            const utm = getUTMParams();
-            const referrer = typeof document !== 'undefined' ? document.referrer : '';
-            const trafficSource = utm.utm_source || detectTrafficSource(referrer);
+        const utm = getUTMParams();
+        const referrer = typeof document !== 'undefined' ? document.referrer : '';
+        const trafficSource = utm.utm_source || detectTrafficSource(referrer);
 
-            await supabase.from('analytics_leads').insert({
-                tenant_id: VIDAHOME_TENANT_ID,
-                cod_ofer: options.codOfer,
-                source: options.source || trafficSource || 'direct',
-                locale,
-                conversion_type: options.conversionType || 'lead',
-            });
-        } catch (error) {
-            console.warn('[Analytics] Error tracking conversion:', error);
-        }
+        sendEvent({
+            type: 'lead',
+            cod_ofer: options.codOfer,
+            source: options.source || trafficSource || 'direct',
+            locale,
+            conversion_type: options.conversionType || 'lead',
+        });
     }, [locale]);
 
     return {

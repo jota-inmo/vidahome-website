@@ -3,7 +3,7 @@ import { LeadValuationV2 } from '@/types/sell-form';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { escapeHtml } from '@/lib/utils/sanitize';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { VIDAHOME_TENANT_ID } from '@/lib/tenant';
+import { resolvePublicTenantId } from '@/lib/tenantClient';
 import { z } from 'zod';
 
 const valuationV2Schema = z.object({
@@ -61,11 +61,16 @@ export async function POST(request: NextRequest) {
       nombre, email, telefono, indicativoPais, mensaje
     } = parsed.data;
 
+    // Service-role write (bypasses RLS; needs `.select().single()` to return the
+    // generated id, which an anon claim client cannot read back — no anon SELECT
+    // policy on leads_valuation_v2). Stamp the host-resolved tenant explicitly so
+    // it's tenant-2 ready (the column DEFAULT resolves to NULL under service role).
     const supabase = supabaseAdmin;
+    const tenantId = await resolvePublicTenantId();
 
     // Crear registro en Supabase
     const leadData = {
-      tenant_id: VIDAHOME_TENANT_ID,
+      tenant_id: tenantId,
       operation_type: operationType || 'venta',
       property_type: propertyType || 'piso',
       property_type_other: propertyTypeOther,

@@ -9,7 +9,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { parseSpanishNumber } from '@/lib/utils/parse-spanish-number';
 import { getPublicCoords, coerceCoord } from '@/lib/utils/coords';
 import { encargoToFullDataShape } from '@/lib/utils/encargo-shape';
-import { getPublicTenantClient } from '@/lib/tenantClient';
+import { getPublicTenantClient, getPublicTenantContext } from '@/lib/tenantClient';
 
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
@@ -666,13 +666,15 @@ export async function submitLeadAction(formData: {
             }
         }
 
-        // Store in Supabase (Internal backup)
-        const { supabase } = await import('@/lib/supabase');
-        const { VIDAHOME_TENANT_ID } = await import('@/lib/tenant');
+        // Store in Supabase (Internal backup) — tenant-claimed anon write. The
+        // client carries a host-resolved tenant claim so the anon INSERT policy
+        // passes (current + future-strict), and we stamp `tenant_id` with the SAME
+        // host-resolved tenant (not a hardcoded constant) so it's tenant-2 ready.
         if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
-            await supabase.from('leads').insert([{
+            const { supabase: leadsClient, tenantId } = await getPublicTenantContext();
+            await leadsClient.from('leads').insert([{
                 ...formData,
-                tenant_id: VIDAHOME_TENANT_ID,
+                tenant_id: tenantId,
                 created_at: new Date().toISOString()
             }]);
         }
