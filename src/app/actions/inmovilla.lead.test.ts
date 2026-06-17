@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 
 // Capture every insert the leads backup path performs.
 type Row = Record<string, unknown>;
@@ -57,11 +57,44 @@ const basePayload = {
     cod_ofer: null,
 };
 
-describe('submitLeadAction — leads backup insert', () => {
+const ENV_KEYS = [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+    'SUPABASE_URL',
+    'SUPABASE_ANON_KEY',
+] as const;
+const prevEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
+
+describe('submitLeadAction — leads insert', () => {
     beforeEach(() => {
         inserts.length = 0;
-        process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
+        // Mirror the production env: ONLY the non-public vars are set (no NEXT_PUBLIC_
+        // prefix). The old `if (NEXT_PUBLIC_SUPABASE_URL && ...)` gate resolved to false
+        // here and silently skipped the whole insert block — this is the bug #6 fixes.
+        // getPublicTenantContext is mocked, so what's exercised is the (now absent) gate.
+        delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+        delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+        process.env.SUPABASE_URL = 'https://example.supabase.co';
+        process.env.SUPABASE_ANON_KEY = 'anon-key';
+    });
+
+    afterAll(() => {
+        for (const k of ENV_KEYS) {
+            if (prevEnv[k] === undefined) delete process.env[k];
+            else process.env[k] = prevEnv[k];
+        }
+    });
+
+    it('fires the insert even when only SUPABASE_ANON_KEY is set (no NEXT_PUBLIC_ — gate is gone)', async () => {
+        const res = await submitLeadAction({ ...basePayload, ref: '3001' });
+
+        expect(res.success).toBe(true);
+        // The bug: this was 0 (block skipped). Now it must be 1.
+        expect(inserts).toHaveLength(1);
+        expect(inserts[0].table).toBe('leads');
+        expect(inserts[0].rows[0].ref_propiedad).toBe('3001');
     });
 
     it('maps formData.ref → ref_propiedad and never spreads a bogus `ref` column (42703 fix)', async () => {

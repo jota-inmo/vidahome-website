@@ -670,23 +670,27 @@ export async function submitLeadAction(formData: {
         // client carries a host-resolved tenant claim so the anon INSERT policy
         // passes (current + future-strict), and we stamp `tenant_id` with the SAME
         // host-resolved tenant (not a hardcoded constant) so it's tenant-2 ready.
-        if (process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
-            const { supabase: leadsClient, tenantId } = await getPublicTenantContext();
-            // `formData.ref` is NOT a column on `leads` (the column is `ref_propiedad`)
-            // — spreading it raised 42703 and, because the insert error was never
-            // checked, the lead silently never persisted (the email still went out, so
-            // it failed invisibly since ~May). Map ref → ref_propiedad and surface any
-            // error. The email is the operative channel, so we don't fail the response,
-            // but the backup insert failure must stop being invisible.
-            const { ref, ...leadFields } = formData;
-            const { error: leadErr } = await leadsClient.from('leads').insert([{
-                ...leadFields,
-                ref_propiedad: ref ?? null,
-                tenant_id: tenantId,
-                created_at: new Date().toISOString()
-            }]);
-            if (leadErr) console.error('[submitLeadAction] leads backup insert failed:', leadErr);
-        }
+        //
+        // No env gate: getPublicTenantContext() is the single source of truth for the
+        // Supabase config (it reads SUPABASE_ANON_KEY too, the var actually set in the
+        // env — without the NEXT_PUBLIC_ prefix) and degrades gracefully (plain anon if
+        // there's no config at all). A previous `if (NEXT_PUBLIC_SUPABASE_URL && ...)`
+        // gate resolved to false in prod (only the non-public vars are set), so the
+        // whole block — insert AND its error log — was skipped: POST 200, email sent,
+        // zero row in `leads`, zero log. `leadErr` surfaces any real problem now.
+        const { supabase: leadsClient, tenantId } = await getPublicTenantContext();
+        // `formData.ref` is NOT a column on `leads` (the column is `ref_propiedad`)
+        // — spreading it raised 42703. Map ref → ref_propiedad and surface any error.
+        // The email is the operative channel, so we don't fail the response, but the
+        // backup insert failure must stop being invisible.
+        const { ref, ...leadFields } = formData;
+        const { error: leadErr } = await leadsClient.from('leads').insert([{
+            ...leadFields,
+            ref_propiedad: ref ?? null,
+            tenant_id: tenantId,
+            created_at: new Date().toISOString()
+        }]);
+        if (leadErr) console.error('[submitLeadAction] leads insert failed:', leadErr);
 
         // Send notification email
         try {
