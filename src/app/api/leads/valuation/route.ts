@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { escapeHtml } from '@/lib/utils/sanitize';
 import { valuationBodySchema } from '@/lib/validations';
-import { VIDAHOME_TENANT_ID } from '@/lib/tenant';
+import { getPublicTenantContext } from '@/lib/tenantClient';
 
 export async function POST(request: NextRequest) {
     // ─── Rate Limiting ──────────────────────────────────────────────────────────
@@ -108,12 +108,15 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // 3. Persist to Supabase (Backup and management)
+        // 3. Persist to Supabase (Backup and management) — tenant-claimed anon
+        // write: the client carries a host-resolved tenant claim (so the anon
+        // INSERT policy passes now and under strict policies) and we stamp
+        // `tenant_id` with that same resolved tenant (tenant-2 ready).
         try {
-            const { supabase } = await import('@/lib/supabase');
+            const { supabase, tenantId } = await getPublicTenantContext();
             await supabase.from('valuation_leads').insert([
                 {
-                    tenant_id: VIDAHOME_TENANT_ID,
+                    tenant_id: tenantId,
                     nombre: contactData.nombre,
                     email: contactData.email,
                     telefono: contactData.telefono,
