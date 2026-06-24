@@ -8,6 +8,7 @@ import { cleanDescription } from '@/lib/utils/text-cleaner';
 import { totalBathrooms, bathroomsTooltip } from '@/lib/utils/bathrooms';
 import { useTranslations, useLocale, useFormatter } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
+import { propertyLabelParts, buildPropertySlug } from '@/lib/utils/slug';
 import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { Link } from '@/i18n/routing';
 
@@ -30,7 +31,10 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
         trackPropertyView(property.cod_ofer);
     }, [property.cod_ofer, trackPropertyView]);
 
-    const localizedType = translatePropertyType(property.tipo_nombre, locale);
+    // Single source of label composition (shared with slug + sitemap +
+    // canonical). tipoEs is langue-neutre; we still translate it for display.
+    const { tipoEs, poblacion, ref } = propertyLabelParts(property);
+    const localizedType = translatePropertyType(tipoEs, locale);
     // Cierre con motivo de operación dentro del grace period (default 7d).
     // El backend ya filtra para que solo lleguen aquí los que están dentro
     // de la ventana — usamos el motivo explícito para el label en lugar
@@ -60,7 +64,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
             <div className="relative aspect-[16/11] overflow-hidden bg-slate-50 dark:bg-slate-900">
                 <Image
                     src={imageUrl}
-                    alt={`${localizedType} en ${property.poblacion || 'La Safor'} — Ref. ${property.ref}`}
+                    alt={`${localizedType} en ${poblacion || 'La Safor'} — Ref. ${ref}`}
                     fill
                     // The catalog grid is 1 col on mobile, 2 cols on md, 3 on lg.
                     // Before this `sizes` prop Next.js served a single ~1920px
@@ -123,12 +127,12 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                           usuario pueda distinguirlos.
                         */}
                         {localizedType
-                            ? (property.poblacion
-                                ? `${localizedType} ${t('in')} ${property.poblacion}`
-                                : `${localizedType} · Ref. ${property.ref}`)
-                            : (property.poblacion
-                                ? `${t('propertyIn')} ${property.poblacion}`
-                                : `Ref. ${property.ref}`)}
+                            ? (poblacion
+                                ? `${localizedType} ${t('in')} ${poblacion}`
+                                : `${localizedType} · Ref. ${ref}`)
+                            : (poblacion
+                                ? `${t('propertyIn')} ${poblacion}`
+                                : `Ref. ${ref}`)}
                     </h3>
 
                     <div className="flex items-center gap-8 mb-6 text-slate-400">
@@ -190,10 +194,11 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
         return <div className="group block h-full cursor-default">{cardContent}</div>;
     }
 
-    // Prefer ref (CRM source-of-truth) over cod_ofer (legacy Inmovilla).
-    // Old links that hit /propiedades/{cod_ofer} still resolve via the route
-    // handler's numeric-detection fallback.
-    const slug = property.ref || property.cod_ofer;
+    // Descriptive, langue-neutre slug (tipo-poblacion-ref) — same helper that
+    // feeds sitemap + canonical, so the card never links to a non-canonical URL
+    // that would 308-bounce. Legacy /propiedades/{ref|cod_ofer} still resolve
+    // via the detail page's extractRef + ref-first/cod_ofer fallback.
+    const slug = buildPropertySlug(property);
     return (
         <Link href={`/propiedades/${slug}`} className="group block h-full">
             {cardContent}
