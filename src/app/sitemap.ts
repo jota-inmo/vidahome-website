@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { fetchPropertiesAction } from '@/app/actions';
 import { routing } from '@/i18n/routing';
+import { buildPropertySlug } from '@/lib/utils/slug';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://www.vidahome.es';
@@ -40,8 +41,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const result = await fetchPropertiesAction();
         if (result.success && result.data) {
             for (const prop of result.data) {
-                // Prefer ref (CRM-friendly URL) over cod_ofer (legacy)
-                const slug = prop.ref || prop.cod_ofer;
+                // Descriptive langue-neutre slug — MUST be byte-identical to the
+                // canonical computed in propiedades/[id]/page.tsx for this same
+                // property (both call buildPropertySlug), or 308-loop / wasted crawl.
+                const slug = buildPropertySlug(prop);
                 const path = `/propiedades/${slug}`;
                 for (const locale of locales) {
                     sitemapEntries.push({

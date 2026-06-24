@@ -198,7 +198,12 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 aseos,
                 m_cons,
                 descripciones: localizedDesc,
-                tipo_nombre: fullData.tipo_nombre || row.tipo || '',
+                // Misma prioridad que el detalle (getPropertyDetailAction) para
+                // que lista y ficha resuelvan un tipo_nombre IDÉNTICO — el slug
+                // se compone de este valor en ambos lados (invariante sitemap ==
+                // canonical). `tipo` (columna pm, label vía publish_to_web) primero;
+                // bonus: arregla tarjetas CRM-only que mostraban un código.
+                tipo_nombre: row.tipo || resolveTipo(fullData) || fullData.tipo_nombre || '',
                 numagencia: fullData.numagencia,
                 fotoletra: fullData.fotoletra,
                 numfotos: fullData.numfotos,

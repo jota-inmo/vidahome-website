@@ -1,10 +1,23 @@
 import React from 'react';
 import { Metadata, ResolvingMetadata } from 'next';
+import { permanentRedirect } from 'next/navigation';
 import { getPropertyDetailAction } from '@/app/actions';
 import { PropertyDetailClient } from './PropertyDetailClient';
 import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
 import { translatePropertyType } from '@/lib/utils/property-types';
+import { buildPropertySlug, extractRef } from '@/lib/utils/slug';
+
+// Decode the route param defensively for the canonical comparison — a
+// malformed %-sequence must not throw; the canonical is pure [a-z0-9-]+ref
+// so a non-decodable param simply can't be canonical and will redirect.
+function safeDecode(s: string): string {
+    try {
+        return decodeURIComponent(s);
+    } catch {
+        return s;
+    }
+}
 
 // ISR: regenerate each detail page every 600 seconds (10 min).
 //
@@ -55,7 +68,7 @@ export async function generateMetadata(
     parent: ResolvingMetadata
 ): Promise<Metadata> {
     const { id, locale } = await params;
-    const result = await getPropertyDetailAction(id, locale);
+    const result = await getPropertyDetailAction(extractRef(id), locale);
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
 
     if (!result.success || !result.data) {
@@ -65,6 +78,9 @@ export async function generateMetadata(
     }
 
     const prop = result.data;
+    // Canonical slug — same helper as sitemap.ts. All canonical/hreflang URLs
+    // below are built from this, never from the raw (possibly numeric) param.
+    const canonical = buildPropertySlug(prop);
     const typeLabel = translatePropertyType(prop.tipo_nombre, locale) || t('defaultType');
     const location = prop.poblacion || 'La Safor';
     const title = `${typeLabel} ${t('in')} ${location} - Ref: ${prop.ref} | Vidahome`;
@@ -76,14 +92,14 @@ export async function generateMetadata(
         : `${typeLabel} ${t('in')} ${location}. Especialistas en la zona de La Safor.`;
 
     const images = prop.fotos_lista?.slice(0, 1) || [];
-    const path = buildLocalePath(locale, id);
+    const path = buildLocalePath(locale, canonical);
     const url = `${SITE_URL}${path}`;
 
     const languages: Record<string, string> = {};
     for (const l of SUPPORTED_LOCALES) {
-        languages[l] = `${SITE_URL}${buildLocalePath(l, id)}`;
+        languages[l] = `${SITE_URL}${buildLocalePath(l, canonical)}`;
     }
-    languages['x-default'] = `${SITE_URL}/propiedades/${id}`;
+    languages['x-default'] = `${SITE_URL}/propiedades/${canonical}`;
 
     // Cierre por operación dentro del grace: noindex/nofollow para que
     // Google no aprenda la versión "VENDIDO" de la URL — desaparece
@@ -119,7 +135,7 @@ export async function generateMetadata(
 
 export default async function PropertyDetailPage({ params }: Props) {
     const { id, locale } = await params;
-    const result = await getPropertyDetailAction(id, locale);
+    const result = await getPropertyDetailAction(extractRef(id), locale);
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
     const tIndex = await getTranslations({ locale: locale as string, namespace: 'Index' });
 
@@ -139,13 +155,25 @@ export default async function PropertyDetailPage({ params }: Props) {
     // + full_data (CRM source of truth). `antiguedad` stores construction
     // year (1964, 2008…), not age — semantic misnomer kept for back-compat.
     const data = result.data;
+
+    // 308 a la URL canónica (slug descriptivo langue-neutre) CONSERVANDO el
+    // prefijo de locale. Hecho temprano, antes de cualquier render. El slug es
+    // byte-idéntico al que emite sitemap.ts (misma fn buildPropertySlug) — la
+    // comparación se hace decodificada para no disparar falsos 308 → bucle.
+    // 308 es permanente; Google lo consolida como 301. localePrefix:'always'
+    // ⇒ la URL real lleva /xx para los 6 locales (también es).
+    const canonicalSlug = buildPropertySlug(data);
+    if (safeDecode(id) !== canonicalSlug) {
+        permanentRedirect(`/${locale}/propiedades/${canonicalSlug}`);
+    }
+
     const bedrooms = (Number(data.habitaciones) || 0) || undefined;
     const total_baths = (Number(data.banyos) || 0) + (Number(data.aseos) || 0) || undefined;
     const full_baths = Number(data.banyos) || undefined;
     const floor_size_m2 = data.m_cons || undefined;
     const usable_size_m2 = data.m_utiles || undefined;
     const year_built = (data as { antiguedad?: number | string }).antiguedad || undefined;
-    const url = `${SITE_URL}${buildLocalePath(locale, id)}`;
+    const url = `${SITE_URL}${buildLocalePath(locale, canonicalSlug)}`;
     const images = data.fotos_lista?.slice(0, 3) || [];
     const isAvailable = !data.nodisponible;
     // Cierre por operación dentro del grace period — el getPropertyDetailAction
