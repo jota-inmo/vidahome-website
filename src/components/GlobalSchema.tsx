@@ -47,10 +47,27 @@ export function GlobalSchema() {
                 "@type": "OpeningHoursSpecification",
                 "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
                 "opens": "09:00",
-                "closes": "20:00"
+                "closes": "14:00"
+            },
+            {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "opens": "17:00",
+                "closes": "19:00"
+            },
+            {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Saturday"],
+                "opens": "09:30",
+                "closes": "13:30"
             }
         ],
-        "sameAs": ["https://www.instagram.com/vidahome/"]
+        "sameAs": [
+            "https://www.instagram.com/vidahome/",
+            "https://www.facebook.com/VidaHome.es/",
+            "https://www.youtube.com/channel/UCU1h15pIZyix1JecTuINHeQ",
+            "https://www.idealista.com/pro/vidahome/"
+        ]
     };
 
     return (
