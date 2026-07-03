@@ -54,8 +54,10 @@ const nextConfig: NextConfig = {
     const crmBase = process.env.CRM_BASE_URL || 'https://vidahome-encargo.vercel.app';
     return [
       {
-        source: '/confirmar-visita/:token*',
-        destination: `${crmBase}/confirmar-visita/:token*`,
+        // :code* = confirm_code (code público corto). Antes :token* (uuid).
+        // Splat que reenvía el path + query (?lang=) al CRM sin tocar.
+        source: '/confirmar-visita/:code*',
+        destination: `${crmBase}/confirmar-visita/:code*`,
       },
       {
         source: '/api/visita-confirm',
