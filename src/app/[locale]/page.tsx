@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Link } from '@/i18n/routing';
 import { LuxuryHero } from '@/components/LuxuryHero';
 import { FeaturedGrid } from '@/components/FeaturedGrid';
+import { GoogleReviewsCarousel } from '@/components/GoogleReviewsCarousel';
 import { PropertySkeleton } from '@/components/LuxuryPropertySkeleton';
 import { getTranslations } from 'next-intl/server';
 import { getHeroSlidesAction } from '@/app/actions';
@@ -102,6 +103,15 @@ export default async function Home() {
               <span className="text-4xl md:text-5xl font-serif text-brand-navy dark:text-white block mb-4">100%</span>
               <span className="text-[10px] tracking-widest uppercase text-slate-400">{t('commitment')}</span>
             </div>
+          </div>
+
+          {/* Reseñas de Google — citas reales en su idioma original */}
+          <div className="mt-20 md:mt-28">
+            <span className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-6 block">{t('reviewsKicker')}</span>
+            <h3 className="text-2xl md:text-3xl font-serif text-brand-navy dark:text-white mb-10 md:mb-14">
+              {t('reviewsTitle')}
+            </h3>
+            <GoogleReviewsCarousel />
           </div>
         </div>
       </section>

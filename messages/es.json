@@ -37,7 +37,12 @@
         "googleScore": "Puntuación Google",
         "experience": "Años de experiencia",
         "commitment": "Compromiso ético",
-        "vidahomeProperties": "Propiedades de Vidahome"
+        "vidahomeProperties": "Propiedades de Vidahome",
+        "reviewsKicker": "Reseñas de Google",
+        "reviewsTitle": "Lo que dicen nuestros clientes",
+        "reviewsLink": "Ver las {count} reseñas en Google",
+        "reviewsPrev": "Reseña anterior",
+        "reviewsNext": "Siguiente reseña"
     },
     "Navbar": {
         "language": "Idioma",

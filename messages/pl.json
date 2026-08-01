@@ -37,7 +37,12 @@
         "googleScore": "Ocena Google",
         "experience": "Lat doświadczenia",
         "commitment": "Zaangażowanie etyczne",
-        "vidahomeProperties": "Nieruchomości Vidahome"
+        "vidahomeProperties": "Nieruchomości Vidahome",
+        "reviewsKicker": "Opinie Google",
+        "reviewsTitle": "Co mówią nasi klienci",
+        "reviewsLink": "Zobacz wszystkie {count} opinii w Google",
+        "reviewsPrev": "Poprzednia opinia",
+        "reviewsNext": "Następna opinia"
     },
     "Navbar": {
         "language": "Język",

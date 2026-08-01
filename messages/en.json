@@ -37,7 +37,12 @@
         "googleScore": "Google Score",
         "experience": "Years of experience",
         "commitment": "Ethical commitment",
-        "vidahomeProperties": "Vidahome Properties"
+        "vidahomeProperties": "Vidahome Properties",
+        "reviewsKicker": "Google reviews",
+        "reviewsTitle": "What our clients say",
+        "reviewsLink": "See all {count} reviews on Google",
+        "reviewsPrev": "Previous review",
+        "reviewsNext": "Next review"
     },
     "Navbar": {
         "language": "Language",
