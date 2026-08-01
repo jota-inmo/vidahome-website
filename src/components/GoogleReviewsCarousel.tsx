@@ -85,9 +85,11 @@ export function GoogleReviewsCarousel() {
       }}
     >
       <div className="overflow-hidden -mx-3">
+        {/* El % de translateX se resuelve contra el ancho del propio track (= contenedor),
+            y cada tarjeta ocupa 100/slidesPerView de ese ancho → un paso = una tarjeta. */}
         <div
           className="flex transition-transform duration-700 ease-out"
-          style={{ transform: `translateX(-${(index * 100) / TOTAL}%)` }}
+          style={{ transform: `translateX(-${(index * 100) / slidesPerView}%)` }}
         >
           {GOOGLE_REVIEWS.map((review, i) => {
             const visible = i >= index && i < index + slidesPerView;
