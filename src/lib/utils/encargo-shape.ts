@@ -17,6 +17,28 @@ export function parseSiNo(v: unknown): boolean | undefined {
     return undefined;
 }
 
+/**
+ * Flag de presencia estilo falsy-list para los `res_*` de equipamiento
+ * (garaje/trastero/ascensor). Espejo del `hasEncargoFlag` del CRM (regla
+ * 10 de su CLAUDE.md) pero TRI-ESTADO, porque aquí somos un MERGER sobre
+ * full_data, no un productor:
+ *   - `'—'` / `''` / null = "sin especificar" → undefined (gana full_data)
+ *   - `'No'` / `'0'` / `'false'` = no explícito → false
+ *   - cualquier otro texto no vacío → true — cubre las variantes legacy
+ *     `'Incluido'` / `'Aparcamiento incluido'` / `'Opcional'` que
+ *     `parseSiNo` devolvía como undefined → el icono de garaje no salía
+ *     para refs CRM-only (bug 3026/2998, 2026-08-03).
+ */
+export function presentFlag(v: unknown): boolean | undefined {
+    if (typeof v === 'boolean') return v;
+    if (v === null || v === undefined) return undefined;
+    if (typeof v === 'number') return v > 0;
+    const s = String(v).trim().toLowerCase();
+    if (s === '' || s === '—' || s === '-') return undefined;
+    if (s === 'no' || s === '0' || s === 'false') return false;
+    return true;
+}
+
 export function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(obj)) {
@@ -84,11 +106,23 @@ export function encargoToFullDataShape(
         // split nuevo. Muchos encargos solo tienen `ciudad` — fallback.
         poblacion: (merged.poblacion as string) || (merged.ciudad as string) || undefined,
         orientacion: (merged.res_ori as string) || undefined,
-        ascensor: parseSiNo(merged.res_asc),
-        garaje: parseSiNo(merged.res_gar),
-        trastero: parseSiNo(merged.res_tras),
-        terraza: parseSiNo(merged.res_t1) || parseSiNo(merged.res_t2) || parseSiNo(merged.res_t3) || undefined,
-        patio: parseSiNo(merged.res_patio),
+        ascensor: presentFlag(merged.res_asc),
+        // res_gar_numero poblado también señala garaje (mismo criterio que
+        // el cartel y buildFullData del CRM).
+        garaje: presentFlag(merged.res_gar) === true || presentFlag(merged.res_gar_numero) === true
+            ? true
+            : presentFlag(merged.res_gar),
+        trastero: presentFlag(merged.res_tras),
+        // res_t1/t2/t3 son M² ("70", "40"), no Sí/No — parseSiNo("70") daba
+        // undefined y la terraza desaparecía para refs CRM-only.
+        terraza: ((numOrUndef(merged.res_t1) || 0) + (numOrUndef(merged.res_t2) || 0) + (numOrUndef(merged.res_t3) || 0)) > 0
+            ? true
+            : undefined,
+        patio: (() => {
+            const n = numOrUndef(merged.res_patio);
+            if (n === undefined) return undefined;
+            return n > 0 ? true : false;
+        })(),
         jardin: parseSiNo(merged.jardin_propio),
         piscina: parseSiNo(merged.piscina_comunitaria) || parseSiNo(merged.piscina_privada) || undefined,
         amueblado: (merged.amueblado as string) || undefined,
