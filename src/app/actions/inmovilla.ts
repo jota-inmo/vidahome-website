@@ -546,20 +546,49 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
 
         const { data: metadata, error } = await supabase
             .from('property_metadata')
-            .select('cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion, nodisponible, visible_web')
+            .select('cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion, nodisponible, visible_web, pub_overrides')
             .in('cod_ofer', featuredIds)
             .eq('visible_web', true)
             .eq('nodisponible', false);
 
         if (error) throw error;
 
+        // Mismo fallback al encargo que fetchPropertiesAction: una ref
+        // publicada desde el CRM puede tener full_data vacío (p.ej. toggle
+        // "Web Vida Home" activado sin pasar por publish_to_web — incidente
+        // 3026, 2026-08-03). Antes el guard `!meta.full_data` la hacía
+        // desaparecer de destacadas en silencio aunque el listado la
+        // mostrara. Merge encargo + pub_overrides encima de full_data.
+        const metaRefs = (metadata || []).map((m: any) => m.ref).filter(Boolean);
+        const encargosByRef = new Map<string, Record<string, unknown>>();
+        if (metaRefs.length > 0) {
+            const { data: encs, error: encsError } = await supabase
+                .from('encargos_public_view')
+                .select(`ref, ${ENCARGO_COLUMNS_FOR_WEB}`)
+                .in('ref', metaRefs);
+            if (encsError) {
+                console.error('[featured] encargos_public_view batch query failed:', encsError);
+            }
+            for (const e of (encs || [])) {
+                if ((e as any).ref) encargosByRef.set(String((e as any).ref), e as Record<string, unknown>);
+            }
+        }
+
         // Preserve order from featured_properties table and format correctly
         const results = featured
             .map(featuredItem => {
                 const meta = metadata?.find(m => m.cod_ofer === featuredItem.cod_ofer);
-                if (!meta || !meta.full_data) return null;
+                if (!meta) return null;
 
-                const fullData = meta.full_data as PropertyDetails || {};
+                const rawFullData = meta.full_data as PropertyDetails || {};
+                const encFull = encargoToFullDataShape(
+                    encargosByRef.get(String(meta.ref)) || null,
+                    (meta as any).pub_overrides || null,
+                );
+                const fullData: Record<string, any> = { ...rawFullData, ...encFull };
+                // Sin full_data NI encargo no hay nada que pintar — skip.
+                if (Object.keys(fullData).length === 0) return null;
+
                 const descriptions = meta.descriptions as Record<string, string> || {};
                 const descKey = getDescriptionKey(locale);
                 const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
@@ -568,6 +597,10 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                 const banyos = Number(fullData.banyos) || 0;
                 const aseos = Number((fullData as { aseos?: number | string }).aseos) || 0;
                 const m_cons = Number(fullData.m_cons) || 0;
+
+                // pm.precio (numeric limpio de publish_to_web) manda sobre el
+                // text del encargo — mismo criterio que fetchPropertiesAction.
+                const cleanPrecio = parseSpanishNumber((meta as any).precio);
 
                 return {
                     ...fullData,
@@ -578,6 +611,15 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
                     banyos,
                     aseos,
                     m_cons,
+                    precioinmo: cleanPrecio ?? fullData.precioinmo,
+                    precioalq: fullData.keyacci === 2
+                        ? (cleanPrecio ?? fullData.precioalq)
+                        : fullData.precioalq,
+                    poblacion: (meta as any).poblacion || fullData.poblacion || '',
+                    // Misma prioridad que listado/detalle — el slug del link
+                    // se compone de tipo_nombre y debe ser idéntico en todas
+                    // las superficies (invariante sitemap == canonical).
+                    tipo_nombre: (meta as any).tipo || resolveTipo(fullData) || fullData.tipo_nombre || '',
                     descripciones: localizedDesc,
                     fotos_lista: meta.photos || []
                 };
