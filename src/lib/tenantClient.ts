@@ -195,7 +195,7 @@ export async function getPublicTenantContext(): Promise<{ supabase: SupabaseClie
 /**
  * Returns a public Supabase client whose requests carry a tenant-scoped anon JWT
  * (host-resolved). Use this for the public anon READS on tenantized tables
- * (property_metadata, fotos_inmuebles, encargos_public_view, featured_properties,
+ * (property_metadata, fotos_inmuebles, encargos_web_view, featured_properties,
  * app_config). Service-role writes and admin paths keep using `supabaseAdmin`.
  *
  * Thin wrapper over `getPublicTenantContext` for read call-sites that don't need

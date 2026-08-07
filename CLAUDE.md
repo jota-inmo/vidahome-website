@@ -28,8 +28,11 @@
   - `cod_ofer` (PK), `ref`, `full_data` (JSONB), `descriptions` (JSONB - translations), `photos` (Text[]), `updated_at`.
 - **`property_features`**: 
   - `cod_ofer`, `habitaciones`, `banos`, `superficie`. (Used for fast filtering).
-- **`encargos`**: 
-  - Mandates and Energy Certificates (`edi_clase_energetica`, `edi_consumo_energia`).
+- **`encargos`** → se lee vía **`encargos_web_view`** (desde 2026-08-07): 
+  - Vista ENMASCARADA, la ÚNICA vía de lectura de encargos para esta web. No incluye NINGUNA columna de dirección (`dir`/`numero`/`cp`/`tipo_via`/`nombre_via`/`bloque`/`escalera`/`puerta` no son ni seleccionables — regla RGPD "la dirección NUNCA en output público", por construcción).
+  - **NUNCA** volver a `encargos_public_view` (read-path interno del CRM, SÍ lleva dirección) ni a `encargos` directo (SELECT anon bloqueado desde Phase 0 v2 F.6).
+  - `lat_exacta`/`lng_exacta` de la vista SIEMPRE pasan por `getPublicCoords` (jitter) en el server action antes de servir al visitante.
+  - Si la web necesita una columna nueva del encargo: añadirla a la vista por migración (repo CRM) + a `ENCARGO_COLUMNS_FOR_WEB` — decisión consciente, no drift.
 - **`leads_valuation_v2`**: 
   - Valuation requests from the `/vender` form.
 - **`hero_slides`**: 

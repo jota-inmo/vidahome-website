@@ -133,15 +133,16 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
         const refs = (properties || []).map((p: any) => p.ref).filter(Boolean);
         const encargosByRef = new Map<string, Record<string, unknown>>();
         if (refs.length > 0) {
-            // encargos_public_view: vista anon-readable (Phase 0 v2 F.6
-            // bloqueó el SELECT directo a `encargos` para el rol anon). La
-            // vista expone solo columnas seguras — sin owners/NIF/honorarios.
+            // encargos_web_view: vista ENMASCARADA para la web (2026-08-07) —
+            // sin owners/NIF/honorarios y sin NINGUNA columna de dirección
+            // (dir/numero/cp/…), que aquí ni siquiera son seleccionables.
+            // El SELECT directo a `encargos` sigue bloqueado (Phase 0 v2 F.6).
             const { data: encs, error: encsError } = await supabase
-                .from('encargos_public_view')
+                .from('encargos_web_view')
                 .select(`ref, ${ENCARGO_COLUMNS_FOR_WEB}`)
                 .in('ref', refs);
             if (encsError) {
-                console.error('[inmovilla] encargos_public_view batch query failed:', encsError);
+                console.error('[inmovilla] encargos_web_view batch query failed:', encsError);
             }
             for (const e of (encs || [])) {
                 if ((e as any).ref) encargosByRef.set(String((e as any).ref), e as Record<string, unknown>);
@@ -322,14 +323,14 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         // pub_overrides > encargo > full_data. Orden del merge refleja eso.
         let encargoRow: Record<string, unknown> | null = null;
         if (meta.ref) {
-            // encargos_public_view: ver nota en fetchPropertiesAction.
+            // encargos_web_view: ver nota en fetchPropertiesAction.
             const { data: enc, error: encError } = await supabase
-                .from('encargos_public_view')
+                .from('encargos_web_view')
                 .select(ENCARGO_COLUMNS_FOR_WEB)
                 .ilike('ref', meta.ref)
                 .maybeSingle();
             if (encError) {
-                console.error('[inmovilla] encargos_public_view detail query failed:', encError);
+                console.error('[inmovilla] encargos_web_view detail query failed:', encError);
             }
             encargoRow = enc as Record<string, unknown> | null;
         }
@@ -563,11 +564,11 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
         const encargosByRef = new Map<string, Record<string, unknown>>();
         if (metaRefs.length > 0) {
             const { data: encs, error: encsError } = await supabase
-                .from('encargos_public_view')
+                .from('encargos_web_view')
                 .select(`ref, ${ENCARGO_COLUMNS_FOR_WEB}`)
                 .in('ref', metaRefs);
             if (encsError) {
-                console.error('[featured] encargos_public_view batch query failed:', encsError);
+                console.error('[featured] encargos_web_view batch query failed:', encsError);
             }
             for (const e of (encs || [])) {
                 if ((e as any).ref) encargosByRef.set(String((e as any).ref), e as Record<string, unknown>);
