@@ -1,5 +1,6 @@
 import React from 'react';
 import { getLegalPageAction } from '@/app/actions/legal';
+import { sanitizeLegalHtml } from '@/lib/utils/sanitizeLegalHtml';
 import { notFound } from 'next/navigation';
 
 export const metadata = {
@@ -41,7 +42,7 @@ export default async function AvisoLegalPage({ params }: { params: { locale: str
             <h1 className="font-serif text-4xl mb-12">{title}</h1>
             <div
                 className="prose prose-slate max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeLegalHtml(content) }}
             />
         </article>
     );
