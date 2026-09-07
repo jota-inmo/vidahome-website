@@ -7,17 +7,6 @@ const withNextIntl = createNextIntlPlugin(
 );
 
 const nextConfig: NextConfig = {
-  // Fix incidente en prod 2026-09-07 (B-10, auditoría de seguridad): el
-  // bundler (Turbopack) reescribía los `require()` internos de jsdom
-  // (dependencia de isomorphic-dompurify, usada para sanear el HTML de las
-  // 3 páginas legales) y rompía el interop ESM/CJS de una de sus propias
-  // dependencias transitivas (@exodus/bytes vía html-encoding-sniffer):
-  // "Error [ERR_REQUIRE_ESM]: require() of ES Module ... not supported".
-  // Las 3 páginas (/legal/aviso-legal, /cookies, /privacidad) devolvían
-  // error en cada request. `serverExternalPackages` saca estos paquetes
-  // del bundling — Next los `require()` de forma nativa en el runtime
-  // Node.js del servidor, que sí sabe interoperar ESM/CJS correctamente.
-  serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
   images: {
     remotePatterns: [
       {
