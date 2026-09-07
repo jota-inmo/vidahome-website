@@ -132,13 +132,35 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
+    // Auditoría 2026-09-05 (B-12): `script-src` tenía dos problemas.
+    // (1) `https://wa.me` no sirve JS — el código solo lo usa como destino
+    //     de navegación (`<a href>` / `window.open`, ver WhatsAppButton.tsx
+    //     y PropertyDetailClient.tsx), nunca como `<script src>`. Era un
+    //     error de copia (probablemente arrastrado de `connect-src`/otro
+    //     proyecto) sin ningún efecto protector — se retira.
+    // (2) `'unsafe-eval'` no lo necesita esta app en producción: no hay
+    //     `next/script`, `eval(`, `new Function(`, ni SDK de terceros que
+    //     lo requiera (verificado por grep — Google Maps se embebe como
+    //     <iframe>, no como script; Sentry no lo necesita). Sí lo pide el
+    //     propio dev server de Next (Fast Refresh usa eval-wrapped modules
+    //     en `next dev`) — por eso queda gateado a no-producción, mismo
+    //     patrón que el gate de Sentry más abajo en este archivo.
+    // `'unsafe-inline'` se mantiene: quitarlo exige CSP por nonce (helper
+    // de request + hidratación de cada <script>/<style> inline existente,
+    // incl. los bloques JSON-LD) — reescritura transversal fuera del
+    // alcance de este fix puntual. Riesgo aceptado y documentado, no
+    // resuelto en silencio.
+    const isProd = process.env.NODE_ENV === 'production';
+    const scriptSrc = isProd
+      ? "script-src 'self' 'unsafe-inline'"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
     return [
       {
         source: '/(.*)',
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://wa.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://fotos15.inmovilla.com https://crm.inmovilla.com https://*.supabase.co wss://*.supabase.co https://api.ipify.org https://res.cloudinary.com https://*.ingest.de.sentry.io; media-src 'self' https://*.supabase.co; frame-src 'self' https://www.google.com https://maps.google.com; frame-ancestors 'none';",
+            value: `default-src 'self'; ${scriptSrc}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://fotos15.inmovilla.com https://crm.inmovilla.com https://*.supabase.co wss://*.supabase.co https://api.ipify.org https://res.cloudinary.com https://*.ingest.de.sentry.io; media-src 'self' https://*.supabase.co; frame-src 'self' https://www.google.com https://maps.google.com; frame-ancestors 'none';`,
           },
           {
             key: 'X-Frame-Options',

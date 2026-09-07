@@ -5,6 +5,7 @@ import { PropertyCatalogClient } from './PropertyCatalogClient';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 import type { SortKey } from '@/lib/utils/property-sort';
+import { safeJsonLd } from '@/lib/utils/jsonLd';
 
 // Was 60s — changed to 3600s to reduce Supabase cached egress.
 // The catalog fetches full_data for ~400 properties (~20 MB per rebuild).
@@ -77,9 +78,27 @@ export default async function PropiedadesPage({ searchParams }: PropiedadesPageP
 
     const t = await getTranslations('Index');
     const f = await getTranslations('Footer');
+    const tNav = await getTranslations('Navbar');
+
+    // BreadcrumbList — Home > Propiedades. Mismo par de URLs que ya calcula
+    // generateMetadata() arriba (locale === 'es' sin prefijo).
+    const breadcrumbHomePath = locale === 'es' ? '/' : `/${locale}`;
+    const breadcrumbPropertiesPath = locale === 'es' ? '/propiedades' : `/${locale}/propiedades`;
+    const breadcrumbLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': tNav('home'), 'item': `${SITE_URL}${breadcrumbHomePath}` },
+            { '@type': 'ListItem', 'position': 2, 'name': tNav('properties'), 'item': `${SITE_URL}${breadcrumbPropertiesPath}` },
+        ],
+    };
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-slate-900 selection:text-white dark:selection:bg-white dark:selection:text-slate-900">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
+            />
             {/* Header Minimalista */}
             <header className="px-8 py-12 max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center border-b border-slate-50 dark:border-slate-900 mb-12">
                 <div className="text-center md:text-left">

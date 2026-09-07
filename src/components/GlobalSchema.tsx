@@ -1,4 +1,5 @@
 import React from 'react';
+import { safeJsonLd } from '@/lib/utils/jsonLd';
 
 export function GlobalSchema() {
     const agentSchema = {
@@ -73,7 +74,7 @@ export function GlobalSchema() {
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(agentSchema) }}
+            dangerouslySetInnerHTML={{ __html: safeJsonLd(agentSchema) }}
         />
     );
 }

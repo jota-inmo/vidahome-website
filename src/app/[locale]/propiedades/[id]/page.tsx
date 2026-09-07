@@ -7,6 +7,7 @@ import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { buildPropertySlug, extractRef } from '@/lib/utils/slug';
+import { safeJsonLd } from '@/lib/utils/jsonLd';
 
 // Decode the route param defensively for the canonical comparison — a
 // malformed %-sequence must not throw; the canonical is pure [a-z0-9-]+ref
@@ -138,6 +139,7 @@ export default async function PropertyDetailPage({ params }: Props) {
     const result = await getPropertyDetailAction(extractRef(id), locale);
     const t = await getTranslations({ locale: locale as string, namespace: 'Property' });
     const tIndex = await getTranslations({ locale: locale as string, namespace: 'Index' });
+    const tNav = await getTranslations({ locale: locale as string, namespace: 'Navbar' });
 
     if (!result.success || !result.data) {
         return (
@@ -268,11 +270,32 @@ export default async function PropertyDetailPage({ params }: Props) {
         }));
     }
 
+    // BreadcrumbList — Home > Propiedades > ficha. Mismas URLs canónicas
+    // (SITE_URL + buildLocalePath-style) que ya usa el RealEstateListing de
+    // arriba, para no introducir una segunda fuente de verdad de rutas.
+    const homePath = locale === 'es' ? '/' : `/${locale}`;
+    const propertiesPath = locale === 'es' ? '/propiedades' : `/${locale}/propiedades`;
+    const breadcrumbTypeLabel = translatePropertyType(data.tipo_nombre, locale) || t('defaultType');
+    const breadcrumbName = `${breadcrumbTypeLabel} ${t('in')} ${data.poblacion || 'La Safor'}`;
+    const breadcrumbLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            { '@type': 'ListItem', 'position': 1, 'name': tNav('home'), 'item': `${SITE_URL}${homePath}` },
+            { '@type': 'ListItem', 'position': 2, 'name': tNav('properties'), 'item': `${SITE_URL}${propertiesPath}` },
+            { '@type': 'ListItem', 'position': 3, 'name': breadcrumbName, 'item': url },
+        ],
+    };
+
     return (
         <>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
             />
             <PropertyDetailClient property={result.data} />
         </>

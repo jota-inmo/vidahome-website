@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { GEMINI_CONFIG, getGeminiApiKey } from '@/config/gemini';
+import { requireAdmin } from '@/lib/auth';
 
 export const maxDuration = 300; // 5 min — Vercel Pro
 
@@ -117,6 +118,10 @@ function generateSlug(text: string): string {
 
 export async function POST(request: NextRequest) {
     try {
+        if (!(await requireAdmin())) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await request.json();
         const { postId, sourceLocale, targetLocales } = body;
 

@@ -8,6 +8,21 @@ const intlMiddleware = createMiddleware(routing);
 // ─── Verificación de cookie firmada (Edge Runtime compatible) ────────────────
 const TOKEN_SEPARATOR = '.';
 
+/**
+ * Equivalente Edge-Runtime (Web Crypto, sin el módulo `crypto` de Node) de
+ * `lib/adminSessionSecret.ts::getAdminSessionSecret` — auditoría 2026-09-05
+ * (B-10). DEBE producir el mismo hex que la versión Node (mismo algoritmo
+ * SHA-256, misma cadena de entrada, misma codificación de salida) porque
+ * las tres verificaciones de la cookie (aquí, lib/auth.ts, actions/auth.ts)
+ * tienen que coincidir en qué secreto firma/verifica.
+ */
+async function deriveAdminSessionSecret(password: string): Promise<string> {
+    if (!password) return '';
+    const encoder = new TextEncoder();
+    const digest = await crypto.subtle.digest('SHA-256', encoder.encode(`admin-session-hmac:${password}`));
+    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function verifySessionToken(token: string, secret: string): Promise<boolean> {
     if (!token || !secret || !token.includes(TOKEN_SEPARATOR)) return false;
 
@@ -54,7 +69,8 @@ export async function middleware(request: NextRequest) {
 
     if (isAdminPage) {
         const sessionCookie = request.cookies.get('admin_session');
-        const secret = process.env.ADMIN_PASSWORD || '';
+        // Auditoría 2026-09-05 (B-10): secreto derivado, ya no el password en claro.
+        const secret = await deriveAdminSessionSecret(process.env.ADMIN_PASSWORD || '');
         let isAuthenticated = false;
 
         if (sessionCookie?.value) {

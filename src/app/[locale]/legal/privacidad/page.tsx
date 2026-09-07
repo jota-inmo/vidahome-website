@@ -1,5 +1,6 @@
 import React from 'react';
 import { getLegalPageAction } from '@/app/actions/legal';
+import { sanitizeLegalHtml } from '@/lib/utils/sanitizeLegalHtml';
 
 export const metadata = {
     title: 'Política de Privacidad | Vidahome',
@@ -33,9 +34,9 @@ export default async function PrivacidadPage({ params }: { params: { locale: str
     return (
         <article>
             <h1 className="font-serif text-4xl mb-12">{title}</h1>
-            <div 
+            <div
                 className="prose prose-slate max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: content }} 
+                dangerouslySetInnerHTML={{ __html: sanitizeLegalHtml(content) }}
             />
         </article>
     );

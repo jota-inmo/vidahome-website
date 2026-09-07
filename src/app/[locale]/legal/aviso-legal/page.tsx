@@ -1,6 +1,7 @@
 import React from 'react';
 import { getLegalPageAction } from '@/app/actions/legal';
 import { notFound } from 'next/navigation';
+import { sanitizeLegalHtml } from '@/lib/utils/sanitizeLegalHtml';
 
 export const metadata = {
     title: 'Aviso Legal | Vidahome',
@@ -39,9 +40,9 @@ export default async function AvisoLegalPage({ params }: { params: { locale: str
     return (
         <article>
             <h1 className="font-serif text-4xl mb-12">{title}</h1>
-            <div 
+            <div
                 className="prose prose-slate max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: content }} 
+                dangerouslySetInnerHTML={{ __html: sanitizeLegalHtml(content) }}
             />
         </article>
     );

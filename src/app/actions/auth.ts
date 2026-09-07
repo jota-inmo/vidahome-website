@@ -2,17 +2,20 @@
 
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { getAdminSessionSecret } from '@/lib/adminSessionSecret';
 
 // ─── Utilidades de firma criptográfica ───────────────────────────────────────
 // La cookie ya no lleva un valor predecible ('active').
-// En su lugar se firma un payload con HMAC-SHA256 usando el ADMIN_PASSWORD como
-// secreto. Esto impide que alguien cree la cookie manualmente en DevTools.
+// En su lugar se firma un payload con HMAC-SHA256 usando un secreto derivado
+// de ADMIN_PASSWORD (auditoría 2026-09-05, B-10 — antes era el password en
+// claro, ver adminSessionSecret.ts). Esto impide que alguien cree la cookie
+// manualmente en DevTools.
 
 const COOKIE_NAME = 'admin_session';
 const TOKEN_SEPARATOR = '.';
 
 function getSecret(): string {
-    return process.env.ADMIN_PASSWORD || '';
+    return getAdminSessionSecret();
 }
 
 function signToken(payload: string): string {

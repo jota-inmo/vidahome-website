@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { getAdminSessionSecret } from './adminSessionSecret';
 
 /**
  * Verify admin session from cookies.
@@ -8,7 +9,8 @@ import crypto from 'crypto';
  */
 export async function requireAdmin(): Promise<boolean> {
     const COOKIE_NAME = 'admin_session';
-    const secret = process.env.ADMIN_PASSWORD || '';
+    // Auditoría 2026-09-05 (B-10): secreto derivado, ya no el password en claro.
+    const secret = getAdminSessionSecret();
 
     const session = (await cookies()).get(COOKIE_NAME);
     if (!session?.value || !secret) return false;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { safeJsonLd } from '@/lib/utils/jsonLd';
 
 export const metadata: Metadata = {
     title: 'Pisos en Gandia Playa | VidaHome Inmobiliaria',
@@ -48,7 +49,7 @@ export default function GandiaPlayaPage() {
         <div className="min-h-screen bg-white dark:bg-slate-950">
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
             />
 
             <header className="py-24 px-8 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
