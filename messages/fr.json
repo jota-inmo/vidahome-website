@@ -46,6 +46,7 @@
     },
     "Navbar": {
         "language": "Langue",
+        "home": "Accueil",
         "properties": "Propriétés",
         "contact": "Contact",
         "about": "À propos",

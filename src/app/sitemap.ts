@@ -15,6 +15,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         '/vender',
         '/contacto',
         '/nosotros',
+        // Landings de localidad (Fase 2 plan SEO/GEO 2026-08-14) — solo las
+        // que superan el gate de inventario real en src/lib/utils/locality.ts.
+        '/oliva',
+        '/bellreguard',
     ];
 
     const sitemapEntries: MetadataRoute.Sitemap = [];

@@ -20,7 +20,8 @@ export interface GoogleReview {
 }
 
 export const GOOGLE_RATING_DISPLAY = '5,0';
-export const GOOGLE_REVIEW_COUNT = 145;
+// Actualizado 2026-08-14 (confirmado por JC, no visto en el perfil directamente).
+export const GOOGLE_REVIEW_COUNT = 146;
 // Enlace estable al perfil de empresa en Google Maps (CID del listing).
 export const GOOGLE_PROFILE_URL = 'https://maps.google.com/?cid=14909886010106056076';
 

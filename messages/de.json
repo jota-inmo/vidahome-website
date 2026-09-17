@@ -46,6 +46,7 @@
     },
     "Navbar": {
         "language": "Sprache",
+        "home": "Startseite",
         "properties": "Immobilien",
         "contact": "Kontakt",
         "about": "Über uns",
