@@ -16,7 +16,9 @@ import { createClient } from '@supabase/supabase-js';
  *  - Nada que se ejecute en el navegador
  */
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+// C1 remediation (Camino A): la key nueva sb_secret_... tiene prioridad;
+// legacy de fallback hasta desactivarla en el dashboard (runbook paso 8).
+const serviceRoleKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
     auth: {

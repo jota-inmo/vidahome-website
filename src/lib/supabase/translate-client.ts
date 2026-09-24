@@ -43,7 +43,11 @@ export async function translateProperties(
   batchSize?: number
 ): Promise<TranslationResponse> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // C1 remediation (Camino A): key pública nueva primero, legacy de fallback
+  // — la legacy deja de servir en el paso 8 del runbook (desactivar legacy).
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl) {
     throw new Error(
@@ -53,8 +57,19 @@ export async function translateProperties(
 
   if (!supabaseAnonKey) {
     throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable"
+      "Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable"
     );
+  }
+
+  // C1 remediation: verify_jwt pasa a false en esta función porque la key
+  // publishable nueva no es un JWT — sin este secreto compartido (solo lo
+  // conocen este servidor y la función), quedaría invocable por cualquiera
+  // con la URL. Solo se usa server-side (este módulo se importa desde
+  // app/actions/translate.ts, marcado "use server" — nunca llega al bundle
+  // del navegador), así que NO lleva prefijo NEXT_PUBLIC_.
+  const translateFnSecret = process.env.TRANSLATE_FN_SHARED_SECRET;
+  if (!translateFnSecret) {
+    throw new Error("Missing TRANSLATE_FN_SHARED_SECRET environment variable");
   }
 
   const edgeFunctionUrl = `${supabaseUrl}/functions/v1/translate-properties`;
@@ -74,7 +89,11 @@ export async function translateProperties(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${supabaseAnonKey}`,
+        // C1 remediation: apikey (no Authorization — la key nueva no es un
+        // JWT) + secreto compartido que la función valida en su propio código
+        // ahora que verify_jwt está desactivado para este endpoint.
+        "apikey": supabaseAnonKey,
+        "x-translate-secret": translateFnSecret,
       },
       body: JSON.stringify(payload),
     });
