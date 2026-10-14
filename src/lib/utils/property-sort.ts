@@ -46,15 +46,27 @@ function refNumber(ref: string | undefined | null): number {
 }
 
 /**
+ * Marca de tiempo de publicación (ms). `published_at` lo mantiene un trigger
+ * de BD y se renueva cada vez que el anuncio pasa a estar publicado, así que
+ * despublicar y volver a publicar cuenta como nuevo. Sin dato o no
+ * parseable → -Infinity (cae detrás de los que sí lo tienen).
+ */
+function publishedTime(p: PropertyListEntry): number {
+  if (!p.published_at) return -Infinity;
+  const t = Date.parse(p.published_at);
+  return Number.isFinite(t) ? t : -Infinity;
+}
+
+/**
  * Ordena un array de propiedades según el criterio elegido. NO muta el
  * input — devuelve un nuevo array.
  *
- * - `recent`: usa el número de la `ref` en orden descendente (última ref
- *   creada va primero). Cambiado 2026-04-21: antes usaba `updated_at`,
- *   pero ese campo se toca cada vez que se edita la propiedad (precio,
- *   fotos…), así que anuncios antiguos editados hoy aparecían antes que
- *   refs nuevas de la semana pasada. La ref es un contador incremental
- *   del CRM, así que su orden descendente = orden de creación real.
+ * - `recent`: `published_at` descendente (último publicado primero); empate
+ *   o sin dato → número de la `ref` descendente. Cambiado 2026-10-14: la ref
+ *   es el orden de CAPTACIÓN, no de publicación (una ref captada en julio y
+ *   publicada en octubre quedaba enterrada). Antes (2026-04-21) se había
+ *   dejado `updated_at` por usar la ref, porque `updated_at` se toca con
+ *   cada edición (precio, fotos…); `published_at` no.
  * - `price_asc` / `price_desc`: usa `effectivePrice()`. Propiedades sin
  *   precio útil caen al final en ambos casos.
  */
@@ -81,7 +93,12 @@ export function sortProperties(
       return copy;
     case 'recent':
     default:
-      copy.sort((a, b) => refNumber(b.ref) - refNumber(a.ref));
+      copy.sort((a, b) => {
+        const ta = publishedTime(a);
+        const tb = publishedTime(b);
+        if (ta !== tb) return ta === -Infinity ? 1 : tb === -Infinity ? -1 : tb - ta;
+        return refNumber(b.ref) - refNumber(a.ref);
+      });
       return copy;
   }
 }

@@ -12,6 +12,45 @@ const make = (overrides: Partial<PropertyListEntry>): PropertyListEntry =>
 
 describe('sortProperties', () => {
   describe('recent', () => {
+    it('ordena por fecha de publicación, no por el número de la ref', () => {
+      // Caso real: la 3023 se captó en julio pero se publicó el 6-oct; la 3064
+      // se captó después pero se publicó el 25-sep.
+      const r3064 = make({ ref: '3064', published_at: '2026-09-25T16:13:07Z' });
+      const r3023 = make({ ref: '3023', published_at: '2026-10-06T15:43:03Z' });
+      const r3062 = make({ ref: '3062', published_at: '2026-10-13T16:40:36Z' });
+      const sorted = sortProperties([r3064, r3023, r3062], 'recent');
+      expect(sorted.map(p => p.ref)).toEqual(['3062', '3023', '3064']);
+    });
+
+    it('una ref republicada (published_at renovado) sube al principio', () => {
+      const vieja = make({ ref: '2914', published_at: '2026-09-22T15:40:52Z' });
+      const nueva = make({ ref: '3056', published_at: '2026-09-22T16:16:36Z' });
+      const otra = make({ ref: '3053', published_at: '2026-09-21T16:47:18Z' });
+      const sorted = sortProperties([otra, vieja, nueva], 'recent');
+      expect(sorted.map(p => p.ref)).toEqual(['3056', '2914', '3053']);
+    });
+
+    it('empate de fecha: desempata por número de ref descendente', () => {
+      const a = make({ ref: '3000', published_at: '2026-09-01T10:00:00Z' });
+      const b = make({ ref: '3010', published_at: '2026-09-01T10:00:00Z' });
+      const sorted = sortProperties([a, b], 'recent');
+      expect(sorted.map(p => p.ref)).toEqual(['3010', '3000']);
+    });
+
+    it('sin published_at cae detrás de los que sí lo tienen', () => {
+      const con = make({ ref: '2900', published_at: '2026-01-01T00:00:00Z' });
+      const sin = make({ ref: '3050' });
+      const sorted = sortProperties([sin, con], 'recent');
+      expect(sorted.map(p => p.ref)).toEqual(['2900', '3050']);
+    });
+
+    it('ignora un published_at no parseable (como si no lo tuviera)', () => {
+      const bad = make({ ref: '3050', published_at: 'no-es-fecha' });
+      const ok = make({ ref: '2900', published_at: '2026-01-01T00:00:00Z' });
+      const sorted = sortProperties([bad, ok], 'recent');
+      expect(sorted.map(p => p.ref)).toEqual(['2900', '3050']);
+    });
+
     it('sorts by ref number descending (más reciente = ref más alta)', () => {
       const a = make({ ref: '2976' });
       const b = make({ ref: '2980' });

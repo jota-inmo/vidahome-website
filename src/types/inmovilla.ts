@@ -59,6 +59,10 @@ export interface PropertyListEntry {
     // ISO timestamp from property_metadata.updated_at. Used for the
     // "most recent first" sort option on the catalog page.
     updated_at?: string;
+    // ISO timestamp de property_metadata.published_at: última vez que el
+    // anuncio pasó a estar publicado (se renueva al republicar). Es el
+    // criterio del orden "Más reciente" y del relleno de destacadas.
+    published_at?: string | null;
     // Cierre con motivo dentro del grace period (default 7d). Cuando es
     // 'vendido' / 'alquilado' / 'traspasado' el UI aplica grayscale + sello.
     deactivation_reason?: string | null;

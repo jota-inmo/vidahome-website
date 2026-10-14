@@ -9,6 +9,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { parseSpanishNumber } from '@/lib/utils/parse-spanish-number';
 import { getPublicCoords, coerceCoord } from '@/lib/utils/coords';
 import { encargoToFullDataShape } from '@/lib/utils/encargo-shape';
+import { fillFeatured, FEATURED_COUNT } from '@/lib/utils/featured-fill';
 import { getPublicTenantClient, getPublicTenantContext } from '@/lib/tenantClient';
 
 /** Resolve tipo name from key_tipo using the master map */
@@ -114,6 +115,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 full_data,
                 descriptions,
                 updated_at,
+                published_at,
                 pub_overrides,
                 source,
                 deactivation_reason,
@@ -123,7 +125,7 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
             .or(`and(nodisponible.eq.false,deactivation_reason.is.null),and(deactivation_reason.in.(vendido,vendido_por_otros,alquilado,traspasado),deactivated_at.gte.${graceCutoff})`)
             .order('nodisponible', { ascending: true })
             .order('deactivated_at', { ascending: false, nullsFirst: false })
-            .order('updated_at', { ascending: false });
+            .order('published_at', { ascending: false, nullsFirst: false });
 
         if (error) throw error;
 
@@ -208,9 +210,10 @@ export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
                 numagencia: fullData.numagencia,
                 fotoletra: fullData.fotoletra,
                 numfotos: fullData.numfotos,
-                // Expose updated_at so the catalog can offer a
-                // "most recent first" sort option.
                 updated_at: row.updated_at,
+                // Fecha de publicación (se renueva al republicar): criterio
+                // del orden "Más reciente" del catálogo.
+                published_at: row.published_at ?? null,
                 // Cierre con motivo dentro del grace period — el UI lo usa
                 // para grayscale + sello "VENDIDO"/"ALQUILADO"/"TRASPASADO".
                 deactivation_reason: (row as { deactivation_reason?: string | null }).deactivation_reason ?? null,
@@ -529,30 +532,56 @@ export async function getFeaturedPropertiesAction(): Promise<number[]> {
 /**
  * SIMPLIFIED: Get featured properties with full details from Supabase
  * All data is pre-synced, no Inmovilla calls
+ *
+ * La portada debe mostrar siempre FEATURED_COUNT (6) anuncios: primero las
+ * destacadas manuales (`featured_properties`) que sigan publicadas y, si
+ * alguna ya no lo está, se completa con los últimos publicados
+ * (`published_at` desc) para no dejar hueco en la cuadrícula.
  */
 export async function getFeaturedPropertiesWithDetailsAction(locale: string): Promise<{ success: boolean; data: any[] }> {
     try {
         const supabase = await getPublicTenantClient();
 
-        // Get featured properties
+        // Get featured properties (lista editorial manual)
         const { data: featured, error: featError } = await supabase
             .from('featured_properties')
             .select('cod_ofer')
             .order('created_at', { ascending: true });
 
         if (featError) throw featError;
-        if (!featured || featured.length === 0) return { success: true, data: [] };
 
-        const featuredIds = featured.map(f => f.cod_ofer);
+        const featuredIds = (featured || []).map(f => f.cod_ofer);
 
-        const { data: metadata, error } = await supabase
+        const FEATURED_SELECT = 'cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion, nodisponible, visible_web, pub_overrides, published_at';
+
+        let curatedMeta: any[] = [];
+        if (featuredIds.length > 0) {
+            const { data, error } = await supabase
+                .from('property_metadata')
+                .select(FEATURED_SELECT)
+                .in('cod_ofer', featuredIds)
+                .eq('visible_web', true)
+                .eq('nodisponible', false);
+            if (error) throw error;
+            curatedMeta = data || [];
+        }
+
+        // Candidatos automáticos: últimos publicados, activos (sin cierre ni
+        // periodo de gracia). Margen ×3 sobre el objetivo porque algunos se
+        // descartan después (duplicados de la lista manual, sin datos).
+        const { data: candidateData, error: candError } = await supabase
             .from('property_metadata')
-            .select('cod_ofer, full_data, descriptions, main_photo, photos, ref, tipo, precio, poblacion, nodisponible, visible_web, pub_overrides')
-            .in('cod_ofer', featuredIds)
+            .select(FEATURED_SELECT)
             .eq('visible_web', true)
-            .eq('nodisponible', false);
-
-        if (error) throw error;
+            .eq('nodisponible', false)
+            .is('deactivation_reason', null)
+            .order('published_at', { ascending: false, nullsFirst: false })
+            .limit(FEATURED_COUNT * 3);
+        if (candError) {
+            // El relleno es opcional: si falla, seguimos con la lista manual.
+            console.error('[featured] candidates query failed:', candError);
+        }
+        const candidateMeta: any[] = candidateData || [];
 
         // Mismo fallback al encargo que fetchPropertiesAction: una ref
         // publicada desde el CRM puede tener full_data vacío (p.ej. toggle
@@ -560,7 +589,7 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
         // 3026, 2026-08-03). Antes el guard `!meta.full_data` la hacía
         // desaparecer de destacadas en silencio aunque el listado la
         // mostrara. Merge encargo + pub_overrides encima de full_data.
-        const metaRefs = (metadata || []).map((m: any) => m.ref).filter(Boolean);
+        const metaRefs = [...new Set([...curatedMeta, ...candidateMeta].map((m: any) => m.ref).filter(Boolean))];
         const encargosByRef = new Map<string, Record<string, unknown>>();
         if (metaRefs.length > 0) {
             const { data: encs, error: encsError } = await supabase
@@ -575,59 +604,65 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
             }
         }
 
-        // Preserve order from featured_properties table and format correctly
-        const results = featured
-            .map(featuredItem => {
-                const meta = metadata?.find(m => m.cod_ofer === featuredItem.cod_ofer);
-                if (!meta) return null;
+        const descKey = getDescriptionKey(locale);
 
-                const rawFullData = meta.full_data as PropertyDetails || {};
-                const encFull = encargoToFullDataShape(
-                    encargosByRef.get(String(meta.ref)) || null,
-                    (meta as any).pub_overrides || null,
-                );
-                const fullData: Record<string, any> = { ...rawFullData, ...encFull };
-                // Sin full_data NI encargo no hay nada que pintar — skip.
-                if (Object.keys(fullData).length === 0) return null;
+        const formatMeta = (meta: any) => {
+            const rawFullData = meta.full_data as PropertyDetails || {};
+            const encFull = encargoToFullDataShape(
+                encargosByRef.get(String(meta.ref)) || null,
+                meta.pub_overrides || null,
+            );
+            const fullData: Record<string, any> = { ...rawFullData, ...encFull };
+            // Sin full_data NI encargo no hay nada que pintar — skip.
+            if (Object.keys(fullData).length === 0) return null;
 
-                const descriptions = meta.descriptions as Record<string, string> || {};
-                const descKey = getDescriptionKey(locale);
-                const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
+            const descriptions = meta.descriptions as Record<string, string> || {};
+            const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
 
-                const habitaciones = ((Number(fullData.habitaciones) || 0) + (Number((fullData as { habdobles?: number | string }).habdobles) || 0)) || 0;
-                const banyos = Number(fullData.banyos) || 0;
-                const aseos = Number((fullData as { aseos?: number | string }).aseos) || 0;
-                const m_cons = Number(fullData.m_cons) || 0;
+            const habitaciones = ((Number(fullData.habitaciones) || 0) + (Number((fullData as { habdobles?: number | string }).habdobles) || 0)) || 0;
+            const banyos = Number(fullData.banyos) || 0;
+            const aseos = Number((fullData as { aseos?: number | string }).aseos) || 0;
+            const m_cons = Number(fullData.m_cons) || 0;
 
-                // pm.precio (numeric limpio de publish_to_web) manda sobre el
-                // text del encargo — mismo criterio que fetchPropertiesAction.
-                const cleanPrecio = parseSpanishNumber((meta as any).precio);
+            // pm.precio (numeric limpio de publish_to_web) manda sobre el
+            // text del encargo — mismo criterio que fetchPropertiesAction.
+            const cleanPrecio = parseSpanishNumber(meta.precio);
 
-                return {
-                    ...fullData,
-                    cod_ofer: meta.cod_ofer,
-                    ref: meta.ref,
-                    mainImage: meta.main_photo,
-                    habitaciones,
-                    banyos,
-                    aseos,
-                    m_cons,
-                    precioinmo: cleanPrecio ?? fullData.precioinmo,
-                    precioalq: fullData.keyacci === 2
-                        ? (cleanPrecio ?? fullData.precioalq)
-                        : fullData.precioalq,
-                    poblacion: (meta as any).poblacion || fullData.poblacion || '',
-                    // Misma prioridad que listado/detalle — el slug del link
-                    // se compone de tipo_nombre y debe ser idéntico en todas
-                    // las superficies (invariante sitemap == canonical).
-                    tipo_nombre: (meta as any).tipo || resolveTipo(fullData) || fullData.tipo_nombre || '',
-                    descripciones: localizedDesc,
-                    fotos_lista: meta.photos || []
-                };
-            })
-            .filter(Boolean);
+            return {
+                ...fullData,
+                cod_ofer: meta.cod_ofer,
+                ref: meta.ref,
+                mainImage: meta.main_photo,
+                habitaciones,
+                banyos,
+                aseos,
+                m_cons,
+                precioinmo: cleanPrecio ?? fullData.precioinmo,
+                precioalq: fullData.keyacci === 2
+                    ? (cleanPrecio ?? fullData.precioalq)
+                    : fullData.precioalq,
+                poblacion: meta.poblacion || fullData.poblacion || '',
+                // Misma prioridad que listado/detalle — el slug del link
+                // se compone de tipo_nombre y debe ser idéntico en todas
+                // las superficies (invariante sitemap == canonical).
+                tipo_nombre: meta.tipo || resolveTipo(fullData) || fullData.tipo_nombre || '',
+                descripciones: localizedDesc,
+                fotos_lista: meta.photos || []
+            };
+        };
 
-        return { success: true, data: results };
+        // Manuales: conservan el orden de featured_properties.
+        const curated = featuredIds
+            .map(id => curatedMeta.find(m => m.cod_ofer === id))
+            .filter(Boolean)
+            .map(formatMeta)
+            .filter(Boolean) as Array<{ ref?: string | null }>;
+
+        const candidates = candidateMeta
+            .map(formatMeta)
+            .filter(Boolean) as Array<{ ref?: string | null }>;
+
+        return { success: true, data: fillFeatured(curated, candidates) };
     } catch (error: any) {
         console.error('Error getting featured properties with details:', error);
         return { success: false, data: [] };
