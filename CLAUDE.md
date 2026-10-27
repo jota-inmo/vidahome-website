@@ -1,7 +1,7 @@
 # CLAUDE.md - Vidahome Website (Next.js + Supabase + CRM)
 
 ## 🏗️ Project Architecture
-- **Framework**: Next.js 15+ (App Router).
+- **Framework**: Next.js 16 (App Router). `middleware.ts` está deprecado en favor de `proxy` (pendiente de migrar).
 - **Styling**: Tailwind CSS 4.0.
 - **Database**: Supabase (PostgreSQL).
 - **i18n**: `next-intl` (locales: `es`, `en`, `fr`, `de`, `it`, `pl`).
@@ -20,7 +20,7 @@
 - `npm run dev`: Start local development server.
 - `npm run build`: Production build.
 - `npm run lint`: Linting with ESLint.
-- `npm run translate:perplexity`: Bulk translation script.
+- `npm run translate:perplexity`: Bulk translation script (legacy; el motor activo es Gemini).
 - `npm run test`: Run unit tests (Vitest).
 
 ## 🗄️ Database Schema Summary (Supabase)
@@ -37,8 +37,7 @@
   - Valuation requests from the `/vender` form.
 - **`hero_slides`**: 
   - Homepage video/title configuration.
-- **`blog`**: 
-  - `id`, `slug`, `titles`, `contents` (JSONB translations).
+- **`blog_posts` / `blog_categories` / `blog_tags`**: blog por locale (una fila por idioma).
 - **`translation_log`**: 
   - Audit trail for AI translation costs and success.
 - **`price_audit`**: 
@@ -50,6 +49,8 @@
 - **Components**: Functional components. Use `use client` at the very top only for interactive components.
 - **i18n**: Never hardcode strings in components; use `useTranslations()`. All pages translated: Home, Properties, Contact, About/Nosotros, Vender, Blog.
 - **Blog**: Admin CRUD via server actions (supabaseAdmin). Tablas: `blog_posts`, `blog_categories`, `blog_tags`. Storage: bucket `blog-images`. Traducciones Gemini. Botón "Generar con IA" enlaza artefacto Claude externo.
+- **Caché del catálogo**: `fetchPropertiesAction` usa `unstable_cache` (clave `tenant+locale`, TTL 5 min, tag `inmovilla_property_list`). Los `export const revalidate` de las páginas NO hacen estático el render mientras `getPublicTenantClient()` lea `headers()`: el ahorro real viene de esta caché de datos.
+- **SEO**: `localePrefix: 'always'` → el canonical, hreflang y x-default de `es` llevan SIEMPRE `/es` (las URLs sin prefijo redirigen 307).
 - **Next.js 15+ params**: `params` es Promise — siempre `await params` en páginas dinámicas.
 - **Naming**: 
   - React Components: PascalCase.
@@ -58,21 +59,22 @@
 - **API**: Do NOT add direct Inmovilla API calls — the Web API client was removed 2026-04 (the web reads Supabase only).
 
 ## 🔐 Authentication
-Admin routes are protected via `requireAdmin()` check in Server Actions and Middlewares. The secret is `process.env.ADMIN_PASSWORD`.
+Admin routes are protected via `requireAdmin()` check in Server Actions and Middlewares. La cookie `admin_session` se firma con un secreto derivado de `process.env.ADMIN_PASSWORD` y caduca a las 24 h (`src/lib/adminPath.ts`).
+
+### Invariantes de seguridad (no negociables)
+1. **Toda server action que importe `supabaseAdmin` con fin admin empieza con `if (!(await requireAdmin())) return …`.** Las lecturas públicas (p. ej. `getBlogPostsAction`) son la excepción explícita. Tripwire: `src/app/actions/admin-guards.test.ts` — al añadir una action admin, añádela ahí.
+2. **El gate de `/admin` es `isAdminPath()`** (`src/lib/adminPath.ts`), derivado de `src/i18n/locales.ts`. Nunca hardcodear una lista de locales en el middleware: el bypass de `/fr|de|it|pl/admin` vino de ahí. Al añadir un idioma, solo se toca `locales.ts`.
+3. **Ningún dato de dirección llega al cliente**: los payloads públicos de propiedad pasan por `stripPrivateFields` (`src/lib/utils/privateFields.ts`). Las coordenadas públicas solo salen de `getPublicCoords` (jitter).
+4. Login con rate limit (5/hora por IP).
 
 ## 📍 Important Endpoints
-- `/api/sync/cron`: Cron cada 30 min (Vercel Cron Jobs). Step 1: delta sync (nuevas/eliminadas/reactivadas). Step 2: photo refresh (main_photo = NULL). Step 3: auto-translate (Gemini, max 2 propiedades/run, 7s delay).
-- `/api/admin/translate-blog`: POST — traduce blog post a 5 idiomas (1 llamada Gemini/idioma, JSON response). maxDuration=300s.
-- `/api/admin/sync`: System-wide property synchronization.
-- `/api/admin/translations`: Trigger AI translation engine.
-- `/admin/sync`: Visual panel for managing data freshness.
-- `/api/catastro/provincias`: Provincias (Catastro API + fallback 52 provincias hardcoded).
-- `/api/catastro/municipios?provincia=X`: Municipios (Catastro API).
-- `/api/catastro/vias`: Callejero autocompletar.
-- `/api/catastro/numeros`: Números de portal por calle.
-- `/api/catastro/search`: Búsqueda por dirección o RC (POST).
-- `/api/catastro/details?ref=RC`: Detalle propiedad por referencia catastral.
-- `/api/leads/valuation-v2`: Guardar solicitud de valoración (POST).
+(Verificado contra `src/app/api` el 2026-10-27. No existen `/api/sync/cron`, `/api/admin/sync` ni `/admin/sync`: el sync de propiedades lo hace el CRM, no esta web.)
+- `/api/revalidate`: POST `{ path, secret? }` — el CRM invalida páginas (todas las locales) y la caché de datos del catálogo (tag `inmovilla_property_list`).
+- `/api/admin/translate-blog`, `/api/admin/translations{,/blog,/hero,/run,/save}`: traducción con IA (solo admin).
+- `/api/analytics/track`: eventos de analytics (público, con rate limit).
+- `/api/catastro/{provincias,municipios,vias,numeros,search,details}`: integración Catastro.
+- `/api/leads/valuation` y `/api/leads/valuation-v2`: solicitudes de valoración desde `/vender`.
+- `/api/debug/ip`: diagnóstico.
 
 ## 🏠 Catastro Integration
 - **Estrategia búsqueda por dirección**: ObtenerNumerero (callejero) → RC → searchPropertiesByRC (XML).

@@ -2,16 +2,16 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 **Nota de Desarrollo**: Para ver los cambios y mejoras realizadas, consulta:
 - [CHANGELOG.md](./CHANGELOG.md) - Integración con API del Catastro
-- [TRANSLATION_SYSTEM_FINAL.md](./TRANSLATION_SYSTEM_FINAL.md) - Sistema de traducción con Perplexity AI ✅
+- [docs/archive/TRANSLATION_SYSTEM_FINAL.md](./docs/archive/TRANSLATION_SYSTEM_FINAL.md) - histórico del sistema de traducción (la documentación antigua vive en `docs/archive/`)
 
 ## 🌍 Sistema de Traducción (✅ Producción)
 El proyecto incluye un sistema automático de traducción para descripciones de propiedades:
 - **Idiomas**: Español, Inglés, Francés, Alemán, Italiano, Polaco
-- **Engine**: Perplexity AI (`sonar-small-online`)
+- **Engine**: Gemini 2.5 Flash (Perplexity retirado en abril; su código legacy sigue en `translate-perplexity.ts`)
 - **Admin Panel**: Edición manual + auto-traducción en `/admin/translations`
 - **Auditoría**: Tabla `translation_log` registra todas las traducciones
 
-📖 **Documentación Completa**: [TRANSLATION_SYSTEM_FINAL.md](./TRANSLATION_SYSTEM_FINAL.md)
+📖 **Histórico**: [docs/archive/TRANSLATION_SYSTEM_FINAL.md](./docs/archive/TRANSLATION_SYSTEM_FINAL.md)
 
 ## 🚀 Calidad y Pruebas
 Este proyecto cuenta con una suite de tests automatizados con **Vitest**:
@@ -56,7 +56,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load la fuente del proyecto (ver `src/app/[locale]/layout.tsx`).
 
 ## Learn More
 

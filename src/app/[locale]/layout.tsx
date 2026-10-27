@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       card: 'summary_large_image',
       title,
       description: ogDescription,
-      images: [`${SITE_URL}/vidahome-logo.png`],
+      images: [`${SITE_URL}/og-default.png`],
     },
   };
 }
