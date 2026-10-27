@@ -1,5 +1,6 @@
 'use server';
 
+import { stripPrivateFields } from '@/lib/utils/privateFields';
 import { PropertyListEntry, PropertyDetails } from '@/types/inmovilla';
 import tiposMap from '@/lib/api/tipos_map.json';
 import localidadesMap from '@/lib/api/localidades_map.json';
@@ -406,7 +407,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
 
         // PRIVACY: strip street address from public data — never expose
         // calle/dir to the website. Only poblacion (city) is public.
-        const { calle: _calle, dir: _dir, ...safeFullData } = fullData as any;
+        const safeFullData = stripPrivateFields(fullData as any);
 
         // Coords duales (2026-05-09): la web NUNCA devuelve coords exactas
         // salvo opt-in explícito del agente (ubicacion_exacta_publica=true).
@@ -439,8 +440,8 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             // Fallback a coords legacy de full_data — también jittered si
             // no hay opt-in. Si tampoco hay coords legacy, no se devuelven
             // y la web cae en geocoding por poblacion.
-            const legacyLat = coerceCoord((safeFullData as { latitud?: unknown }).latitud);
-            const legacyLng = coerceCoord((safeFullData as { longitud?: unknown }).longitud);
+            const legacyLat = coerceCoord((fullData as { latitud?: unknown }).latitud);
+            const legacyLng = coerceCoord((fullData as { longitud?: unknown }).longitud);
             if (legacyLat != null && legacyLng != null) {
                 publicCoords = getPublicCoords({
                     lat: legacyLat,
@@ -503,7 +504,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             deactivated_at: (meta as any).deactivated_at || null,
         };
 
-        return { success: true, data: propertyWithPhotos as PropertyDetails };
+        return { success: true, data: propertyWithPhotos as unknown as PropertyDetails };
     } catch (error: any) {
         console.error('[Actions] getPropertyDetailAction Error:', error);
         return { success: false, error: error.message };
@@ -629,7 +630,7 @@ export async function getFeaturedPropertiesWithDetailsAction(locale: string): Pr
             const cleanPrecio = parseSpanishNumber(meta.precio);
 
             return {
-                ...fullData,
+                ...stripPrivateFields(fullData),
                 cod_ofer: meta.cod_ofer,
                 ref: meta.ref,
                 mainImage: meta.main_photo,
