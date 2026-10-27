@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAdmin } from '@/lib/auth';
 import { translateProperties } from "@/lib/supabase/translate-client";
 
 /**
@@ -26,6 +27,7 @@ interface TranslationResponse {
 export async function translatePropertiesAction(
   propertyIds?: string[]
 ): Promise<TranslationResponse> {
+    if (!(await requireAdmin())) return { success: false, translated: 0, errors: 1, cost_estimate: '0€', message: 'No autorizado' };
   try {
     const result = await translateProperties(propertyIds);
 

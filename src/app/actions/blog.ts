@@ -1,5 +1,6 @@
 'use server';
 
+import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { BlogPost, BlogListParams, BlogCategory } from '@/types/blog';
 
@@ -219,6 +220,7 @@ export async function getAdminBlogPostsAction(
     data?: BlogPost[];
     error?: string;
 }> {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     try {
         const { data, error } = await supabaseAdmin
             .from('blog_posts')
@@ -262,6 +264,7 @@ export async function createBlogPostAction(post: {
     is_published: boolean;
     category_id?: string | null;
 }): Promise<{ success: boolean; data?: BlogPost; error?: string }> {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     try {
         const { data, error } = await supabaseAdmin
             .from('blog_posts')
@@ -309,6 +312,7 @@ export async function updateBlogPostAction(
         published_at?: string | null;
     }
 ): Promise<{ success: boolean; error?: string }> {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     try {
         const { error } = await supabaseAdmin
             .from('blog_posts')
@@ -344,6 +348,7 @@ export async function updateBlogPostAction(
 export async function deleteBlogPostAction(
     id: string
 ): Promise<{ success: boolean; error?: string }> {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     try {
         const { error } = await supabaseAdmin
             .from('blog_posts')
@@ -367,6 +372,7 @@ export async function deleteBlogPostAction(
 export async function uploadBlogImageAction(
     formData: FormData
 ): Promise<{ success: boolean; url?: string; error?: string }> {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     try {
         const file = formData.get('file') as File;
         if (!file) throw new Error('No file provided');

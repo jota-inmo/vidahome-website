@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 import { getAdminSessionSecret } from './adminSessionSecret';
+import { isSessionPayloadFresh } from './adminPath';
 
 /**
  * Verify admin session from cookies.
@@ -22,6 +23,8 @@ export async function requireAdmin(): Promise<boolean> {
     const lastDotIndex = token.lastIndexOf(TOKEN_SEPARATOR);
     const payload = token.substring(0, lastDotIndex);
     const signature = token.substring(lastDotIndex + 1);
+
+    if (!isSessionPayloadFresh(payload)) return false;
 
     const expectedSignature = crypto
         .createHmac('sha256', secret)

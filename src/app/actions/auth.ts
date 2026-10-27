@@ -3,6 +3,8 @@
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 import { getAdminSessionSecret } from '@/lib/adminSessionSecret';
+import { isSessionPayloadFresh } from '@/lib/adminPath';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 // ─── Utilidades de firma criptográfica ───────────────────────────────────────
 // La cookie ya no lleva un valor predecible ('active').
@@ -38,6 +40,8 @@ function verifySessionToken(token: string): boolean {
     const payload = token.substring(0, lastDotIndex);
     const signature = token.substring(lastDotIndex + 1);
 
+    if (!isSessionPayloadFresh(payload)) return false;
+
     // Verificar que la firma es válida
     const expectedSignature = signToken(payload);
 
@@ -55,6 +59,10 @@ function verifySessionToken(token: string): boolean {
 // ─── Acciones públicas ───────────────────────────────────────────────────────
 
 export async function loginAction(password: string) {
+    const rate = await checkRateLimit({ key: 'admin_login', limit: 5, windowMs: 60 * 60 * 1000 });
+    if (!rate.success) {
+        return { success: false, error: 'Demasiados intentos. Inténtalo de nuevo más tarde.' };
+    }
     const adminPass = process.env.ADMIN_PASSWORD;
     if (!adminPass) {
         console.error('[Auth] ADMIN_PASSWORD no está configurado en las variables de entorno.');

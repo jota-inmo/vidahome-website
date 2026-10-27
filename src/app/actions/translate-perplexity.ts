@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getPerplexityModel, PERPLEXITY_CONFIG } from "@/config/perplexity";
 import {
@@ -114,6 +115,7 @@ export async function translatePropertiesAction(
   batchSize: number = 10,
   languages?: string[]
 ): Promise<TranslationResponse> {
+    if (!(await requireAdmin())) return { translated: 0, errors: 1, cost_estimate: '0€', error_details: [{ property_id: '*', error: 'No autorizado' }] };
   const startTime = Date.now();
 
   try {
@@ -279,6 +281,7 @@ export async function updateTranslationAction(
   language: string,
   translatedText: string
 ): Promise<{ success: boolean; error?: string }> {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
   try {
     const supabase = supabaseAdmin;
 

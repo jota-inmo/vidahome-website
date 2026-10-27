@@ -1,5 +1,6 @@
 "use server";
 
+import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { GEMINI_CONFIG, getGeminiApiKey } from "@/config/gemini";
 import {
@@ -116,6 +117,7 @@ export async function translatePropertiesGeminiAction(
   batchSize: number = 3,
   languages?: string[]
 ): Promise<TranslationResponse> {
+    if (!(await requireAdmin())) return { translated: 0, errors: 1, cost_estimate: '0€', error_details: [{ property_id: '*', error: 'No autorizado' }] };
   const startTime = Date.now();
 
   try {

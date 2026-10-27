@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { isAdminPath, isAdminLoginPath, isSessionPayloadFresh } from './lib/adminPath';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -52,20 +53,15 @@ async function verifySessionToken(token: string, secret: string): Promise<boolea
     }
     if (result !== 0) return false;
 
-    // Verificar expiración del token (24 horas)
-    const match = payload.match(/^admin:(\d+)$/);
-    if (!match) return false;
-    const tokenAge = Date.now() - parseInt(match[1], 10);
-    return tokenAge < 24 * 60 * 60 * 1000;
+    return isSessionPayloadFresh(payload);
 }
 
 export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     // Detect if it's an admin page (considering the locale prefix)
-    const pathnameWithoutLocale = pathname.replace(/^\/(es|en)/, '') || '/';
-    const isAdminPage = pathnameWithoutLocale.startsWith('/admin');
-    const isLoginPage = pathnameWithoutLocale === '/admin/login';
+    const isAdminPage = isAdminPath(pathname);
+    const isLoginPage = isAdminLoginPath(pathname);
 
     if (isAdminPage) {
         const sessionCookie = request.cookies.get('admin_session');

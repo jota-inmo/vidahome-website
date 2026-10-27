@@ -1,5 +1,6 @@
 'use server';
 
+import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { getPerplexityModel, PERPLEXITY_CONFIG } from '@/config/perplexity';
 
@@ -17,6 +18,7 @@ interface HeroTranslateResult {
  * Traduce títulos del banner/hero a múltiples idiomas usando Perplexity AI
  */
 export async function translateHeroAction(): Promise<HeroTranslateResult> {
+    if (!(await requireAdmin())) return { success: false, translated: 0, errors: 1, error_details: [{ id: 'auth', error: 'No autorizado' }], cost_estimate: '0€' };
   const perplexityKey = process.env.PERPLEXITY_API_KEY;
 
   if (!perplexityKey) {

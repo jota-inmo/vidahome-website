@@ -5,6 +5,7 @@ import { revalidateTag } from 'next/cache';
 import { requireAdmin } from '@/lib/auth';
 
 export async function getPropertiesForTranslationAction() {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     try {
         // Step 1: Reuse the same fetcher as the catalog
         const { fetchPropertiesAction } = await import('@/app/actions/inmovilla');

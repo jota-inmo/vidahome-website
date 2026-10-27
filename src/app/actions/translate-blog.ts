@@ -1,5 +1,6 @@
 'use server';
 
+import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { GEMINI_CONFIG, getGeminiApiKey } from '@/config/gemini';
 
@@ -94,6 +95,7 @@ async function translateWithGemini(
 export async function translateBlogPostAction(
   postIds?: string[]
 ): Promise<BlogTranslateResult> {
+    if (!(await requireAdmin())) return { success: false, translated: 0, errors: 1, error_details: [{ id: 'auth', error: 'No autorizado' }], cost_estimate: '0€' };
   const apiKey = getGeminiApiKey();
 
   if (!apiKey) {
@@ -236,6 +238,7 @@ export async function translateBlogContentAction(
   error?: string;
   cost_estimate: string;
 }> {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado', cost_estimate: '0€' };
   const apiKey = getGeminiApiKey();
 
   if (!apiKey) {

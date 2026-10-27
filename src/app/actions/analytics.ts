@@ -5,6 +5,7 @@
 
 'use server';
 
+import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export interface DashboardMetrics {
@@ -37,6 +38,7 @@ export interface DashboardMetrics {
 export async function getAnalyticsDashboard(
     days: number = 30
 ): Promise<{ success: boolean; data?: DashboardMetrics; error?: string }> {
+    if (!(await requireAdmin())) return { success: false, error: 'No autorizado' };
     try {
         const fromDate = new Date();
         fromDate.setDate(fromDate.getDate() - days);
