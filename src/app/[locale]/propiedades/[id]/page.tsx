@@ -1,7 +1,11 @@
 import React from 'react';
 import { Metadata, ResolvingMetadata } from 'next';
 import { permanentRedirect } from 'next/navigation';
-import { getPropertyDetailAction } from '@/app/actions';
+import { getPropertyDetailAction as getPropertyDetailUncached } from '@/app/actions';
+import { cache } from 'react';
+
+// generateMetadata y la página piden la misma ficha: React.cache la deduplica por request.
+const getPropertyDetailAction = cache(getPropertyDetailUncached);
 import { PropertyDetailClient } from './PropertyDetailClient';
 import { Link } from '@/i18n/routing';
 import { getTranslations } from 'next-intl/server';

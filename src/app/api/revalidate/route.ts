@@ -32,7 +32,7 @@
  * locale the user viewed, the next request regenerates.
  */
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 const LOCALES = ['es', 'en', 'fr', 'de', 'it', 'pl'];
@@ -74,6 +74,13 @@ export async function POST(req: NextRequest) {
         } catch (err) {
             console.warn('[revalidate] failed for', p, err);
         }
+    }
+
+    // Caché de datos del catálogo (unstable_cache en fetchPropertiesAction).
+    try {
+        revalidateTag('inmovilla_property_list', { expire: 0 });
+    } catch (err) {
+        console.warn('[revalidate] tag failed', err);
     }
 
     return NextResponse.json({ revalidated: true, paths });

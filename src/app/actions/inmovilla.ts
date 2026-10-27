@@ -12,6 +12,8 @@ import { getPublicCoords, coerceCoord } from '@/lib/utils/coords';
 import { encargoToFullDataShape } from '@/lib/utils/encargo-shape';
 import { fillFeatured, FEATURED_COUNT } from '@/lib/utils/featured-fill';
 import { getPublicTenantClient, getPublicTenantContext } from '@/lib/tenantClient';
+import { unstable_cache } from 'next/cache';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
@@ -71,15 +73,45 @@ function getDescriptionKey(locale: string): string {
  * SIMPLIFIED: Fetch properties from Supabase (source of truth)
  * No Inmovilla calls - all data is pre-synced via admin/sync panel
  */
-export async function fetchPropertiesAction(locale: string = 'es'): Promise<{
+type PropertiesResult = {
     success: boolean;
     data?: PropertyListEntry[];
     error?: string;
     isConfigured: boolean;
     meta?: { populations: string[] };
-}> {
+};
+
+/** Tag de la caché del catálogo (invalidable desde /api/revalidate y el admin). */
+const PROPERTY_LIST_TAG = 'inmovilla_property_list';
+/** TTL de la caché de datos del catálogo. Corto: el CRM publica y espera verlo pronto. */
+const PROPERTY_LIST_REVALIDATE_S = 300;
+
+/**
+ * Catálogo público. La consulta (≈400 filas) se cachea por tenant+locale con
+ * `unstable_cache`: el contexto de tenant (headers()) se resuelve FUERA de la
+ * función cacheada, que solo recibe el cliente ya construido por closure.
+ * Los fallos NO se cachean (la función cacheada lanza).
+ */
+export async function fetchPropertiesAction(locale: string = 'es'): Promise<PropertiesResult> {
     try {
-        const supabase = await getPublicTenantClient();
+        const { supabase, tenantId } = await getPublicTenantContext();
+        return await unstable_cache(
+            async () => {
+                const result = await loadPublishedProperties(supabase, locale);
+                if (!result.success) throw new Error(result.error || 'Error loading properties');
+                return result;
+            },
+            ['fetchProperties', tenantId, locale],
+            { revalidate: PROPERTY_LIST_REVALIDATE_S, tags: [PROPERTY_LIST_TAG] },
+        )();
+    } catch (error: any) {
+        console.error('[Actions] fetchPropertiesAction Error:', error);
+        return { success: false, isConfigured: true, error: error.message || 'Error loading properties', data: [] };
+    }
+}
+
+async function loadPublishedProperties(supabase: SupabaseClient, locale: string): Promise<PropertiesResult> {
+    try {
 
         // Visibilidad web:
         //  - Activas: visible_web=true AND nodisponible=false
