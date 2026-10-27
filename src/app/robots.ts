@@ -6,7 +6,8 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: '*',
                 allow: '/',
-                disallow: ['/admin/', '/admin-hero/', '/api/'],
+                // `/*/admin/` cubre /es/admin, /fr/admin… (el prefijo de locale es obligatorio)
+                disallow: ['/admin/', '/*/admin/', '/admin-hero/', '/*/admin-hero/', '/api/'],
             },
             {
                 userAgent: ['GPTBot', 'Google-Extended', 'OAI-SearchBot', 'anthropic-ai'],

@@ -14,13 +14,13 @@ export async function generateMetadata({
 
   const title = t('aboutTitle');
   const description = t('aboutDescription');
-  const path = locale === 'es' ? '/nosotros' : `/${locale}/nosotros`;
+  const path = `/${locale}/nosotros`;
 
   const languages: Record<string, string> = {};
   for (const l of SUPPORTED_LOCALES) {
-    languages[l] = `${SITE_URL}${l === 'es' ? '/nosotros' : `/${l}/nosotros`}`;
+    languages[l] = `${SITE_URL}/${l}/nosotros`;
   }
-  languages['x-default'] = `${SITE_URL}/nosotros`;
+  languages['x-default'] = `${SITE_URL}/es/nosotros`;
 
   return {
     title,

@@ -14,13 +14,13 @@ export async function generateMetadata({
 
   const title = t('sellTitle');
   const description = t('sellDescription');
-  const path = locale === 'es' ? '/vender' : `/${locale}/vender`;
+  const path = `/${locale}/vender`;
 
   const languages: Record<string, string> = {};
   for (const l of SUPPORTED_LOCALES) {
-    languages[l] = `${SITE_URL}${l === 'es' ? '/vender' : `/${l}/vender`}`;
+    languages[l] = `${SITE_URL}/${l}/vender`;
   }
-  languages['x-default'] = `${SITE_URL}/vender`;
+  languages['x-default'] = `${SITE_URL}/es/vender`;
 
   return {
     title,

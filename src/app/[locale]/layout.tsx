@@ -46,16 +46,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const title = t('homeTitle');
   const description = t('homeDescription');
   const ogDescription = t('homeOgDescription');
-  const canonicalPath = locale === 'es' ? '/' : `/${locale}`;
+  const canonicalPath = `/${locale}`;
 
   // hreflang alternates — declares the other locale versions so Google
   // can pick the right one per user region and stops the locales from
   // cannibalising each other.
   const languages: Record<string, string> = {};
   for (const l of SUPPORTED_LOCALES) {
-    languages[l] = `${SITE_URL}${l === 'es' ? '' : `/${l}`}`;
+    languages[l] = `${SITE_URL}/${l}`;
   }
-  languages['x-default'] = SITE_URL;
+  languages['x-default'] = `${SITE_URL}/es`;
 
   return {
     // metadataBase lets Next.js resolve any relative URL in images /
@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       siteName: 'Vidahome',
       images: [
         {
-          url: `${SITE_URL}/vidahome-logo.png`,
+          url: `${SITE_URL}/og-default.png`,
           width: 1200,
           height: 630,
           alt: 'Vidahome',

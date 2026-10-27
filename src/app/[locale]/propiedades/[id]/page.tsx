@@ -51,7 +51,7 @@ const SITE_URL = 'https://www.vidahome.es';
 const SUPPORTED_LOCALES = ['es', 'en', 'fr', 'de', 'it', 'pl'] as const;
 
 function buildLocalePath(locale: string, id: string): string {
-    return locale === 'es' ? `/propiedades/${id}` : `/${locale}/propiedades/${id}`;
+    return `/${locale}/propiedades/${id}`;
 }
 
 interface Props {
@@ -104,7 +104,7 @@ export async function generateMetadata(
     for (const l of SUPPORTED_LOCALES) {
         languages[l] = `${SITE_URL}${buildLocalePath(l, canonical)}`;
     }
-    languages['x-default'] = `${SITE_URL}/propiedades/${canonical}`;
+    languages['x-default'] = `${SITE_URL}/es/propiedades/${canonical}`;
 
     // Cierre por operación dentro del grace: noindex/nofollow para que
     // Google no aprenda la versión "VENDIDO" de la URL — desaparece
@@ -277,8 +277,8 @@ export default async function PropertyDetailPage({ params }: Props) {
     // BreadcrumbList — Home > Propiedades > ficha. Mismas URLs canónicas
     // (SITE_URL + buildLocalePath-style) que ya usa el RealEstateListing de
     // arriba, para no introducir una segunda fuente de verdad de rutas.
-    const homePath = locale === 'es' ? '/' : `/${locale}`;
-    const propertiesPath = locale === 'es' ? '/propiedades' : `/${locale}/propiedades`;
+    const homePath = `/${locale}`;
+    const propertiesPath = `/${locale}/propiedades`;
     const breadcrumbTypeLabel = translatePropertyType(data.tipo_nombre, locale) || t('defaultType');
     const breadcrumbName = `${breadcrumbTypeLabel} ${t('in')} ${data.poblacion || 'La Safor'}`;
     const breadcrumbLd = {

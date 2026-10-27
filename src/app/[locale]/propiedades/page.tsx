@@ -21,13 +21,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const t = await getTranslations({ locale, namespace: 'Metadata' });
     const title = t('propertiesTitle');
     const description = t('propertiesDescription');
-    const path = locale === 'es' ? '/propiedades' : `/${locale}/propiedades`;
+    const path = `/${locale}/propiedades`;
 
     const languages: Record<string, string> = {};
     for (const l of SUPPORTED_LOCALES) {
-        languages[l] = `${SITE_URL}${l === 'es' ? '/propiedades' : `/${l}/propiedades`}`;
+        languages[l] = `${SITE_URL}/${l}/propiedades`;
     }
-    languages['x-default'] = `${SITE_URL}/propiedades`;
+    languages['x-default'] = `${SITE_URL}/es/propiedades`;
 
     return {
         title,
@@ -82,8 +82,8 @@ export default async function PropiedadesPage({ searchParams }: PropiedadesPageP
 
     // BreadcrumbList — Home > Propiedades. Mismo par de URLs que ya calcula
     // generateMetadata() arriba (locale === 'es' sin prefijo).
-    const breadcrumbHomePath = locale === 'es' ? '/' : `/${locale}`;
-    const breadcrumbPropertiesPath = locale === 'es' ? '/propiedades' : `/${locale}/propiedades`;
+    const breadcrumbHomePath = `/${locale}`;
+    const breadcrumbPropertiesPath = `/${locale}/propiedades`;
     const breadcrumbLd = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',

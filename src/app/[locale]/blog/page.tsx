@@ -14,13 +14,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const t = await getTranslations({ locale, namespace: 'Metadata' });
     const title = t('blogTitle');
     const description = t('blogDescription');
-    const path = locale === 'es' ? '/blog' : `/${locale}/blog`;
+    const path = `/${locale}/blog`;
 
     const languages: Record<string, string> = {};
     for (const l of SUPPORTED_LOCALES) {
-        languages[l] = `${SITE_URL}${l === 'es' ? '/blog' : `/${l}/blog`}`;
+        languages[l] = `${SITE_URL}/${l}/blog`;
     }
-    languages['x-default'] = `${SITE_URL}/blog`;
+    languages['x-default'] = `${SITE_URL}/es/blog`;
 
     return {
         title,
@@ -94,7 +94,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                                     <div className="text-xs text-slate-400 mb-2">
                                         {post.published_at
                                             ? new Date(post.published_at).toLocaleDateString(
-                                                  locale === 'es' ? 'es-ES' : 'en-US',
+                                                  locale,
                                                   {
                                                       year: 'numeric',
                                                       month: 'long',

@@ -31,9 +31,9 @@ export async function LocalityLandingPage({ slug }: Props) {
     const allProperties = result.success ? (result.data || []) : [];
     const activeCount = propertiesInLocality(allProperties, locality).length;
 
-    const homePath = locale === 'es' ? '/' : `/${locale}`;
-    const propertiesPath = locale === 'es' ? '/propiedades' : `/${locale}/propiedades`;
-    const localityPath = locale === 'es' ? `/${locality.slug}` : `/${locale}/${locality.slug}`;
+    const homePath = `/${locale}`;
+    const propertiesPath = `/${locale}/propiedades`;
+    const localityPath = `/${locale}/${locality.slug}`;
     const url = `${SITE_URL}${localityPath}`;
 
     const breadcrumbLd = {

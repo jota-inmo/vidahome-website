@@ -91,7 +91,7 @@ export default async function BlogPostPage({
                         {post.published_at && (
                             <time dateTime={post.published_at}>
                                 {new Date(post.published_at).toLocaleDateString(
-                                    locale === 'es' ? 'es-ES' : 'en-US',
+                                    locale,
                                     {
                                         year: 'numeric',
                                         month: 'long',

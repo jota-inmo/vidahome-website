@@ -28,7 +28,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         for (const locale of locales) {
             sitemapEntries.push({
                 url: `${baseUrl}/${locale}${path}`,
-                lastModified: new Date(),
+                // Sin lastModified: no hay fecha real de cambio de las páginas estáticas
+                // y `new Date()` en cada petición le dice a Google que todo cambió siempre.
                 changeFrequency: path === '' ? 'daily' : 'monthly',
                 priority: path === '' ? 1.0 : 0.8,
                 alternates: {
@@ -53,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 for (const locale of locales) {
                     sitemapEntries.push({
                         url: `${baseUrl}/${locale}${path}`,
-                        lastModified: new Date(),
+                        ...(prop.updated_at ? { lastModified: new Date(prop.updated_at) } : {}),
                         changeFrequency: 'weekly',
                         priority: 0.6,
                         alternates: {

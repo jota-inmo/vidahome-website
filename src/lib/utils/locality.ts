@@ -117,13 +117,13 @@ export function buildLocalityMetadata(slug: string, locale: string): Metadata {
     const locality = LOCALITIES[slug];
     const title = `Propiedades en ${locality.displayName} | VidaHome Inmobiliaria`;
     const description = locality.intro;
-    const path = locale === 'es' ? `/${slug}` : `/${locale}/${slug}`;
+    const path = `/${locale}/${slug}`;
 
     const languages: Record<string, string> = {};
     for (const l of SUPPORTED_LOCALES) {
-        languages[l] = `${SITE_URL}${l === 'es' ? `/${slug}` : `/${l}/${slug}`}`;
+        languages[l] = `${SITE_URL}/${l}/${slug}`;
     }
-    languages['x-default'] = `${SITE_URL}/${slug}`;
+    languages['x-default'] = `${SITE_URL}/es/${slug}`;
 
     return {
         title,
