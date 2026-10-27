@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { SellFormState, PropertyType } from '@/types/sell-form';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
+import { getCompanySettingsAction } from '@/app/actions/settings';
 
 // Componentes de pasos
 import { StepsIndicator } from './components/StepsIndicator';
@@ -31,6 +32,13 @@ const INITIAL_STATE: SellFormState = {
 
 export default function VenderPage() {
   const t = useTranslations('Vender');
+  // Teléfono real de la agencia (company_settings); el inicial es el de contacto vigente.
+  const [contactPhone, setContactPhone] = useState('+34659027512');
+  useEffect(() => {
+    getCompanySettingsAction()
+      .then(s => { const p = s.phone.replace(/[^\d+]/g, ''); if (p) setContactPhone(p); })
+      .catch(() => {});
+  }, []);
   const [step, setStep] = useState(1);
   const [formState, setFormState] = useState<SellFormState>(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
@@ -159,7 +167,7 @@ export default function VenderPage() {
             {t('questionsDesc')}
           </p>
           <div className="flex flex-col md:flex-row gap-6 justify-center">
-            <a href="tel:+34961234567" className="px-8 py-3 bg-brand-accent text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">
+            <a href={`tel:${contactPhone}`} className="px-8 py-3 bg-brand-accent text-slate-900 rounded-lg font-medium hover:bg-lime-500 transition-colors">
               {t('callNow')}
             </a>
             <a href="mailto:info@vidahome.es" className="px-8 py-3 border border-white rounded-lg font-medium hover:bg-white hover:text-slate-900 transition-colors">

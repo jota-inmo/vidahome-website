@@ -13,8 +13,8 @@ export const metadata = {
 // SQL directo) se reflejen en producción sin necesidad de redeploy.
 export const revalidate = 60;
 
-export default async function AvisoLegalPage({ params }: { params: { locale: string } }) {
-    const locale = params.locale;
+export default async function AvisoLegalPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
     const page = await getLegalPageAction('legal');
 
     if (!page) {

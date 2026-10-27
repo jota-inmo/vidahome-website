@@ -112,9 +112,10 @@ export async function POST(request: NextRequest) {
         // write: the client carries a host-resolved tenant claim (so the anon
         // INSERT policy passes now and under strict policies) and we stamp
         // `tenant_id` with that same resolved tenant (tenant-2 ready).
+        let savedToDb = true;
         try {
             const { supabase, tenantId } = await getPublicTenantContext();
-            await supabase.from('valuation_leads').insert([
+            const { error: insertError } = await supabase.from('valuation_leads').insert([
                 {
                     tenant_id: tenantId,
                     nombre: contactData.nombre,
@@ -129,15 +130,22 @@ export async function POST(request: NextRequest) {
                     created_at: new Date().toISOString()
                 }
             ]);
+            if (insertError) {
+                savedToDb = false;
+                console.error('[Valuation] valuation_leads insert failed (el email sí salió):', insertError);
+            }
         } catch (supaError) {
-            console.warn('[Valuation] Failed to save lead to Supabase (non-critical):', supaError);
+            savedToDb = false;
+            console.error('[Valuation] Failed to save lead to Supabase:', supaError);
         }
 
         console.log('[Mail] Solicitud enviada correctamente a Inmovilla via Email:', data?.id);
 
         return NextResponse.json({
             success: true,
-            message: 'Solicitud enviada correctamente por email y guardada en base de datos.'
+            message: savedToDb
+                ? 'Solicitud enviada correctamente por email y guardada en base de datos.'
+                : 'Solicitud enviada correctamente por email.'
         });
 
     } catch (error: any) {

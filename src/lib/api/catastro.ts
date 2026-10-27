@@ -240,9 +240,10 @@ export class CatastroClient {
             for (const attempt of attempts) {
                 const numeros = await this.getNumeros(prov, mun, attempt.tv, attempt.nv, attempt.n);
                 if (numeros.length > 0) {
-                    // Priorizar coincidencia exacta en número
+                    // Solo coincidencia exacta de portal: si el usuario indicó número y no
+                    // aparece, seguir con el siguiente intento en vez de tasar OTRO portal.
                     const exactMatch = numeros.find(n => String(n.numero).trim() === String(num).trim());
-                    const matchToUse = exactMatch || numeros[0];
+                    const matchToUse = num ? exactMatch : (exactMatch || numeros[0]);
 
                     if (matchToUse?.rc) {
                         console.log(`[Catastro] searchByAddress (${attempt.label}): RC ${matchToUse.rc}. Buscando inmuebles...`);
@@ -379,8 +380,8 @@ export class CatastroClient {
                         uso,
                         clase: 'Urbano',
                         valorCatastral,
-                        habitaciones: 1,
-                        banos: 1,
+                        habitaciones: 0, // el Catastro no informa de habitaciones/baños: 0 = desconocido
+                        banos: 0,
                         aseos: 0,
                         terraza: false,
                         reformado: false,
@@ -444,8 +445,8 @@ export class CatastroClient {
                     superficie,
                     uso,
                     clase: 'Urbano',
-                    habitaciones: 1,
-                    banos: 1,
+                    habitaciones: 0, // el Catastro no informa de habitaciones/baños: 0 = desconocido
+                    banos: 0,
                     aseos: 0,
                     terraza: false,
                     reformado: false,
@@ -528,8 +529,8 @@ export class CatastroClient {
                 uso,
                 clase: 'Urbano',
                 valorCatastral,
-                habitaciones: 1,
-                banos: 1,
+                habitaciones: 0, // el Catastro no informa de habitaciones/baños: 0 = desconocido
+                banos: 0,
                 aseos: 0,
                 terraza: false,
                 reformado: false,
@@ -620,8 +621,8 @@ export class CatastroClient {
             uso,
             clase,
             valorCatastral,
-            habitaciones: 1,
-            banos: 1,
+            habitaciones: 0, // el Catastro no informa de habitaciones/baños: 0 = desconocido
+            banos: 0,
             aseos: 0,
             terraza: false,
             reformado: false,

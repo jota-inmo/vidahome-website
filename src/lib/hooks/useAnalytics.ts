@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 // Analytics events are posted to a server route that resolves the tenant from the
@@ -71,21 +71,22 @@ interface TrackEventOptions {
     conversionType?: string;
 }
 
+let lastPageViewPath: string | null = null;
+
 export function useAnalytics() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const [locale, setLocale] = useState('es');
-
-    // Extract locale from pathname
-    useEffect(() => {
-        const pathParts = pathname.split('/');
-        if (pathParts[1] && ['es', 'en', 'fr', 'de', 'it', 'pl'].includes(pathParts[1])) {
-            setLocale(pathParts[1]);
-        }
+    // Locale derivado de forma síncrona (con estado, el primer page_view salía siempre como 'es').
+    const locale = useMemo(() => {
+        const first = pathname.split('/')[1];
+        return first && ['es', 'en', 'fr', 'de', 'it', 'pl'].includes(first) ? first : 'es';
     }, [pathname]);
 
-    // Track page view
+    // Track page view — una sola vez por navegación aunque haya N componentes
+    // usando el hook (antes cada tarjeta del catálogo emitía su propio page_view).
     useEffect(() => {
+        if (lastPageViewPath === pathname) return;
+        lastPageViewPath = pathname;
         sendEvent({
             type: 'page_view',
             page_path: pathname,

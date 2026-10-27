@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { PropertyListEntry } from '@/types/inmovilla';
 import { Bed, Bath, Square } from 'lucide-react';
@@ -9,7 +9,6 @@ import { totalBathrooms, bathroomsTooltip } from '@/lib/utils/bathrooms';
 import { useTranslations, useLocale, useFormatter } from 'next-intl';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { propertyLabelParts, buildPropertySlug } from '@/lib/utils/slug';
-import { useAnalytics } from '@/lib/hooks/useAnalytics';
 import { Link } from '@/i18n/routing';
 
 
@@ -24,12 +23,7 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
     // `toLocaleString()` sin locale provocaba hydration mismatch React #418.
     const format = useFormatter();
     const [imageLoaded, setImageLoaded] = useState(false);
-    const { trackPropertyView } = useAnalytics();
-
-    // Track property view on component mount
-    useEffect(() => {
-        trackPropertyView(property.cod_ofer);
-    }, [property.cod_ofer, trackPropertyView]);
+    // property_view se registra solo en la ficha (PropertyDetailClient), no por tarjeta.
 
     // Single source of label composition (shared with slug + sitemap +
     // canonical). tipoEs is langue-neutre; we still translate it for display.
