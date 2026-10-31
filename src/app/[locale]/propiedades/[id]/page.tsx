@@ -176,7 +176,7 @@ export default async function PropertyDetailPage({ params }: Props) {
     const bedrooms = (Number(data.habitaciones) || 0) || undefined;
     const total_baths = (Number(data.banyos) || 0) + (Number(data.aseos) || 0) || undefined;
     const full_baths = Number(data.banyos) || undefined;
-    const floor_size_m2 = data.m_cons || undefined;
+    const floor_size_m2 = data.m_cons || data.m_parcela || undefined;
     const usable_size_m2 = data.m_utiles || undefined;
     const year_built = (data as { antiguedad?: number | string }).antiguedad || undefined;
     const url = `${SITE_URL}${buildLocalePath(locale, canonicalSlug)}`;

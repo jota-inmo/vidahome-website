@@ -95,6 +95,10 @@ export function encargoToFullDataShape(
         aseos: numOrUndef(merged.num_aseos),
         m_cons: numOrUndef(merged.loc_m2_const),
         m_util: numOrUndef(merged.loc_m2_util),
+        // Superficie de parcela (terrenos/solares) — sin esto la ficha
+        // mostraba "0 m²" para un terreno porque m_cons es legítimamente
+        // 0 cuando no hay nada construido (incidente ref 3065 2026-10-31).
+        m_parcela: numOrUndef(merged.res_parcela),
         // Clave `antiguedad`: el resto del repo (PropertyDetailClient,
         // page.tsx JSON-LD) lee `antiguedad` como el AÑO de construcción
         // — misnomer histórico de Inmovilla, conservado por compat. El

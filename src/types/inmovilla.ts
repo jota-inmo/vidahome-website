@@ -88,6 +88,7 @@ export interface PropertyDetails {
     key_tipo: number;
     m_cons?: number;
     m_utiles?: number;
+    m_parcela?: number;
     terraza?: number | boolean;
     ascensor?: number | boolean;
     piscina_com?: number | boolean;

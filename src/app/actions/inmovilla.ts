@@ -202,6 +202,7 @@ async function loadPublishedProperties(supabase: SupabaseClient, locale: string)
             const banyos = Number(fullData.banyos) || 0;
             const aseos = Number(fullData.aseos) || 0;
             const m_cons = Number(fullData.m_cons) || 0;
+            const m_parcela = Number(fullData.m_parcela) || 0;
 
             // Apply locale-specific description, fallback to Spanish
             const localizedDesc = descriptions[descKey] || descriptions.description_es || fullData.descripciones || '';
@@ -233,6 +234,7 @@ async function loadPublishedProperties(supabase: SupabaseClient, locale: string)
                 banyos,
                 aseos,
                 m_cons,
+                m_parcela,
                 descripciones: localizedDesc,
                 // Misma prioridad que el detalle (getPropertyDetailAction) para
                 // que lista y ficha resuelvan un tipo_nombre IDÉNTICO — el slug

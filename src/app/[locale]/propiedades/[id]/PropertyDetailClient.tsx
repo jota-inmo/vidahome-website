@@ -183,7 +183,14 @@ export function PropertyDetailClient({ property: initialProperty }: PropertyDeta
     };
 
     const features_data = [
-        { icon: <Square size={20} />, label: t('surface'), value: `${property.m_cons} m²` },
+        {
+            icon: <Square size={20} />,
+            label: t('surface'),
+            // m_cons es 0 en terrenos/solares sin nada construido — en ese
+            // caso la superficie real es la de la parcela (incidente ref
+            // 3065 2026-10-31).
+            value: `${property.m_cons || property.m_parcela || 0} m²`,
+        },
         {
             icon: <BedDouble size={20} />,
             label: t('bedrooms'),

@@ -145,7 +145,9 @@ export const LuxuryPropertyCard = ({ property }: LuxuryPropertyCardProps) => {
                         </div>
                         <div className="flex items-center gap-3">
                             <Square size={14} strokeWidth={1.5} />
-                            <span className="text-sm font-light">{property.m_cons ? `${property.m_cons} m²` : '-'}</span>
+                            <span className="text-sm font-light">
+                                {(property.m_cons || property.m_parcela) ? `${property.m_cons || property.m_parcela} m²` : '-'}
+                            </span>
                         </div>
                     </div>
 
