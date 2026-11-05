@@ -12,6 +12,7 @@ import { getTranslations } from 'next-intl/server';
 import { translatePropertyType } from '@/lib/utils/property-types';
 import { buildPropertySlug, extractRef } from '@/lib/utils/slug';
 import { safeJsonLd } from '@/lib/utils/jsonLd';
+import { toOgImageUrl } from '@/lib/utils/ogImage';
 
 // Decode the route param defensively for the canonical comparison — a
 // malformed %-sequence must not throw; the canonical is pure [a-z0-9-]+ref
@@ -96,7 +97,10 @@ export async function generateMetadata(
         ? cleanedDesc.substring(0, 160) + '...'
         : `${typeLabel} ${t('in')} ${location}. Especialistas en la zona de La Safor.`;
 
-    const images = prop.fotos_lista?.slice(0, 1) || [];
+    // Original sin redimensionar (hasta 4+ MB) → WhatsApp/Facebook descartan
+    // el og:image en silencio. Servido vía el optimizador de Next (ver
+    // ogImage.ts) para que la previsualización SÍ muestre la foto.
+    const images = (prop.fotos_lista?.slice(0, 1) || []).map((u) => toOgImageUrl(SITE_URL, u));
     const path = buildLocalePath(locale, canonical);
     const url = `${SITE_URL}${path}`;
 
