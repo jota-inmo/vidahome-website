@@ -52,6 +52,7 @@
 - **Caché del catálogo**: `fetchPropertiesAction` usa `unstable_cache` (clave `tenant+locale`, TTL 5 min, tag `inmovilla_property_list`). Los `export const revalidate` de las páginas NO hacen estático el render mientras `getPublicTenantClient()` lea `headers()`: el ahorro real viene de esta caché de datos.
 - **SEO**: `localePrefix: 'always'` → el canonical, hreflang y x-default de `es` llevan SIEMPRE `/es` (las URLs sin prefijo redirigen 307).
 - **Next.js 15+ params**: `params` es Promise — siempre `await params` en páginas dinámicas.
+- **`og:image` de una ficha NUNCA es la foto cruda de `fotos_lista`** (fix 2026-11-05, incidente JC: la previsualización de WhatsApp mostraba solo título+descripción, sin foto, ref 2998). `fotos_lista` apunta a Storage/Cloudinary tal cual se migró/subió — hay fotos de hasta 4000×2252 / 2,5 MB directas de un móvil, sin pasar por ningún pipeline de compresión. WhatsApp/Facebook descartan en silencio una imagen así de grande al generar el preview. `src/lib/utils/ogImage.ts::toOgImageUrl()` envuelve la URL en `/_next/image?w=1200&q=75` (ya cachea `public, max-age=31536000` en vez del `private, no-cache` que sirve el Storage de Supabase) — usado en `generateMetadata` de `/propiedades/[id]/page.tsx`. La galería de la ficha sigue sirviendo la foto original a tamaño completo; solo el og:image pasa por el optimizador. Si se añade `og:image` dinámico en otra página (listado, blog), reusar este helper en vez de la URL cruda.
 - **Naming**: 
   - React Components: PascalCase.
   - Files/Folders: kebab-case.
