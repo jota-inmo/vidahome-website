@@ -84,6 +84,21 @@ Admin routes are protected via `requireAdmin()` check in Server Actions and Midd
 - **Nombres parciales**: si el nombre completo de calle falla, prueba progresivamente versiones más cortas.
 - **Provincias/municipios**: API routes (no server actions) para fiabilidad en client components.
 
+## 🌐 GEO / AI Search (auditoría externa 2026-11-11)
+
+JC pasó un informe de Gemini sobre cómo mejorar que ChatGPT/Perplexity/Claude citen o recomienden VidaHome. Verificado punto por punto contra el repo antes de actuar — la mayoría ya estaba implementado, Gemini se equivocaba en varias afirmaciones. Hecho (commit `7644247`, en prod):
+
+- **`src/components/GlobalSchema.tsx`**: añadido `aggregateRating` (5,0 / 146 reseñas — reusa `GOOGLE_RATING_DISPLAY`/`GOOGLE_REVIEW_COUNT` de `src/data/googleReviews.ts`, nunca un número nuevo) y `memberOf` APIVA nº0236 (dato real, ya existía en `messages/es.json::apivaBadge`, solo faltaba en el schema). Enlace al perfil de Google añadido a `sameAs`.
+- **`src/app/robots.ts`**: añadidos `ClaudeBot`/`PerplexityBot` explícitos junto a los que ya había (`GPTBot`, `Google-Extended`, `OAI-SearchBot`, `anthropic-ai`).
+- Lo que Gemini decía que faltaba y ya existía: el schema de ficha (`propiedades/[id]/page.tsx`) ya es `RealEstateListing` (no `Product` genérico) con precio/m²/habitaciones/geo/amenities; hreflang ya implementado en varias páginas; `robots.txt` ya respondía 200 con curl normal (el "error de permisos" que reportaba Gemini era un fallo interno de su propia herramienta de scraping, no del sitio — lo confirmó la propia Gemini tras pedirle que repitiera la comprobación).
+
+**⚠️ Hallazgo real, no relacionado con el código**: `robots.txt` y la portada devolvían **403 con `X-Vercel-Mitigated: deny`** específicamente para las User-Agent `GPTBot`/`ClaudeBot`/`PerplexityBot` (con UA normal o Googlebot, 200 sin problema). Causa: **Vercel → proyecto `vidahome-website` → Firewall → Rules → regla "AI Bots"**, con la sub-regla "AI Crawlers" en **Deny** por defecto (independiente del código, invisible desde `robots.txt`, y ni siquiera visible vía la API de Firewall normal — devuelve 404 "Seawall Config not found" porque esta sección de reglas nombradas de Vercel es distinta del WAF custom). JC lo cambió a "Allow" desde el dashboard el 2026-11-11 — verificado con curl simulando las 6 UA, todas 200. Dejar "AI Assistants" en "Log" (no bloquea, solo registra). **Si esto se repite en otro proyecto Vercel (Yolanda, landing Okevis…), mirar aquí primero.**
+
+**Aparcado, no accionable desde código (petición JC, 2026-11-11)** — el siguiente escalón de GEO depende de autoridad de marca externa, no de más código:
+1. **Digital PR**: perfiles activos y bien valorados en Idealista/Fotocasa/Habitaclia/Green-Acres/Kyero/ThinkSpain (ya existen, mantenerlos); menciones en prensa local/regional como fuente experta del mercado de Gandía/La Safor.
+2. **Reseñas multilingües**: fomentar que clientes extranjeros (polacos, británicos, franceses) detallen en Google Reviews la localidad (Gandía Playa, Grau, Daimús) y el idioma de atención — refuerza la asociación semántica para LLMs que responden en ese idioma.
+3. **Blog con contenido conversacional GEO** (la sección ya existe, SSR, `blog_posts`/`blog_categories`/`blog_tags`): escribir artículos que respondan preguntas tipo pregunta real, no keywords sueltas — ej. "¿qué impuestos paga un no residente al comprar en Gandía?", "diferencias entre vivir en el Grau y en la Playa en invierno", en los idiomas que ya cubre la web (es/en/fr/de/it/pl). Pendiente de que alguien redacte el contenido — Claude puede generar una lista de títulos concretos cuando se retome.
+
 ## 🔗 Repository Context
 This project is part of a decoupling strategy from Inmovilla's frontend, moving towards a bespoke SaaS solution while maintaining the CRM as the backend source.
 
