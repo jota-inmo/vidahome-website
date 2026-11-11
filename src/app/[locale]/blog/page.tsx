@@ -3,19 +3,38 @@ import Image from 'next/image';
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { getBlogPostsAction } from '@/app/actions/blog';
+import { Link } from '@/i18n/routing';
+import { plainDescription } from '@/lib/blog/markdown-utils';
 
 export const revalidate = 60; // revalidate every 60 seconds
 
 const SITE_URL = 'https://www.vidahome.es';
 const SUPPORTED_LOCALES = ['es', 'en', 'fr', 'de', 'it', 'pl'] as const;
+const PAGE_SIZE = 12;
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+type SearchParams = Promise<{ page?: string }>;
+
+function parsePage(raw?: string): number {
+    const n = Number.parseInt(raw ?? '1', 10);
+    return Number.isFinite(n) && n > 1 ? n : 1;
+}
+
+export async function generateMetadata({
+    params,
+    searchParams,
+}: {
+    params: Promise<{ locale: string }>;
+    searchParams: SearchParams;
+}): Promise<Metadata> {
     const { locale } = await params;
+    const page = parsePage((await searchParams).page);
     const t = await getTranslations({ locale, namespace: 'Metadata' });
     const title = t('blogTitle');
     const description = t('blogDescription');
     const path = `/${locale}/blog`;
+    const canonical = page > 1 ? `${SITE_URL}${path}?page=${page}` : `${SITE_URL}${path}`;
 
+    // hreflang solo en la primera página: las siguientes no tienen equivalente fijo por idioma.
     const languages: Record<string, string> = {};
     for (const l of SUPPORTED_LOCALES) {
         languages[l] = `${SITE_URL}/${l}/blog`;
@@ -26,13 +45,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         title,
         description,
         alternates: {
-            canonical: `${SITE_URL}${path}`,
-            languages,
+            canonical,
+            ...(page === 1 ? { languages } : {}),
         },
         openGraph: {
             title,
             description,
-            url: `${SITE_URL}${path}`,
+            url: canonical,
             siteName: 'Vidahome',
             type: 'website',
         },
@@ -44,10 +63,18 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     };
 }
 
-export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function BlogPage({
+    params,
+    searchParams,
+}: {
+    params: Promise<{ locale: string }>;
+    searchParams: SearchParams;
+}) {
     const { locale } = await params;
+    const page = parsePage((await searchParams).page);
     const t = await getTranslations('Blog');
-    const result = await getBlogPostsAction(locale, 1, 10);
+    const result = await getBlogPostsAction(locale, page, PAGE_SIZE);
+    const totalPages = Math.max(1, Math.ceil((result.total ?? 0) / PAGE_SIZE));
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
@@ -81,7 +108,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                                     <div className="relative w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 overflow-hidden">
                                         <Image
                                             src={post.featured_image_url}
-                                            alt={post.title}
+                                            alt={post.featured_image_alt || post.title}
                                             fill
                                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             className="object-cover group-hover:scale-105 transition-transform"
@@ -92,16 +119,15 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                                 {/* Content */}
                                 <div className="p-6">
                                     <div className="text-xs text-slate-400 mb-2">
-                                        {post.published_at
-                                            ? new Date(post.published_at).toLocaleDateString(
-                                                  locale,
-                                                  {
-                                                      year: 'numeric',
-                                                      month: 'long',
-                                                      day: 'numeric',
-                                                  }
-                                              )
-                                            : 'Not published'}
+                                        {post.published_at &&
+                                            new Date(post.published_at).toLocaleDateString(
+                                                locale,
+                                                {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                }
+                                            )}
                                     </div>
 
                                     <h3 className="text-lg font-serif mb-3 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
@@ -109,7 +135,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                                     </h3>
 
                                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-3">
-                                        {post.excerpt || post.content.substring(0, 150)}...
+                                        {post.excerpt || plainDescription(post.content, 150)}
                                     </p>
 
                                     <a
@@ -132,6 +158,39 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                             {t('noPostsDesc') || 'Pronto habrá contenido interesante...'}
                         </p>
                     </div>
+                )}
+
+                {totalPages > 1 && (
+                    <nav
+                        aria-label="Blog"
+                        className="mt-16 flex items-center justify-between gap-4 text-sm"
+                    >
+                        {page > 1 ? (
+                            <Link
+                                href={page === 2 ? '/blog' : `/blog?page=${page - 1}`}
+                                rel="prev"
+                                className="font-medium hover:underline underline-offset-4"
+                            >
+                                ← {t('prevPage')}
+                            </Link>
+                        ) : (
+                            <span />
+                        )}
+                        <span className="text-slate-500">
+                            {t('pageOf', { page, total: totalPages })}
+                        </span>
+                        {page < totalPages ? (
+                            <Link
+                                href={`/blog?page=${page + 1}`}
+                                rel="next"
+                                className="font-medium hover:underline underline-offset-4"
+                            >
+                                {t('nextPage')} →
+                            </Link>
+                        ) : (
+                            <span />
+                        )}
+                    </nav>
                 )}
             </div>
         </div>

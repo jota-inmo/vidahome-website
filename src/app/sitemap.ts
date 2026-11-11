@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { fetchPropertiesAction } from '@/app/actions';
+import { getBlogSitemapEntriesAction } from '@/app/actions/blog';
 import { routing } from '@/i18n/routing';
 import { buildPropertySlug } from '@/lib/utils/slug';
 
@@ -15,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         '/vender',
         '/contacto',
         '/nosotros',
+        '/blog',
         // Landings de localidad (Fase 2 plan SEO/GEO 2026-08-14) — solo las
         // que superan el gate de inventario real en src/lib/utils/locality.ts.
         '/oliva',
@@ -68,6 +70,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
     } catch (error) {
         console.error('Error generating sitemap properties:', error);
+    }
+
+    // 3. Artículos del blog publicados. Una entrada por idioma y sin `alternates`:
+    // las versiones de un mismo artículo en otros idiomas no están enlazadas en la
+    // base de datos, y sus slugs son distintos, así que no hay hreflang que declarar.
+    try {
+        const blog = await getBlogSitemapEntriesAction();
+        if (blog.success && blog.data) {
+            for (const post of blog.data) {
+                const lastModified = post.updated_at ?? post.published_at;
+                sitemapEntries.push({
+                    url: `${baseUrl}/${post.locale}/blog/${post.slug}`,
+                    ...(lastModified ? { lastModified: new Date(lastModified) } : {}),
+                    changeFrequency: 'monthly',
+                    priority: 0.6,
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error generating sitemap blog posts:', error);
     }
 
     return sitemapEntries;

@@ -170,7 +170,14 @@
         "description": "Artículos sobre propiedades, mercado inmobiliario y consejos para compradores en Gandía, La Safor y Costa Valenciana.",
         "readMore": "Leer más",
         "noPosts": "No hay posts disponibles aún",
-        "noPostsDesc": "Pronto habrá contenido interesante..."
+        "noPostsDesc": "Pronto habrá contenido interesante...",
+        "backToBlog": "Volver al blog",
+        "by": "Por {author}",
+        "tags": "Etiquetas:",
+        "moreArticles": "Más artículos",
+        "prevPage": "Anterior",
+        "nextPage": "Siguiente",
+        "pageOf": "Página {page} de {total}"
     },
     "Vender": {
         "subtitle": "Solicita tu Valoración",

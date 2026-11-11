@@ -170,7 +170,14 @@
         "description": "Artikel über Immobilien, den Immobilienmarkt und Tipps für Käufer in Gandía, La Safor und an der Costa Valenciana.",
         "readMore": "Mehr lesen",
         "noPosts": "Noch keine Artikel verfügbar",
-        "noPostsDesc": "Interessanter Inhalt kommt bald..."
+        "noPostsDesc": "Interessanter Inhalt kommt bald...",
+        "backToBlog": "Zurück zum Blog",
+        "by": "Von {author}",
+        "tags": "Schlagwörter:",
+        "moreArticles": "Weitere Artikel",
+        "prevPage": "Zurück",
+        "nextPage": "Weiter",
+        "pageOf": "Seite {page} von {total}"
     },
     "Vender": {
         "subtitle": "Bewertung anfordern",
