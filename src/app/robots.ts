@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
                 disallow: ['/admin/', '/*/admin/', '/admin-hero/', '/*/admin-hero/', '/api/'],
             },
             {
-                userAgent: ['GPTBot', 'Google-Extended', 'OAI-SearchBot', 'anthropic-ai'],
+                userAgent: ['GPTBot', 'Google-Extended', 'OAI-SearchBot', 'anthropic-ai', 'ClaudeBot', 'PerplexityBot'],
                 allow: '/',
             }
         ],

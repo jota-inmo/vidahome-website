@@ -1,5 +1,6 @@
 import React from 'react';
 import { safeJsonLd } from '@/lib/utils/jsonLd';
+import { GOOGLE_RATING_DISPLAY, GOOGLE_REVIEW_COUNT, GOOGLE_PROFILE_URL } from '@/data/googleReviews';
 
 export function GlobalSchema() {
     const agentSchema = {
@@ -43,6 +44,21 @@ export function GlobalSchema() {
         "knowsLanguage": ["es", "en", "fr", "de", "it", "pl"],
         "priceRange": "€€€",
         "currenciesAccepted": "EUR",
+        // APIVA = Asociación Provincial de Agentes Inmobiliarios de Valencia.
+        // Nº real tomado de messages/es.json (apivaBadge) — no inventado.
+        "memberOf": {
+            "@type": "Organization",
+            "name": "APIVA",
+            "identifier": "0236"
+        },
+        // reviewCount/ratingValue vienen de src/data/googleReviews.ts (fuente
+        // única ya curada a mano por JC) — nunca un número nuevo aquí.
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": GOOGLE_RATING_DISPLAY.replace(',', '.'),
+            "reviewCount": GOOGLE_REVIEW_COUNT,
+            "bestRating": "5"
+        },
         "openingHoursSpecification": [
             {
                 "@type": "OpeningHoursSpecification",
@@ -67,7 +83,8 @@ export function GlobalSchema() {
             "https://www.instagram.com/vidahome/",
             "https://www.facebook.com/VidaHome.es/",
             "https://www.youtube.com/channel/UCU1h15pIZyix1JecTuINHeQ",
-            "https://www.idealista.com/pro/vidahome/"
+            "https://www.idealista.com/pro/vidahome/",
+            GOOGLE_PROFILE_URL
         ]
     };
 
