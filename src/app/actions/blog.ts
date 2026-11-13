@@ -78,6 +78,87 @@ export async function getBlogPostBySlugAction(
 }
 
 /**
+ * Otros artículos publicados del mismo idioma para el bloque "Más artículos".
+ * Los de la misma categoría van primero; el resto, por fecha.
+ */
+export async function getRelatedBlogPostsAction(
+    locale: string,
+    excludeId: string,
+    categoryId?: string | null,
+    limit: number = 3
+): Promise<{
+    success: boolean;
+    data?: Pick<BlogPost, 'id' | 'title' | 'slug' | 'excerpt' | 'featured_image_url' | 'featured_image_alt' | 'published_at'>[];
+    error?: string;
+}> {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('blog_posts')
+            .select('id, title, slug, excerpt, featured_image_url, featured_image_alt, published_at, category_id')
+            .eq('locale', locale)
+            .eq('is_published', true)
+            .neq('id', excludeId)
+            .order('published_at', { ascending: false })
+            .limit(24);
+
+        if (error) throw error;
+
+        const rows = (data || []) as Array<
+            Pick<BlogPost, 'id' | 'title' | 'slug' | 'excerpt' | 'featured_image_url' | 'featured_image_alt' | 'published_at'> & {
+                category_id?: string | null;
+            }
+        >;
+        const sameCategory = categoryId ? rows.filter((r) => r.category_id === categoryId) : [];
+        const rest = rows.filter((r) => !sameCategory.includes(r));
+
+        return {
+            success: true,
+            data: [...sameCategory, ...rest].slice(0, limit).map((r) => ({
+                id: r.id,
+                title: r.title,
+                slug: r.slug,
+                excerpt: r.excerpt,
+                featured_image_url: r.featured_image_url,
+                featured_image_alt: r.featured_image_alt,
+                published_at: r.published_at,
+            })),
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Error fetching related posts',
+        };
+    }
+}
+
+/**
+ * Artículos publicados de todos los idiomas, solo lo necesario para el sitemap.
+ */
+export async function getBlogSitemapEntriesAction(): Promise<{
+    success: boolean;
+    data?: Array<{ locale: string; slug: string; updated_at: string | null; published_at: string | null }>;
+    error?: string;
+}> {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('blog_posts')
+            .select('locale, slug, updated_at, published_at')
+            .eq('is_published', true)
+            .order('published_at', { ascending: false })
+            .limit(5000);
+
+        if (error) throw error;
+
+        return { success: true, data: data || [] };
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Error fetching blog sitemap entries',
+        };
+    }
+}
+
+/**
  * Get all categories for a locale
  */
 export async function getBlogCategoriesAction(

@@ -170,7 +170,14 @@
         "description": "Articles about properties, the real estate market and advice for buyers in Gandía, La Safor and the Costa Valenciana.",
         "readMore": "Read more",
         "noPosts": "No posts available yet",
-        "noPostsDesc": "Interesting content coming soon..."
+        "noPostsDesc": "Interesting content coming soon...",
+        "backToBlog": "Back to the blog",
+        "by": "By {author}",
+        "tags": "Tags:",
+        "moreArticles": "More articles",
+        "prevPage": "Previous",
+        "nextPage": "Next",
+        "pageOf": "Page {page} of {total}"
     },
     "Vender": {
         "subtitle": "Request Your Valuation",
