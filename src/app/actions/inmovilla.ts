@@ -14,6 +14,7 @@ import { fillFeatured, FEATURED_COUNT } from '@/lib/utils/featured-fill';
 import { getPublicTenantClient, getPublicTenantContext } from '@/lib/tenantClient';
 import { unstable_cache } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { publicPhotoUrls, PUBLIC_PHOTO_COLUMNS, type PublicPhotoRow } from '@/lib/publishedPhoto';
 
 /** Resolve tipo name from key_tipo using the master map */
 function resolveTipo(details: any): string {
@@ -282,7 +283,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
         const supabase = await getPublicTenantClient();
 
         const asString = String(idOrRef).trim();
-        const SELECT_COLS = 'cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value, pub_overrides, tipo, precio, source, deactivation_reason, deactivated_at';
+        const SELECT_COLS = 'cod_ofer, ref, full_data, descriptions, photos, main_photo, poblacion, nodisponible, visible_web, energy_label, energy_consumption, emissions_label, emissions_value, pub_overrides, tipo, precio, source, deactivation_reason, deactivated_at, fotos_marca_agua';
 
         // Try lookup by ref first (CRM source-of-truth, every URL minted by
         // the new wizard uses ref). maybeSingle so a miss doesn't throw.
@@ -407,7 +408,7 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
             // src/services/photoService.ts).
             const { data: cloudinaryFotos } = await supabase
                 .from('fotos_inmuebles')
-                .select('url_cloudinary, url_storage')
+                .select(PUBLIC_PHOTO_COLUMNS)
                 .eq('ref', meta.ref)
                 .or('visible.is.null,visible.eq.true')
                 .order('orden', { ascending: true });
@@ -418,17 +419,15 @@ export async function getPropertyDetailAction(idOrRef: number | string, locale: 
                 : (cloudinaryCount / inmovillaCount) >= PHOTO_COVERAGE_THRESHOLD;
 
             if (coverageOk && cloudinaryFotos && cloudinaryFotos.length > 0) {
+                // Misma regla que el CRM (2026-11-26): fotos de IA solo con su
+                // rótulo «Recreación virtual», y marca de agua si la ficha la tiene.
                 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-                const resolvePhotoUrl = (row: { url_storage?: string | null; url_cloudinary?: string | null }): string => {
-                    if (row.url_storage && supabaseUrl) {
-                        return `${supabaseUrl}/storage/v1/object/public/property-photos/${row.url_storage}`;
-                    }
-                    return row.url_cloudinary ?? '';
-                };
-                fotos_lista = cloudinaryFotos
-                    .map((f: any) => resolvePhotoUrl(f))
-                    .filter((url: string) => url.length > 0);
-                main_photo = fotos_lista[0] ?? null;
+                const marcaAgua = (meta as { fotos_marca_agua?: boolean | null }).fotos_marca_agua === true;
+                const urls = publicPhotoUrls(cloudinaryFotos as PublicPhotoRow[], marcaAgua, supabaseUrl);
+                if (urls.length > 0) {
+                    fotos_lista = urls;
+                    main_photo = urls[0];
+                }
             }
         }
 
